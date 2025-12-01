@@ -27,6 +27,7 @@ services:
     environment:
       - DATABASE_URL=sqlite:////app/data/budget.db
       - FLASK_ENV=production
+      - DEEPSEEK_API_KEY=sk-c61aa53eae964146a876ec6ed091c3af
     volumes:
       - budget-data:/app/data
     networks:
