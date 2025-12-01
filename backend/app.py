@@ -107,6 +107,21 @@ class CreditCard(db.Model):
     
     account = db.relationship('Account')
 
+class InvestmentTransaction(db.Model):
+    """История операций с инвестициями"""
+    id = db.Column(db.Integer, primary_key=True)
+    investment_id = db.Column(db.Integer, db.ForeignKey('investment.id'))
+    transaction_type = db.Column(db.String(20), nullable=False)  # buy, sell, dividend
+    quantity = db.Column(db.Float, nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    total_amount = db.Column(db.Float, nullable=False)
+    commission = db.Column(db.Float, default=0)
+    date = db.Column(db.Date, default=date.today)
+    notes = db.Column(db.String(255), default='')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    investment = db.relationship('Investment', backref='transactions')    
+
 class Credit(db.Model):
     """Потребительские кредиты"""
     id = db.Column(db.Integer, primary_key=True)
@@ -1729,6 +1744,27 @@ def get_investments():
         profit = current_value - invested
         profit_percent = (profit / invested * 100) if invested > 0 else 0
         
+        # Получаем историю транзакций
+        transactions = InvestmentTransaction.query.filter_by(
+            investment_id=i.id
+        ).order_by(InvestmentTransaction.date.desc()).all()
+        
+        transactions_data = [{
+            'id': t.id,
+            'type': t.transaction_type,
+            'quantity': t.quantity,
+            'price': t.price,
+            'total_amount': t.total_amount,
+            'commission': t.commission,
+            'date': t.date.isoformat(),
+            'notes': t.notes
+        } for t in transactions]
+        
+        # Статистика покупок
+        buy_transactions = [t for t in transactions if t.transaction_type == 'buy']
+        total_bought = sum(t.quantity for t in buy_transactions)
+        total_spent = sum(t.total_amount + t.commission for t in buy_transactions)
+        
         result.append({
             'id': i.id,
             'account_id': i.account_id,
@@ -1746,7 +1782,11 @@ def get_investments():
             'profit_percent': round(profit_percent, 2),
             'dividends_received': i.dividends_received,
             'total_return': round(profit + i.dividends_received, 2),
-            'last_updated': i.last_updated.isoformat()
+            'last_updated': i.last_updated.isoformat(),
+            'transactions': transactions_data,
+            'transactions_count': len(transactions),
+            'total_bought_quantity': total_bought,
+            'total_spent': round(total_spent, 2)
         })
     
     return jsonify(result)
@@ -1754,6 +1794,38 @@ def get_investments():
 @app.route('/api/investments', methods=['POST'])
 def create_investment():
     data = request.json
+    
+    # Проверяем, есть ли уже такой тикер на этом счёте
+    existing = Investment.query.filter_by(
+        account_id=data['account_id'],
+        ticker=data['ticker'].upper()
+    ).first()
+    
+    if existing:
+        # Добавляем к существующей позиции
+        old_total = existing.quantity * existing.avg_buy_price
+        new_total = data['quantity'] * data['avg_buy_price']
+        existing.quantity += data['quantity']
+        existing.avg_buy_price = (old_total + new_total) / existing.quantity
+        existing.current_price = data.get('current_price', data['avg_buy_price'])
+        existing.last_updated = datetime.utcnow()
+        
+        # Записываем транзакцию
+        trans = InvestmentTransaction(
+            investment_id=existing.id,
+            transaction_type='buy',
+            quantity=data['quantity'],
+            price=data['avg_buy_price'],
+            total_amount=data['quantity'] * data['avg_buy_price'],
+            commission=data.get('commission', 0),
+            date=datetime.strptime(data['date'], '%Y-%m-%d').date() if data.get('date') else date.today(),
+            notes=data.get('notes', '')
+        )
+        db.session.add(trans)
+        db.session.commit()
+        
+        return jsonify({'id': existing.id, 'message': 'Позиция пополнена'}), 200
+    
     investment = Investment(
         account_id=data['account_id'],
         ticker=data['ticker'].upper(),
@@ -1766,7 +1838,22 @@ def create_investment():
         sector=data.get('sector', '')
     )
     db.session.add(investment)
+    db.session.flush()  # Получаем ID
+    
+    # Записываем первую транзакцию покупки
+    trans = InvestmentTransaction(
+        investment_id=investment.id,
+        transaction_type='buy',
+        quantity=data['quantity'],
+        price=data['avg_buy_price'],
+        total_amount=data['quantity'] * data['avg_buy_price'],
+        commission=data.get('commission', 0),
+        date=datetime.strptime(data['date'], '%Y-%m-%d').date() if data.get('date') else date.today(),
+        notes=data.get('notes', 'Первая покупка')
+    )
+    db.session.add(trans)
     db.session.commit()
+    
     return jsonify({'id': investment.id, 'message': 'Инвестиция добавлена'}), 201
 
 @app.route('/api/investments/<int:id>', methods=['PUT'])
@@ -1794,6 +1881,7 @@ def buy_investment(id):
     
     quantity = data['quantity']
     price = data['price']
+    commission = data.get('commission', 0)
     
     total_invested = investment.quantity * investment.avg_buy_price + quantity * price
     investment.quantity += quantity
@@ -1801,12 +1889,26 @@ def buy_investment(id):
     investment.current_price = price
     investment.last_updated = datetime.utcnow()
     
+    # Записываем транзакцию
+    trans = InvestmentTransaction(
+        investment_id=id,
+        transaction_type='buy',
+        quantity=quantity,
+        price=price,
+        total_amount=quantity * price,
+        commission=commission,
+        date=datetime.strptime(data['date'], '%Y-%m-%d').date() if data.get('date') else date.today(),
+        notes=data.get('notes', '')
+    )
+    db.session.add(trans)
     db.session.commit()
+    
     return jsonify({
         'message': 'Покупка добавлена',
         'quantity': investment.quantity,
         'avg_buy_price': round(investment.avg_buy_price, 2)
     })
+
 
 @app.route('/api/investments/<int:id>/sell', methods=['POST'])
 def sell_investment(id):
@@ -1815,14 +1917,28 @@ def sell_investment(id):
     
     quantity = data['quantity']
     price = data['price']
+    commission = data.get('commission', 0)
     
     if quantity > investment.quantity:
         return jsonify({'error': 'Недостаточно акций'}), 400
     
-    profit = (price - investment.avg_buy_price) * quantity
+    profit = (price - investment.avg_buy_price) * quantity - commission
     investment.quantity -= quantity
     investment.current_price = price
     investment.last_updated = datetime.utcnow()
+    
+    # Записываем транзакцию
+    trans = InvestmentTransaction(
+        investment_id=id,
+        transaction_type='sell',
+        quantity=quantity,
+        price=price,
+        total_amount=quantity * price,
+        commission=commission,
+        date=datetime.strptime(data['date'], '%Y-%m-%d').date() if data.get('date') else date.today(),
+        notes=data.get('notes', f'Прибыль: {profit:.2f}')
+    )
+    db.session.add(trans)
     
     if investment.quantity == 0:
         db.session.delete(investment)
@@ -1834,8 +1950,93 @@ def sell_investment(id):
         'remaining_quantity': investment.quantity if investment.quantity > 0 else 0
     })
 
+@app.route('/api/investments/<int:id>/dividend', methods=['POST'])
+def add_dividend(id):
+    """Добавить полученный дивиденд"""
+    investment = Investment.query.get_or_404(id)
+    data = request.json
+    
+    amount = data['amount']
+    investment.dividends_received += amount
+    investment.last_updated = datetime.utcnow()
+    
+    # Записываем транзакцию
+    trans = InvestmentTransaction(
+        investment_id=id,
+        transaction_type='dividend',
+        quantity=0,
+        price=0,
+        total_amount=amount,
+        commission=data.get('tax', 0),  # Налог на дивиденды
+        date=datetime.strptime(data['date'], '%Y-%m-%d').date() if data.get('date') else date.today(),
+        notes=data.get('notes', 'Дивиденды')
+    )
+    db.session.add(trans)
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Дивиденды добавлены',
+        'total_dividends': investment.dividends_received
+    })
+
+
+@app.route('/api/investments/<int:id>/transactions', methods=['GET'])
+def get_investment_transactions(id):
+    """Получить историю операций по инвестиции"""
+    transactions = InvestmentTransaction.query.filter_by(
+        investment_id=id
+    ).order_by(InvestmentTransaction.date.desc()).all()
+    
+    return jsonify([{
+        'id': t.id,
+        'type': t.transaction_type,
+        'quantity': t.quantity,
+        'price': t.price,
+        'total_amount': t.total_amount,
+        'commission': t.commission,
+        'date': t.date.isoformat(),
+        'notes': t.notes
+    } for t in transactions])
+
+
+@app.route('/api/investments/transactions/<int:id>', methods=['DELETE'])
+def delete_investment_transaction(id):
+    """Удалить транзакцию (и пересчитать позицию)"""
+    trans = InvestmentTransaction.query.get_or_404(id)
+    investment = trans.investment
+    
+    # Пересчитываем позицию
+    if trans.transaction_type == 'buy':
+        investment.quantity -= trans.quantity
+        # Пересчитываем среднюю цену
+        remaining_trans = InvestmentTransaction.query.filter(
+            InvestmentTransaction.investment_id == investment.id,
+            InvestmentTransaction.transaction_type == 'buy',
+            InvestmentTransaction.id != id
+        ).all()
+        if remaining_trans:
+            total_qty = sum(t.quantity for t in remaining_trans)
+            total_amount = sum(t.total_amount for t in remaining_trans)
+            investment.avg_buy_price = total_amount / total_qty if total_qty > 0 else 0
+            investment.quantity = total_qty
+    elif trans.transaction_type == 'sell':
+        investment.quantity += trans.quantity
+    elif trans.transaction_type == 'dividend':
+        investment.dividends_received -= trans.total_amount
+    
+    db.session.delete(trans)
+    
+    # Если позиция пустая - удаляем
+    if investment.quantity <= 0:
+        db.session.delete(investment)
+    
+    db.session.commit()
+    return jsonify({'message': 'Транзакция удалена'})
+
 @app.route('/api/investments/<int:id>', methods=['DELETE'])
 def delete_investment(id):
+    # Удаляем все транзакции
+    InvestmentTransaction.query.filter_by(investment_id=id).delete()
     investment = Investment.query.get_or_404(id)
     db.session.delete(investment)
     db.session.commit()

@@ -133,6 +133,9 @@ const API = {
         update: (id, data) => api(`/investments/${id}`, 'PUT', data),
         buy: (id, data) => api(`/investments/${id}/buy`, 'POST', data),
         sell: (id, data) => api(`/investments/${id}/sell`, 'POST', data),
+        dividend: (id, data) => api(`/investments/${id}/dividend`, 'POST', data),
+        getTransactions: (id) => api(`/investments/${id}/transactions`),
+        deleteTransaction: (id) => api(`/investments/transactions/${id}`, 'DELETE'),
         delete: (id) => api(`/investments/${id}`, 'DELETE')
     },
     

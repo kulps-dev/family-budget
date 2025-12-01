@@ -1191,11 +1191,13 @@ function renderInvestments() {
     const totalInvested = state.investments.reduce((sum, i) => sum + i.invested, 0);
     const totalValue = state.investments.reduce((sum, i) => sum + i.current_value, 0);
     const totalProfit = totalValue - totalInvested;
+    const totalDividends = state.investments.reduce((sum, i) => sum + (i.dividends_received || 0), 0);
     const profitPercent = totalInvested > 0 ? ((totalProfit / totalInvested) * 100).toFixed(2) : 0;
     
     const totalInvestedEl = document.getElementById('totalInvested');
     const totalInvestmentValueEl = document.getElementById('totalInvestmentValue');
     const totalInvestmentProfitEl = document.getElementById('totalInvestmentProfit');
+    const totalDividendsEl = document.getElementById('totalDividends');
     
     if (totalInvestedEl) totalInvestedEl.textContent = formatMoney(totalInvested);
     if (totalInvestmentValueEl) totalInvestmentValueEl.textContent = formatMoney(totalValue);
@@ -1203,6 +1205,7 @@ function renderInvestments() {
         totalInvestmentProfitEl.textContent = `${totalProfit >= 0 ? '+' : ''}${formatMoney(totalProfit)} (${profitPercent}%)`;
         totalInvestmentProfitEl.style.color = totalProfit >= 0 ? 'var(--success)' : 'var(--danger)';
     }
+    if (totalDividendsEl) totalDividendsEl.textContent = formatMoney(totalDividends);
     
     if (state.investments.length === 0) {
         container.innerHTML = `
@@ -1237,45 +1240,136 @@ function renderInvestments() {
                     <div class="investment-account-value">${formatMoney(accountValue)}</div>
                 </div>
                 
-                <table class="investments-table">
-                    <thead>
-                        <tr>
-                            <th>Актив</th>
-                            <th>Кол-во</th>
-                            <th>Цена</th>
-                            <th>Стоимость</th>
-                            <th>Прибыль</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${accountInvestments.map(inv => `
-                            <tr data-id="${inv.id}">
-                                <td>
-                                    <div class="investment-ticker">${inv.ticker}</div>
+                <div class="investments-list">
+                    ${accountInvestments.map(inv => `
+                        <div class="investment-card" data-id="${inv.id}">
+                            <div class="investment-card-header" onclick="toggleInvestmentDetails(${inv.id})">
+                                <div class="investment-main-info">
+                                    <div class="investment-ticker-block">
+                                        <span class="investment-ticker">${inv.ticker}</span>
+                                        <span class="investment-type-badge">${ASSET_TYPES[inv.asset_type]?.icon || '📊'}</span>
+                                    </div>
                                     <div class="investment-name">${inv.name}</div>
-                                </td>
-                                <td>${inv.quantity}</td>
-                                <td>${formatMoney(inv.current_price)}</td>
-                                <td><strong>${formatMoney(inv.current_value)}</strong></td>
-                                <td>
-                                    <span class="investment-profit ${inv.profit >= 0 ? 'positive' : 'negative'}">
-                                        ${inv.profit >= 0 ? '+' : ''}${formatMoney(inv.profit)}
-                                        <br>
-                                        <small>(${inv.profit_percent}%)</small>
-                                    </span>
-                                </td>
-                                <td>
+                                    ${inv.sector ? `<div class="investment-sector">${inv.sector}</div>` : ''}
+                                </div>
+                                <div class="investment-numbers">
+                                    <div class="investment-value">${formatMoney(inv.current_value)}</div>
+                                    <div class="investment-profit ${inv.profit >= 0 ? 'positive' : 'negative'}">
+                                        ${inv.profit >= 0 ? '+' : ''}${formatMoney(inv.profit)} (${inv.profit_percent}%)
+                                    </div>
+                                </div>
+                                <div class="investment-expand-icon">▼</div>
+                            </div>
+                            
+                            <div class="investment-details" id="investment-details-${inv.id}" style="display: none;">
+                                <div class="investment-stats-grid">
+                                    <div class="investment-stat">
+                                        <div class="investment-stat-label">Количество</div>
+                                        <div class="investment-stat-value">${inv.quantity} шт.</div>
+                                    </div>
+                                    <div class="investment-stat">
+                                        <div class="investment-stat-label">Средняя цена</div>
+                                        <div class="investment-stat-value">${formatMoney(inv.avg_buy_price)}</div>
+                                    </div>
+                                    <div class="investment-stat">
+                                        <div class="investment-stat-label">Текущая цена</div>
+                                        <div class="investment-stat-value">${formatMoney(inv.current_price)}</div>
+                                    </div>
+                                    <div class="investment-stat">
+                                        <div class="investment-stat-label">Вложено</div>
+                                        <div class="investment-stat-value">${formatMoney(inv.invested)}</div>
+                                    </div>
+                                    <div class="investment-stat">
+                                        <div class="investment-stat-label">Дивиденды</div>
+                                        <div class="investment-stat-value" style="color: var(--success)">${formatMoney(inv.dividends_received || 0)}</div>
+                                    </div>
+                                    <div class="investment-stat">
+                                        <div class="investment-stat-label">Полный доход</div>
+                                        <div class="investment-stat-value" style="color: ${inv.total_return >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                                            ${inv.total_return >= 0 ? '+' : ''}${formatMoney(inv.total_return)}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="investment-actions-row">
+                                    <button class="btn btn-sm btn-success" onclick="showBuyInvestmentModal(${inv.id})">📈 Купить</button>
+                                    <button class="btn btn-sm btn-warning" onclick="showSellInvestmentModal(${inv.id})">📉 Продать</button>
+                                    <button class="btn btn-sm btn-info" onclick="showDividendModal(${inv.id})">💰 Дивиденд</button>
                                     <button class="btn btn-sm btn-secondary" onclick="showInvestmentModal(${inv.id})">✏️</button>
                                     <button class="btn btn-sm btn-danger" onclick="deleteInvestment(${inv.id})">🗑️</button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+                                </div>
+                                
+                                <div class="investment-history">
+                                    <div class="investment-history-header">
+                                        <span>📋 История операций (${inv.transactions_count || 0})</span>
+                                        <button class="btn btn-sm btn-link" onclick="toggleTransactionHistory(${inv.id})">
+                                            Показать
+                                        </button>
+                                    </div>
+                                    <div class="investment-transactions" id="investment-trans-${inv.id}" style="display: none;">
+                                        ${renderInvestmentTransactions(inv.transactions || [])}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         `;
     }).join('');
+}
+
+function renderInvestmentTransactions(transactions) {
+    if (!transactions || transactions.length === 0) {
+        return '<div class="empty-state small">Нет операций</div>';
+    }
+    
+    const typeLabels = {
+        'buy': { label: 'Покупка', icon: '📈', color: 'var(--success)' },
+        'sell': { label: 'Продажа', icon: '📉', color: 'var(--danger)' },
+        'dividend': { label: 'Дивиденд', icon: '💰', color: 'var(--warning)' }
+    };
+    
+    return transactions.map(t => {
+        const type = typeLabels[t.type] || { label: t.type, icon: '📋', color: 'var(--gray-500)' };
+        return `
+            <div class="investment-trans-item">
+                <div class="investment-trans-icon" style="color: ${type.color}">${type.icon}</div>
+                <div class="investment-trans-info">
+                    <div class="investment-trans-type">${type.label}</div>
+                    <div class="investment-trans-date">${formatDate(t.date)}</div>
+                </div>
+                <div class="investment-trans-details">
+                    ${t.type !== 'dividend' ? `
+                        <div>${t.quantity} шт. × ${formatMoney(t.price)}</div>
+                    ` : ''}
+                    <div style="font-weight: 600; color: ${type.color}">${formatMoney(t.total_amount)}</div>
+                    ${t.commission > 0 ? `<div style="font-size: 11px; color: var(--gray-500)">Комиссия: ${formatMoney(t.commission)}</div>` : ''}
+                </div>
+                <button class="btn-icon-sm danger" onclick="deleteInvestmentTransaction(${t.id})" title="Удалить">🗑️</button>
+            </div>
+        `;
+    }).join('');
+}
+
+function toggleInvestmentDetails(id) {
+    const details = document.getElementById(`investment-details-${id}`);
+    const card = details?.closest('.investment-card');
+    const icon = card?.querySelector('.investment-expand-icon');
+    
+    if (details) {
+        const isHidden = details.style.display === 'none';
+        details.style.display = isHidden ? 'block' : 'none';
+        if (icon) icon.textContent = isHidden ? '▲' : '▼';
+        if (card) card.classList.toggle('expanded', isHidden);
+    }
+}
+
+function toggleTransactionHistory(id) {
+    const container = document.getElementById(`investment-trans-${id}`);
+    if (container) {
+        container.style.display = container.style.display === 'none' ? 'block' : 'none';
+    }
 }
 
 // ==================== МАГАЗИНЫ И ТОВАРЫ ====================
@@ -3321,121 +3415,294 @@ function showPayMortgageModal(mortgageId, isExtra = false) {
 }
 
 // ----- ИНВЕСТИЦИЯ -----
-function showInvestmentModal(id = null) {
-    const investment = id ? state.investments.find(i => i.id === id) : null;
-    const title = investment ? 'Редактировать инвестицию' : 'Новая инвестиция';
+function showBuyInvestmentModal(id) {
+    const investment = state.investments.find(i => i.id === id);
+    if (!investment) return;
     
-    const investmentAccounts = state.accounts.filter(a => a.is_investment);
+    const today = getCurrentDate();
     
-    if (investmentAccounts.length === 0) {
-        showToast('Сначала создайте инвестиционный счёт', 'warning');
-        return;
-    }
-    
-    openModal(title, `
-        <form id="investmentForm">
-            <div class="form-group">
-                <label class="form-label">Брокерский счёт *</label>
-                <select class="form-select" name="account_id" required ${investment ? 'disabled' : ''}>
-                    ${investmentAccounts.map(a => 
-                        `<option value="${a.id}" ${investment?.account_id === a.id ? 'selected' : ''}>${a.icon} ${a.name}</option>`
-                    ).join('')}
-                </select>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Тикер *</label>
-                    <input type="text" class="form-input" name="ticker" value="${investment?.ticker || ''}" 
-                           required placeholder="SBER" style="text-transform: uppercase;" ${investment ? 'disabled' : ''}>
+    openModal(`📈 Купить ${investment.ticker}`, `
+        <form id="buyInvestmentForm">
+            <div style="background: var(--gray-100); padding: 16px; border-radius: var(--radius); margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 20px; font-weight: 700;">${investment.ticker}</div>
+                        <div style="color: var(--gray-500);">${investment.name}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 13px; color: var(--gray-500);">Текущая позиция</div>
+                        <div style="font-weight: 600;">${investment.quantity} шт. × ${formatMoney(investment.avg_buy_price)}</div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Тип актива</label>
-                    <select class="form-select" name="asset_type">
-                        ${Object.entries(ASSET_TYPES).map(([key, val]) => 
-                            `<option value="${key}" ${investment?.asset_type === key ? 'selected' : ''}>${val.icon} ${val.name}</option>`
-                        ).join('')}
-                    </select>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Название *</label>
-                <input type="text" class="form-input" name="name" value="${investment?.name || ''}" required placeholder="Сбербанк">
             </div>
             
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Количество *</label>
-                    <input type="number" class="form-input" name="quantity" step="0.0001" value="${investment?.quantity || ''}" required>
+                    <input type="number" class="form-input" name="quantity" step="0.0001" required min="0.0001">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">${investment ? 'Средняя цена покупки' : 'Цена покупки'} *</label>
-                    <input type="number" class="form-input" name="avg_buy_price" step="0.01" value="${investment?.avg_buy_price || ''}" required>
+                    <label class="form-label">Цена за шт. *</label>
+                    <input type="number" class="form-input" name="price" step="0.01" required value="${investment.current_price}">
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Текущая цена</label>
-                    <input type="number" class="form-input" name="current_price" step="0.01" value="${investment?.current_price || ''}">
+                    <label class="form-label">Комиссия</label>
+                    <input type="number" class="form-input" name="commission" step="0.01" value="0">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Валюта</label>
-                    <select class="form-select" name="currency">
-                        <option value="RUB" ${investment?.currency === 'RUB' ? 'selected' : ''}>🇷🇺 RUB</option>
-                        <option value="USD" ${investment?.currency === 'USD' ? 'selected' : ''}>🇺🇸 USD</option>
-                        <option value="EUR" ${investment?.currency === 'EUR' ? 'selected' : ''}>🇪🇺 EUR</option>
-                    </select>
+                    <label class="form-label">Дата</label>
+                    <input type="date" class="form-input" name="date" value="${today}">
                 </div>
             </div>
             
             <div class="form-group">
-                <label class="form-label">Сектор</label>
-                <input type="text" class="form-input" name="sector" value="${investment?.sector || ''}" placeholder="Финансы, IT, Энергетика...">
+                <label class="form-label">Заметка</label>
+                <input type="text" class="form-input" name="notes" placeholder="Комментарий к покупке">
             </div>
             
-            ${investment ? `
-                <div class="form-group">
-                    <label class="form-label">Получено дивидендов</label>
-                    <input type="number" class="form-input" name="dividends_received" step="0.01" value="${investment?.dividends_received || 0}">
-                </div>
-            ` : ''}
+            <div id="buyTotal" style="background: var(--success-light); padding: 16px; border-radius: var(--radius); margin-bottom: 20px; text-align: center;">
+                <div style="font-size: 13px; color: var(--gray-600);">Итого к оплате</div>
+                <div style="font-size: 24px; font-weight: 700; color: var(--success);">0 ₽</div>
+            </div>
             
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
-                <button type="submit" class="btn btn-primary">${investment ? 'Сохранить' : 'Добавить'}</button>
+                <button type="submit" class="btn btn-success">Купить</button>
             </div>
         </form>
     `);
     
-    document.getElementById('investmentForm').addEventListener('submit', async (e) => {
+    // Расчёт итого
+    const updateTotal = () => {
+        const qty = parseFloat(document.querySelector('input[name="quantity"]').value) || 0;
+        const price = parseFloat(document.querySelector('input[name="price"]').value) || 0;
+        const commission = parseFloat(document.querySelector('input[name="commission"]').value) || 0;
+        const total = qty * price + commission;
+        document.getElementById('buyTotal').querySelector('div:last-child').textContent = formatMoney(total);
+    };
+    
+    document.querySelector('input[name="quantity"]').addEventListener('input', updateTotal);
+    document.querySelector('input[name="price"]').addEventListener('input', updateTotal);
+    document.querySelector('input[name="commission"]').addEventListener('input', updateTotal);
+    
+    document.getElementById('buyInvestmentForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        
         const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData);
-        
-        data.account_id = parseInt(data.account_id);
-        data.ticker = data.ticker.toUpperCase();
-        data.quantity = parseFloat(data.quantity);
-        data.avg_buy_price = parseFloat(data.avg_buy_price);
-        data.current_price = parseFloat(data.current_price) || data.avg_buy_price;
-        data.dividends_received = parseFloat(data.dividends_received) || 0;
         
         try {
-            if (investment) {
-                await API.investments.update(investment.id, data);
-                showToast('Инвестиция обновлена', 'success');
-            } else {
-                await API.investments.create(data);
-                showToast('Инвестиция добавлена', 'success');
-            }
+            await API.investments.buy(id, {
+                quantity: parseFloat(formData.get('quantity')),
+                price: parseFloat(formData.get('price')),
+                commission: parseFloat(formData.get('commission')) || 0,
+                date: formData.get('date'),
+                notes: formData.get('notes')
+            });
             closeModal();
+            showToast('Покупка добавлена', 'success');
             loadAllData();
         } catch (error) {
-            showToast('Ошибка сохранения', 'error');
+            showToast('Ошибка покупки', 'error');
         }
     });
+}
+
+function showSellInvestmentModal(id) {
+    const investment = state.investments.find(i => i.id === id);
+    if (!investment) return;
+    
+    const today = getCurrentDate();
+    
+    openModal(`📉 Продать ${investment.ticker}`, `
+        <form id="sellInvestmentForm">
+            <div style="background: var(--gray-100); padding: 16px; border-radius: var(--radius); margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 20px; font-weight: 700;">${investment.ticker}</div>
+                        <div style="color: var(--gray-500);">${investment.name}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 13px; color: var(--gray-500);">Доступно</div>
+                        <div style="font-weight: 600;">${investment.quantity} шт.</div>
+                        <div style="font-size: 12px; color: var(--gray-500);">Ср. цена: ${formatMoney(investment.avg_buy_price)}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Количество *</label>
+                    <input type="number" class="form-input" name="quantity" step="0.0001" required 
+                           min="0.0001" max="${investment.quantity}">
+                    <button type="button" class="btn btn-sm btn-link" style="margin-top: 4px;"
+                            onclick="document.querySelector('input[name=quantity]').value=${investment.quantity}">
+                        Продать всё
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Цена за шт. *</label>
+                    <input type="number" class="form-input" name="price" step="0.01" required value="${investment.current_price}">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Комиссия</label>
+                    <input type="number" class="form-input" name="commission" step="0.01" value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Дата</label>
+                    <input type="date" class="form-input" name="date" value="${today}">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Заметка</label>
+                <input type="text" class="form-input" name="notes" placeholder="Комментарий к продаже">
+            </div>
+            
+            <div id="sellResult" style="padding: 16px; border-radius: var(--radius); margin-bottom: 20px; text-align: center;">
+                <div style="display: flex; justify-content: space-around;">
+                    <div>
+                        <div style="font-size: 13px; color: var(--gray-600);">Получите</div>
+                        <div id="sellTotal" style="font-size: 20px; font-weight: 700;">0 ₽</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; color: var(--gray-600);">Прибыль</div>
+                        <div id="sellProfit" style="font-size: 20px; font-weight: 700;">0 ₽</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+                <button type="submit" class="btn btn-warning">Продать</button>
+            </div>
+        </form>
+    `);
+    
+    const updateResult = () => {
+        const qty = parseFloat(document.querySelector('input[name="quantity"]').value) || 0;
+        const price = parseFloat(document.querySelector('input[name="price"]').value) || 0;
+        const commission = parseFloat(document.querySelector('input[name="commission"]').value) || 0;
+        const total = qty * price - commission;
+        const profit = (price - investment.avg_buy_price) * qty - commission;
+        
+        document.getElementById('sellTotal').textContent = formatMoney(total);
+        const profitEl = document.getElementById('sellProfit');
+        profitEl.textContent = `${profit >= 0 ? '+' : ''}${formatMoney(profit)}`;
+        profitEl.style.color = profit >= 0 ? 'var(--success)' : 'var(--danger)';
+        
+        document.getElementById('sellResult').style.background = profit >= 0 ? 'var(--success-light)' : 'var(--danger-light)';
+    };
+    
+    document.querySelector('input[name="quantity"]').addEventListener('input', updateResult);
+    document.querySelector('input[name="price"]').addEventListener('input', updateResult);
+    document.querySelector('input[name="commission"]').addEventListener('input', updateResult);
+    updateResult();
+    
+    document.getElementById('sellInvestmentForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        
+        try {
+            await API.investments.sell(id, {
+                quantity: parseFloat(formData.get('quantity')),
+                price: parseFloat(formData.get('price')),
+                commission: parseFloat(formData.get('commission')) || 0,
+                date: formData.get('date'),
+                notes: formData.get('notes')
+            });
+            closeModal();
+            showToast('Продажа выполнена', 'success');
+            loadAllData();
+        } catch (error) {
+            showToast(error.message || 'Ошибка продажи', 'error');
+        }
+    });
+}
+
+function showDividendModal(id) {
+    const investment = state.investments.find(i => i.id === id);
+    if (!investment) return;
+    
+    const today = getCurrentDate();
+    
+    openModal(`💰 Дивиденд ${investment.ticker}`, `
+        <form id="dividendForm">
+            <div style="background: var(--warning-light); padding: 16px; border-radius: var(--radius); margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 20px; font-weight: 700;">${investment.ticker}</div>
+                        <div style="color: var(--gray-600);">${investment.name}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 13px; color: var(--gray-600);">Уже получено</div>
+                        <div style="font-weight: 600; color: var(--success);">${formatMoney(investment.dividends_received || 0)}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Сумма дивидендов *</label>
+                    <input type="number" class="form-input" name="amount" step="0.01" required min="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Удержанный налог</label>
+                    <input type="number" class="form-input" name="tax" step="0.01" value="0">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Дата выплаты</label>
+                <input type="date" class="form-input" name="date" value="${today}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Заметка</label>
+                <input type="text" class="form-input" name="notes" placeholder="Например: за Q3 2024">
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+                <button type="submit" class="btn btn-warning">Добавить дивиденд</button>
+            </div>
+        </form>
+    `);
+    
+    document.getElementById('dividendForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        
+        try {
+            await API.investments.dividend(id, {
+                amount: parseFloat(formData.get('amount')),
+                tax: parseFloat(formData.get('tax')) || 0,
+                date: formData.get('date'),
+                notes: formData.get('notes')
+            });
+            closeModal();
+            showToast('Дивиденд добавлен', 'success');
+            loadAllData();
+        } catch (error) {
+            showToast('Ошибка добавления', 'error');
+        }
+    });
+}
+
+async function deleteInvestmentTransaction(id) {
+    if (!confirm('Удалить эту операцию? Позиция будет пересчитана.')) return;
+    
+    try {
+        await API.investments.deleteTransaction(id);
+        showToast('Операция удалена', 'success');
+        loadAllData();
+    } catch (error) {
+        showToast('Ошибка удаления', 'error');
+    }
 }
 
 // ----- НАЛОГИ -----

@@ -3663,3 +3663,266 @@ body {
     font-weight: 600;
     text-shadow: 0 0 2px white;
 }
+
+
+
+/* ==================== ИНВЕСТИЦИИ - УЛУЧШЕННЫЙ БЛОК ==================== */
+
+/* Сводка - 4 карточки */
+.investments-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.investments-summary-cards .summary-card.dividends {
+    background: var(--gradient-warning);
+    color: var(--white);
+}
+
+.investments-summary-cards .summary-card.dividends .summary-label {
+    color: rgba(255,255,255,0.8);
+}
+
+@media (max-width: 1024px) {
+    .investments-summary-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .investments-summary-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Список инвестиций */
+.investments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+}
+
+.investment-card {
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.investment-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.investment-card.expanded {
+    border-color: var(--primary);
+}
+
+.investment-card-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    cursor: pointer;
+    gap: 16px;
+}
+
+.investment-main-info {
+    flex: 1;
+}
+
+.investment-ticker-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.investment-ticker {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.investment-type-badge {
+    font-size: 14px;
+}
+
+.investment-name {
+    font-size: 13px;
+    color: var(--gray-600);
+    margin-top: 2px;
+}
+
+.investment-sector {
+    font-size: 11px;
+    color: var(--gray-400);
+    margin-top: 2px;
+}
+
+.investment-numbers {
+    text-align: right;
+}
+
+.investment-value {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.investment-profit {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.investment-profit.positive {
+    color: var(--success);
+}
+
+.investment-profit.negative {
+    color: var(--danger);
+}
+
+.investment-expand-icon {
+    color: var(--gray-400);
+    font-size: 12px;
+    transition: transform 0.2s;
+}
+
+.investment-card.expanded .investment-expand-icon {
+    transform: rotate(180deg);
+}
+
+.investment-details {
+    border-top: 1px solid var(--gray-100);
+    padding: 16px;
+    background: var(--gray-50);
+}
+
+.investment-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.investment-stat {
+    text-align: center;
+    padding: 12px;
+    background: white;
+    border-radius: var(--radius-sm);
+}
+
+.investment-stat-label {
+    font-size: 11px;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.investment-stat-value {
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.investment-actions-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.investment-history {
+    border-top: 1px solid var(--gray-200);
+    padding-top: 16px;
+}
+
+.investment-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.investment-transactions {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.investment-trans-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: white;
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+}
+
+.investment-trans-icon {
+    font-size: 20px;
+}
+
+.investment-trans-info {
+    flex: 1;
+}
+
+.investment-trans-type {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.investment-trans-date {
+    font-size: 12px;
+    color: var(--gray-500);
+}
+
+.investment-trans-details {
+    text-align: right;
+    font-size: 13px;
+}
+
+/* Адаптив для инвестиций */
+@media (max-width: 768px) {
+    .investment-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .investment-card-header {
+        flex-wrap: wrap;
+    }
+    
+    .investment-numbers {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--gray-100);
+    }
+}
+
+/* Кнопки для инвестиций */
+.btn-info {
+    background: var(--info);
+    color: white;
+}
+
+.btn-info:hover {
+    background: #0284c7;
+}
+
+.btn-link {
+    background: none;
+    color: var(--primary);
+    padding: 4px 8px;
+}
+
+.btn-link:hover {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
