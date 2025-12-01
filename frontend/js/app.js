@@ -3415,6 +3415,199 @@ function showPayMortgageModal(mortgageId, isExtra = false) {
 }
 
 // ----- ИНВЕСТИЦИЯ -----
+function showInvestmentModal(id = null) {
+    const investment = id ? state.investments.find(i => i.id === id) : null;
+    const title = investment ? 'Редактировать инвестицию' : 'Новая инвестиция';
+    const today = getCurrentDate();
+    
+    const investmentAccounts = state.accounts.filter(a => a.is_investment || a.account_type === 'investment');
+    
+    if (investmentAccounts.length === 0) {
+        showToast('Сначала создайте инвестиционный счёт', 'warning');
+        if (confirm('Создать инвестиционный счёт сейчас?')) {
+            showAccountModal();
+        }
+        return;
+    }
+    
+    openModal(title, `
+        <form id="investmentForm">
+            <div class="form-group">
+                <label class="form-label">Брокерский счёт *</label>
+                <select class="form-select" name="account_id" required ${investment ? 'disabled' : ''}>
+                    ${investmentAccounts.map(a => 
+                        `<option value="${a.id}" ${investment?.account_id === a.id ? 'selected' : ''}>${a.icon} ${a.name}</option>`
+                    ).join('')}
+                </select>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Тикер *</label>
+                    <input type="text" class="form-input" name="ticker" value="${investment?.ticker || ''}" 
+                           required placeholder="SBER" style="text-transform: uppercase;" ${investment ? 'readonly' : ''}>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Тип актива</label>
+                    <select class="form-select" name="asset_type">
+                        ${Object.entries(ASSET_TYPES).map(([key, val]) => 
+                            `<option value="${key}" ${investment?.asset_type === key ? 'selected' : ''}>${val.icon} ${val.name}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Название *</label>
+                <input type="text" class="form-input" name="name" value="${investment?.name || ''}" required placeholder="Сбербанк">
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">${investment ? 'Текущее количество' : 'Количество'} *</label>
+                    <input type="number" class="form-input" name="quantity" step="0.0001" 
+                           value="${investment?.quantity || ''}" required ${investment ? 'readonly' : ''}>
+                    ${investment ? '<div class="form-hint">Изменяется через покупку/продажу</div>' : ''}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">${investment ? 'Средняя цена' : 'Цена покупки'} *</label>
+                    <input type="number" class="form-input" name="avg_buy_price" step="0.01" 
+                           value="${investment?.avg_buy_price || ''}" required ${investment ? 'readonly' : ''}>
+                    ${investment ? '<div class="form-hint">Рассчитывается автоматически</div>' : ''}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Текущая цена</label>
+                    <input type="number" class="form-input" name="current_price" step="0.01" 
+                           value="${investment?.current_price || ''}" placeholder="Для расчёта прибыли">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Валюта</label>
+                    <select class="form-select" name="currency">
+                        <option value="RUB" ${investment?.currency === 'RUB' ? 'selected' : ''}>🇷🇺 RUB</option>
+                        <option value="USD" ${investment?.currency === 'USD' ? 'selected' : ''}>🇺🇸 USD</option>
+                        <option value="EUR" ${investment?.currency === 'EUR' ? 'selected' : ''}>🇪🇺 EUR</option>
+                        <option value="CNY" ${investment?.currency === 'CNY' ? 'selected' : ''}>🇨🇳 CNY</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Сектор</label>
+                <input type="text" class="form-input" name="sector" value="${investment?.sector || ''}" 
+                       placeholder="Финансы, IT, Энергетика...">
+            </div>
+            
+            ${!investment ? `
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Комиссия</label>
+                        <input type="number" class="form-input" name="commission" step="0.01" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Дата покупки</label>
+                        <input type="date" class="form-input" name="date" value="${today}">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Заметка</label>
+                    <input type="text" class="form-input" name="notes" placeholder="Комментарий к покупке">
+                </div>
+                
+                <div id="investmentTotal" style="background: var(--gray-100); padding: 16px; border-radius: var(--radius); margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Сумма покупки:</span>
+                        <span id="investmentSum">0 ₽</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>С комиссией:</span>
+                        <strong id="investmentTotalSum">0 ₽</strong>
+                    </div>
+                </div>
+            ` : `
+                <div class="form-group">
+                    <label class="form-label">Получено дивидендов</label>
+                    <input type="number" class="form-input" name="dividends_received" step="0.01" 
+                           value="${investment?.dividends_received || 0}" readonly>
+                    <div class="form-hint">Добавляйте дивиденды через кнопку "Дивиденд"</div>
+                </div>
+            `}
+            
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+                <button type="submit" class="btn btn-primary">${investment ? 'Сохранить' : 'Добавить'}</button>
+            </div>
+        </form>
+    `);
+    
+    // Расчёт суммы для новой инвестиции
+    if (!investment) {
+        const updateTotal = () => {
+            const qty = parseFloat(document.querySelector('input[name="quantity"]')?.value) || 0;
+            const price = parseFloat(document.querySelector('input[name="avg_buy_price"]')?.value) || 0;
+            const commission = parseFloat(document.querySelector('input[name="commission"]')?.value) || 0;
+            const sum = qty * price;
+            const total = sum + commission;
+            
+            const sumEl = document.getElementById('investmentSum');
+            const totalEl = document.getElementById('investmentTotalSum');
+            if (sumEl) sumEl.textContent = formatMoney(sum);
+            if (totalEl) totalEl.textContent = formatMoney(total);
+        };
+        
+        document.querySelector('input[name="quantity"]')?.addEventListener('input', updateTotal);
+        document.querySelector('input[name="avg_buy_price"]')?.addEventListener('input', updateTotal);
+        document.querySelector('input[name="commission"]')?.addEventListener('input', updateTotal);
+    }
+    
+    document.getElementById('investmentForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
+        
+        if (investment) {
+            // Редактирование - только обновляем разрешённые поля
+            const updateData = {
+                name: data.name,
+                asset_type: data.asset_type,
+                current_price: parseFloat(data.current_price) || investment.current_price,
+                currency: data.currency,
+                sector: data.sector
+            };
+            
+            try {
+                await API.investments.update(investment.id, updateData);
+                showToast('Инвестиция обновлена', 'success');
+                closeModal();
+                loadAllData();
+            } catch (error) {
+                showToast('Ошибка сохранения', 'error');
+            }
+        } else {
+            // Новая инвестиция
+            data.account_id = parseInt(data.account_id);
+            data.ticker = data.ticker.toUpperCase();
+            data.quantity = parseFloat(data.quantity);
+            data.avg_buy_price = parseFloat(data.avg_buy_price);
+            data.current_price = parseFloat(data.current_price) || data.avg_buy_price;
+            data.commission = parseFloat(data.commission) || 0;
+            
+            try {
+                await API.investments.create(data);
+                showToast('Инвестиция добавлена', 'success');
+                closeModal();
+                loadAllData();
+            } catch (error) {
+                showToast('Ошибка добавления', 'error');
+            }
+        }
+    });
+}
+
 function showBuyInvestmentModal(id) {
     const investment = state.investments.find(i => i.id === id);
     if (!investment) return;
