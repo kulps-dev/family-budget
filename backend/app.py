@@ -10,7 +10,7 @@ import math
 app = Flask(__name__)
 CORS(app)
 
-db_path = os.environ.get('DATABASE_URL', 'sqlite:///data/budget.db')
+db_path = os.environ.get('DATABASE_URL', 'sqlite:////app/data/budget.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
