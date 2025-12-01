@@ -208,6 +208,24 @@ function initFilters() {
     if (analyticsPeriod) {
         analyticsPeriod.addEventListener('change', loadAnalytics);
     }
+    
+    // Кастомные даты аналитики
+    const analyticsStartDate = document.getElementById('analyticsStartDate');
+    const analyticsEndDate = document.getElementById('analyticsEndDate');
+    if (analyticsStartDate) {
+        analyticsStartDate.addEventListener('change', () => {
+            if (document.getElementById('analyticsPeriod')?.value === 'custom') {
+                loadAnalytics();
+            }
+        });
+    }
+    if (analyticsEndDate) {
+        analyticsEndDate.addEventListener('change', () => {
+            if (document.getElementById('analyticsPeriod')?.value === 'custom') {
+                loadAnalytics();
+            }
+        });
+    }
 }
 
 function updateFilters() {
@@ -292,24 +310,40 @@ async function loadTransactions() {
 
 async function loadAnalytics() {
     const period = document.getElementById('analyticsPeriod')?.value || 'month';
+    const customStartDate = document.getElementById('analyticsStartDate')?.value;
+    const customEndDate = document.getElementById('analyticsEndDate')?.value;
     
     let startDate, endDate;
     const today = new Date();
     endDate = today.toISOString().split('T')[0];
     
-    switch (period) {
-        case 'month':
-            startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-            break;
-        case 'quarter':
-            startDate = new Date(today.getFullYear(), today.getMonth() - 2, 1).toISOString().split('T')[0];
-            break;
-        case 'year':
-            startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
-            break;
-        case 'all':
-            startDate = '2020-01-01';
-            break;
+    // Если выбран кастомный период и заданы даты
+    if (period === 'custom' && customStartDate && customEndDate) {
+        startDate = customStartDate;
+        endDate = customEndDate;
+    } else {
+        switch (period) {
+            case 'month':
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+                break;
+            case 'quarter':
+                startDate = new Date(today.getFullYear(), today.getMonth() - 2, 1).toISOString().split('T')[0];
+                break;
+            case 'year':
+                startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+                break;
+            case 'all':
+                startDate = '2020-01-01';
+                break;
+            default:
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+        }
+    }
+    
+    // Показываем/скрываем поля кастомных дат
+    const customDatesContainer = document.getElementById('analyticsCustomDates');
+    if (customDatesContainer) {
+        customDatesContainer.style.display = period === 'custom' ? 'flex' : 'none';
     }
     
     try {
@@ -383,9 +417,15 @@ function renderDashboard() {
     const d = state.dashboard;
     if (!d) return;
     
-    // Баланс
+    // Баланс (без налогового резерва)
     document.getElementById('totalBalance').textContent = formatMoney(d.balance.total);
     document.getElementById('netWorth').textContent = formatMoney(d.balance.net_worth);
+    
+    // Налоговый резерв отдельно
+    const taxReserveEl = document.getElementById('taxReserveBalance');
+    if (taxReserveEl) {
+        taxReserveEl.textContent = formatMoney(d.balance.tax_reserve || 0);
+    }
     
     // Месячные показатели
     document.getElementById('monthlyIncome').textContent = formatMoney(d.monthly.income);
@@ -449,16 +489,45 @@ function renderUpcomingPayments(payments) {
     
     const icons = { mortgage: '🏠', credit_card: '💳', credit: '📋' };
     
-    container.innerHTML = payments.map(p => `
-        <div class="upcoming-item ${p.days_left <= 3 ? 'urgent' : ''}">
-            <span class="upcoming-icon">${icons[p.type] || '💰'}</span>
-            <div class="upcoming-info">
-                <div class="upcoming-name">${p.name}</div>
-                <div class="upcoming-date">${p.days_left === 0 ? 'Сегодня!' : p.days_left === 1 ? 'Завтра' : `Через ${p.days_left} дн.`}</div>
+    container.innerHTML = payments.map(p => {
+        // Форматируем дату платежа
+        const paymentDate = p.date ? formatDate(p.date) : '';
+        
+        // Определяем срочность
+        let urgencyClass = '';
+        let daysText = '';
+        if (p.days_left === 0) {
+            urgencyClass = 'urgent';
+            daysText = 'Сегодня!';
+        } else if (p.days_left === 1) {
+            urgencyClass = 'urgent';
+            daysText = 'Завтра';
+        } else if (p.days_left <= 3) {
+            urgencyClass = 'warning';
+            daysText = `Через ${p.days_left} дн.`;
+        } else {
+            daysText = `${paymentDate} (${p.days_left} дн.)`;
+        }
+        
+        // Для кредитных карт показываем долг если есть
+        let amountInfo = formatMoney(p.amount);
+        if (p.type === 'credit_card' && p.current_debt > 0) {
+            amountInfo = `<span style="font-size: 12px; color: var(--gray-500);">мин.</span> ${formatMoney(p.amount)}`;
+        } else if (p.type === 'credit_card' && p.current_debt === 0) {
+            amountInfo = '<span style="color: var(--success);">Нет долга ✓</span>';
+        }
+        
+        return `
+            <div class="upcoming-item ${urgencyClass}">
+                <span class="upcoming-icon">${icons[p.type] || '💰'}</span>
+                <div class="upcoming-info">
+                    <div class="upcoming-name">${p.name}</div>
+                    <div class="upcoming-date">${daysText}</div>
+                </div>
+                <div class="upcoming-amount">${amountInfo}</div>
             </div>
-            <div class="upcoming-amount">${formatMoney(p.amount)}</div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function renderOverBudget(categories) {

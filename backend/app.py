@@ -1072,7 +1072,13 @@ def create_credit():
     start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date() if data.get('start_date') else date.today()
     payment_day = data.get('payment_day', start_date.day)
     
-    next_payment = start_date.replace(day=min(payment_day, 28))
+    # Вычисляем следующую дату платежа
+    try:
+        next_payment = date.today().replace(day=min(payment_day, 28))
+    except ValueError:
+        next_payment = date.today().replace(day=28)
+    
+    # Если дата уже прошла в этом месяце, переносим на следующий
     if next_payment <= date.today():
         next_payment = next_payment + relativedelta(months=1)
     
@@ -2550,39 +2556,76 @@ def get_dashboard():
     
     upcoming_payments = []
     
+    # Кредиты - показываем на 14 дней вперёд
     for c in credits:
-        if c.next_payment_date and (c.next_payment_date - today).days <= 7:
-            upcoming_payments.append({
-                'type': 'credit',
-                'name': c.name,
-                'amount': c.monthly_payment,
-                'date': c.next_payment_date.isoformat(),
-                'days_left': (c.next_payment_date - today).days
-            })
+        if c.next_payment_date:
+            days_left = (c.next_payment_date - today).days
+            if days_left <= 14 and days_left >= 0:
+                upcoming_payments.append({
+                    'type': 'credit',
+                    'name': c.name,
+                    'amount': c.monthly_payment,
+                    'date': c.next_payment_date.isoformat(),
+                    'days_left': days_left
+                })
+        elif c.payment_day:
+            # Если next_payment_date не установлен, вычисляем по payment_day
+            payment_date = today.replace(day=min(c.payment_day, 28))
+            if payment_date < today:
+                payment_date = payment_date + relativedelta(months=1)
+            days_left = (payment_date - today).days
+            if days_left <= 14:
+                upcoming_payments.append({
+                    'type': 'credit',
+                    'name': c.name,
+                    'amount': c.monthly_payment,
+                    'date': payment_date.isoformat(),
+                    'days_left': days_left
+                })
     
+    # Ипотека - показываем на 14 дней вперёд
     for m in mortgages:
-        if m.next_payment_date and (m.next_payment_date - today).days <= 7:
-            upcoming_payments.append({
-                'type': 'mortgage',
-                'name': m.name,
-                'amount': m.monthly_payment,
-                'date': m.next_payment_date.isoformat(),
-                'days_left': (m.next_payment_date - today).days
-            })
+        if m.next_payment_date:
+            days_left = (m.next_payment_date - today).days
+            if days_left <= 14 and days_left >= 0:
+                upcoming_payments.append({
+                    'type': 'mortgage',
+                    'name': m.name,
+                    'amount': m.monthly_payment,
+                    'date': m.next_payment_date.isoformat(),
+                    'days_left': days_left
+                })
+        elif m.payment_day:
+            payment_date = today.replace(day=min(m.payment_day, 28))
+            if payment_date < today:
+                payment_date = payment_date + relativedelta(months=1)
+            days_left = (payment_date - today).days
+            if days_left <= 14:
+                upcoming_payments.append({
+                    'type': 'mortgage',
+                    'name': m.name,
+                    'amount': m.monthly_payment,
+                    'date': payment_date.isoformat(),
+                    'days_left': days_left
+                })
     
+    # Кредитные карты - показываем на 14 дней вперёд
     cards = CreditCard.query.all()
     for card in cards:
         payment_date = today.replace(day=min(card.payment_due_day, 28))
         if payment_date < today:
             payment_date = payment_date + relativedelta(months=1)
         days_left = (payment_date - today).days
-        if days_left <= 7 and card.current_debt > 0:
+        # Показываем карту если есть долг ИЛИ если платёж скоро (для напоминания)
+        if days_left <= 14 and days_left >= 0:
+            min_payment = round(card.current_debt * card.min_payment_percent / 100, 2) if card.current_debt > 0 else 0
             upcoming_payments.append({
                 'type': 'credit_card',
                 'name': card.account.name,
-                'amount': round(card.current_debt * card.min_payment_percent / 100, 2),
+                'amount': min_payment,
                 'date': payment_date.isoformat(),
-                'days_left': days_left
+                'days_left': days_left,
+                'current_debt': card.current_debt
             })
     
     upcoming_payments.sort(key=lambda x: x['days_left'])
@@ -2630,9 +2673,17 @@ def get_dashboard():
             'savings': income - expense
         })
     
+    # Считаем баланс без налоговых резервов
+    total_balance_without_tax = sum(
+        a.balance for a in accounts 
+        if a.account_type not in ['credit_card'] and not a.is_tax_reserve and a.account_type != 'tax_reserve'
+    )
+    
     return jsonify({
         'balance': {
-            'total': total_balance,
+            'total': total_balance_without_tax,
+            'total_with_tax': total_balance,
+            'tax_reserve': tax_reserve_balance,
             'credit_debt': total_credit_debt,
             'net_worth': total_balance - total_credit_debt - total_credit_remaining - total_mortgage_remaining + total_investment_value
         },

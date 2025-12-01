@@ -3926,3 +3926,446 @@ body {
     background: var(--primary-light);
     color: var(--primary-dark);
 }
+
+
+
+/* ==================== ИСПРАВЛЕНИЯ И УЛУЧШЕНИЯ ==================== */
+
+/* Налоговый резерв на дашборде */
+.tax-reserve-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: var(--radius);
+    margin-top: 16px;
+    border: 1px dashed var(--warning);
+}
+
+.tax-reserve-detail .balance-detail-label {
+    font-size: 13px;
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+.tax-reserve-detail .balance-detail-value {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--warning);
+}
+
+/* Ближайшие платежи - улучшенные стили */
+.upcoming-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.upcoming-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    background: var(--gray-50);
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.upcoming-item:hover {
+    background: var(--gray-100);
+    transform: translateX(4px);
+}
+
+.upcoming-item.urgent {
+    background: rgba(239, 68, 68, 0.08);
+    border-left-color: var(--danger);
+}
+
+.upcoming-item.warning {
+    background: rgba(245, 158, 11, 0.08);
+    border-left-color: var(--warning);
+}
+
+.upcoming-icon {
+    font-size: 24px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+}
+
+.upcoming-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.upcoming-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--gray-900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.upcoming-date {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-top: 2px;
+}
+
+.upcoming-item.urgent .upcoming-date {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+.upcoming-item.warning .upcoming-date {
+    color: var(--warning);
+    font-weight: 600;
+}
+
+.upcoming-amount {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--gray-900);
+    text-align: right;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Аналитика - контролы периода */
+.analytics-period-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.analytics-custom-dates {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--gray-50);
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+}
+
+.analytics-custom-dates .form-input {
+    width: 150px;
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+.analytics-custom-dates .date-separator {
+    color: var(--gray-400);
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .analytics-period-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .analytics-custom-dates {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .analytics-custom-dates .form-input {
+        width: 100%;
+    }
+    
+    .analytics-custom-dates .date-separator {
+        display: none;
+    }
+}
+
+/* Кредиты - улучшенная сетка для десктопа */
+@media (min-width: 769px) {
+    #creditsGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+        gap: 24px;
+    }
+    
+    .credit-item {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        padding: 24px;
+    }
+    
+    .credit-header {
+        grid-column: 1 / -1;
+    }
+    
+    .credit-amounts {
+        text-align: left;
+    }
+    
+    .credit-progress {
+        grid-column: 1 / -1;
+    }
+    
+    .credit-details {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+    
+    .credit-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+        gap: 12px;
+    }
+}
+
+/* Кредитные карты - улучшенная сетка для десктопа */
+@media (min-width: 769px) {
+    #creditCardsGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 24px;
+    }
+    
+    .credit-card-item {
+        min-height: 300px;
+        padding: 24px;
+    }
+    
+    .credit-card-info {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-top: 16px;
+    }
+    
+    .credit-card-info-item {
+        text-align: center;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius);
+    }
+    
+    .credit-card-actions {
+        margin-top: 20px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+}
+
+/* Улучшение читаемости дат платежей */
+.credit-detail-value,
+.mortgage-detail-value {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.credit-detail-label,
+.mortgage-detail-label {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-top: 4px;
+}
+
+/* Индикаторы срочности платежа */
+.payment-urgent-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--danger);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    margin-left: 8px;
+    animation: pulse 2s infinite;
+}
+
+.payment-warning-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--warning);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    margin-left: 8px;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Карточка баланса - улучшения */
+.card-balance {
+    position: relative;
+}
+
+.card-balance .card-value {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.card-balance .card-subtitle {
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--gray-200);
+    margin-bottom: 0;
+}
+
+/* Ипотека - улучшения для десктопа */
+@media (min-width: 769px) {
+    #mortgagesGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+        gap: 24px;
+    }
+    
+    .mortgage-card {
+        padding: 24px;
+    }
+    
+    .mortgage-details {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+}
+
+/* Фильтры аналитики */
+.analytics-header {
+    margin-bottom: 24px;
+}
+
+.analytics-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+@media (max-width: 768px) {
+    .analytics-filters {
+        flex-direction: column;
+    }
+    
+    .analytics-filters .btn {
+        width: 100%;
+    }
+}
+
+/* Пустое состояние для ближайших платежей */
+.upcoming-list .empty-state.small {
+    padding: 24px;
+    text-align: center;
+    color: var(--gray-500);
+    font-size: 14px;
+}
+
+/* Улучшение отображения долга на кредитных картах */
+.credit-card-debt {
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.credit-card-limit {
+    font-size: 13px;
+    opacity: 0.8;
+    margin-top: 4px;
+}
+
+/* Прогресс-бар кредитной карты */
+.credit-card-progress {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-full);
+    margin: 16px 0;
+    overflow: hidden;
+}
+
+.credit-card-progress-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.9);
+    transition: width 0.5s ease;
+}
+
+.credit-card-progress-fill.warning {
+    background: var(--warning);
+}
+
+.credit-card-progress-fill.danger {
+    background: var(--danger);
+}
+
+/* Сводка по кредитам */
+.credits-summary-card {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 24px;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-lg);
+    color: white;
+    margin-bottom: 24px;
+}
+
+.credits-summary-card .summary-item {
+    text-align: center;
+}
+
+.credits-summary-card .summary-label {
+    font-size: 13px;
+    opacity: 0.9;
+    margin-bottom: 8px;
+}
+
+.credits-summary-card .summary-value {
+    font-size: 24px;
+    font-weight: 800;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 480px) {
+    .upcoming-item {
+        padding: 10px 12px;
+    }
+    
+    .upcoming-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+    }
+    
+    .upcoming-name {
+        font-size: 13px;
+    }
+    
+    .upcoming-amount {
+        font-size: 13px;
+    }
+    
+    .tax-reserve-detail {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+}

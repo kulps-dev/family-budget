@@ -161,6 +161,11 @@
                                 <span>Чистый капитал: </span>
                                 <span id="netWorth">0 ₽</span>
                             </div>
+                            <!-- Налоговый резерв отдельно -->
+                            <div class="tax-reserve-detail">
+                                <span class="balance-detail-label">🧾 Резерв на налоги:</span>
+                                <span class="balance-detail-value" id="taxReserveBalance">0 ₽</span>
+                            </div>
                         </div>
                         
                         <div class="card card-income">
@@ -203,7 +208,7 @@
                         <div class="card card-wide">
                             <div class="card-header">
                                 <span class="card-icon">⏰</span>
-                                <span class="card-title">Ближайшие платежи</span>
+                                <span class="card-title">Ближайшие платежи (14 дней)</span>
                             </div>
                             <div class="upcoming-list" id="upcomingPayments">
                                 <div class="empty-state small">Нет предстоящих платежей</div>
@@ -515,7 +520,7 @@
                     </div>
                 </section>
 
-                <!-- Investments - УЛУЧШЕННЫЙ БЛОК -->
+                <!-- Investments -->
                 <section class="tab-content" id="investments-tab">
                     <div class="investments-summary-cards">
                         <div class="summary-card">
@@ -565,12 +570,20 @@
                 <section class="tab-content" id="analytics-tab">
                     <div class="analytics-header">
                         <div class="analytics-filters">
-                            <select id="analyticsPeriod" class="filter-select">
-                                <option value="month">Текущий месяц</option>
-                                <option value="quarter">Квартал</option>
-                                <option value="year">Год</option>
-                                <option value="all">Всё время</option>
-                            </select>
+                            <div class="analytics-period-controls">
+                                <select id="analyticsPeriod" class="filter-select">
+                                    <option value="month">Текущий месяц</option>
+                                    <option value="quarter">Квартал</option>
+                                    <option value="year">Год</option>
+                                    <option value="all">Всё время</option>
+                                    <option value="custom">Выбрать даты...</option>
+                                </select>
+                                <div class="analytics-custom-dates" id="analyticsCustomDates" style="display: none;">
+                                    <input type="date" class="form-input" id="analyticsStartDate" placeholder="С">
+                                    <span class="date-separator">—</span>
+                                    <input type="date" class="form-input" id="analyticsEndDate" placeholder="По">
+                                </div>
+                            </div>
                             <button class="btn btn-primary" id="analyzeAIBtn">🤖 AI-анализ</button>
                         </div>
                     </div>
