@@ -770,17 +770,38 @@ def create_transaction():
     if data['type'] == 'income':
         account.balance += data['amount']
         
-        if account.is_business and account.tax_rate > 0:
+        if account.is_business and account.tax_rate > 0 and account.linked_tax_account_id:
             tax_amount = data['amount'] * account.tax_rate / 100
+            
+            # Создаём запись резерва
             reserve = TaxReserve(
                 business_account_id=account.id,
                 tax_account_id=account.linked_tax_account_id,
                 income_amount=data['amount'],
                 tax_amount=tax_amount,
                 tax_rate=account.tax_rate,
-                date=transaction.date
+                date=transaction.date,
+                is_transferred=True  # Сразу помечаем как переведённый
             )
             db.session.add(reserve)
+            
+            # ✅ Автоматически переводим налог на резервный счёт
+            tax_account = Account.query.get(account.linked_tax_account_id)
+            if tax_account:
+                account.balance -= tax_amount  # Списываем с ИП счёта
+                tax_account.balance += tax_amount  # Зачисляем на резервный
+                
+                # Создаём транзакцию перевода для истории
+                tax_transfer = Transaction(
+                    amount=tax_amount,
+                    type='transfer',
+                    description=f'Автоматический резерв налога {account.tax_rate}%',
+                    account_id=account.id,
+                    to_account_id=account.linked_tax_account_id,
+                    is_tax_transfer=True,
+                    date=transaction.date
+                )
+                db.session.add(tax_transfer)
             
     elif data['type'] == 'expense':
         account.balance -= data['amount']
