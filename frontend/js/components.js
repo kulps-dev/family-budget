@@ -1,28 +1,27 @@
 // frontend/js/components.js
 
-// Этот файл может содержать переиспользуемые компоненты
-// В текущей реализации все компоненты встроены в app.js
-
 // Компонент прогресс-бара
-function createProgressBar(percent, color = 'var(--primary)', height = '8px') {
+function createProgressBar(percent, color = 'var(--primary)', height = '8px', showLabel = false) {
+    const clampedPercent = Math.min(100, Math.max(0, percent));
     return `
-        <div style="height: ${height}; background: var(--gray-100); border-radius: var(--radius-full); overflow: hidden;">
-            <div style="height: 100%; width: ${Math.min(100, percent)}%; background: ${color}; border-radius: var(--radius-full); transition: width 0.5s ease;"></div>
+        <div class="progress-bar-container" style="height: ${height}; background: var(--gray-100); border-radius: var(--radius-full); overflow: hidden; position: relative;">
+            <div class="progress-bar-fill" style="height: 100%; width: ${clampedPercent}%; background: ${color}; border-radius: var(--radius-full); transition: width 0.5s ease;"></div>
+            ${showLabel ? `<span class="progress-bar-label" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 600;">${clampedPercent.toFixed(0)}%</span>` : ''}
         </div>
     `;
 }
 
 // Компонент карточки статистики
-function createStatCard(icon, label, value, change = null) {
+function createStatCard(icon, label, value, change = null, color = null) {
     return `
         <div class="stat-card">
-            <div class="stat-icon">${icon}</div>
+            <div class="stat-icon" ${color ? `style="color: ${color}"` : ''}>${icon}</div>
             <div class="stat-info">
                 <div class="stat-label">${label}</div>
-                <div class="stat-value">${value}</div>
+                <div class="stat-value" ${color ? `style="color: ${color}"` : ''}>${value}</div>
                 ${change !== null ? `
                     <div class="stat-change ${change >= 0 ? 'positive' : 'negative'}">
-                        ${change >= 0 ? '↑' : '↓'} ${Math.abs(change)}%
+                        ${change >= 0 ? '↑' : '↓'} ${Math.abs(change).toFixed(1)}%
                     </div>
                 ` : ''}
             </div>
@@ -31,20 +30,22 @@ function createStatCard(icon, label, value, change = null) {
 }
 
 // Компонент пустого состояния
-function createEmptyState(icon, text, small = false) {
+function createEmptyState(icon, text, actionText = null, actionHandler = null) {
     return `
-        <div class="empty-state ${small ? 'small' : ''}">
+        <div class="empty-state">
             <div class="empty-state-icon">${icon}</div>
             <div class="empty-state-text">${text}</div>
+            ${actionText ? `<button class="btn btn-primary btn-sm" onclick="${actionHandler}">${actionText}</button>` : ''}
         </div>
     `;
 }
 
 // Компонент загрузки
-function createLoader() {
+function createLoader(text = 'Загрузка...') {
     return `
         <div class="loading">
             <div class="spinner"></div>
+            <div class="loading-text">${text}</div>
         </div>
     `;
 }
@@ -56,18 +57,278 @@ function createBadge(text, type = 'default') {
         success: 'var(--success)',
         danger: 'var(--danger)',
         warning: 'var(--warning)',
-        info: 'var(--info)'
+        info: 'var(--info)',
+        primary: 'var(--primary)'
     };
     
     return `
-        <span style="
+        <span class="badge badge-${type}" style="
             display: inline-block;
-            padding: 4px 8px;
+            padding: 4px 10px;
             border-radius: var(--radius-full);
             font-size: 12px;
             font-weight: 600;
-            background: ${colors[type]}20;
+            background: ${colors[type]}15;
             color: ${colors[type]};
         ">${text}</span>
+    `;
+}
+
+// Компонент аватара
+function createAvatar(icon, color = 'var(--primary)', size = '48px') {
+    return `
+        <div class="avatar" style="
+            width: ${size};
+            height: ${size};
+            background: ${color}20;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: calc(${size} * 0.5);
+        ">${icon}</div>
+    `;
+}
+
+// Компонент кнопки действия
+function createActionButton(icon, label, onClick, type = 'secondary', size = 'sm') {
+    return `
+        <button class="btn btn-${size} btn-${type}" onclick="${onClick}" title="${label}">
+            ${icon}
+        </button>
+    `;
+}
+
+// Компонент выпадающего меню
+function createDropdownMenu(triggerId, items) {
+    const menuItems = items.map(item => {
+        if (item.divider) {
+            return '<div class="dropdown-divider"></div>';
+        }
+        return `
+            <a href="#" class="dropdown-item ${item.danger ? 'danger' : ''}" onclick="${item.onClick}; return false;">
+                <span class="dropdown-item-icon">${item.icon}</span>
+                <span class="dropdown-item-text">${item.label}</span>
+            </a>
+        `;
+    }).join('');
+    
+    return `
+        <div class="dropdown" id="${triggerId}-dropdown">
+            <div class="dropdown-menu">
+                ${menuItems}
+            </div>
+        </div>
+    `;
+}
+
+// Компонент тултипа
+function createTooltip(content, position = 'top') {
+    return `data-tooltip="${content}" data-tooltip-position="${position}"`;
+}
+
+// Компонент карточки с графиком
+function createChartCard(title, chartId, icon = '📊') {
+    return `
+        <div class="card chart-card">
+            <div class="card-header">
+                <span class="card-icon">${icon}</span>
+                <span class="card-title">${title}</span>
+            </div>
+            <div class="chart-container" id="${chartId}"></div>
+        </div>
+    `;
+}
+
+// Компонент таба
+function createTabs(tabs, activeTab, onTabClick) {
+    return `
+        <div class="tabs">
+            ${tabs.map(tab => `
+                <button class="tab ${tab.id === activeTab ? 'active' : ''}" 
+                        onclick="${onTabClick}('${tab.id}')"
+                        data-tab="${tab.id}">
+                    ${tab.icon ? `<span class="tab-icon">${tab.icon}</span>` : ''}
+                    <span class="tab-text">${tab.label}</span>
+                </button>
+            `).join('')}
+        </div>
+    `;
+}
+
+// Компонент модального подтверждения
+function createConfirmModal(title, message, onConfirm, onCancel = 'closeModal()') {
+    return `
+        <div class="confirm-modal">
+            <div class="confirm-message">${message}</div>
+            <div class="confirm-actions">
+                <button class="btn btn-secondary" onclick="${onCancel}">Отмена</button>
+                <button class="btn btn-danger" onclick="${onConfirm}">Удалить</button>
+            </div>
+        </div>
+    `;
+}
+
+// Компонент штрихкода (для бонусных карт)
+function createBarcodeDisplay(cardNumber, barcodeType = 'CODE128') {
+    // Для QR-кода используем другой подход
+    if (barcodeType === 'QR') {
+        return `
+            <div class="barcode-container qr-code" id="barcode-${cardNumber.replace(/\s/g, '')}">
+                <canvas class="qr-canvas"></canvas>
+            </div>
+        `;
+    }
+    
+    return `
+        <div class="barcode-container" id="barcode-${cardNumber.replace(/\s/g, '')}">
+            <svg class="barcode-svg"></svg>
+            <div class="barcode-number">${cardNumber}</div>
+        </div>
+    `;
+}
+
+// Компонент карточки бонусной карты
+function createBonusCardDisplay(card) {
+    return `
+        <div class="bonus-card-display" style="background: linear-gradient(135deg, ${card.color} 0%, ${card.color}dd 100%);">
+            <div class="bonus-card-header">
+                <div class="bonus-card-icon">${card.icon}</div>
+                <div class="bonus-card-info">
+                    <div class="bonus-card-name">${card.name}</div>
+                    <div class="bonus-card-store">${card.store_name}</div>
+                </div>
+            </div>
+            <div class="bonus-card-barcode">
+                ${createBarcodeDisplay(card.card_number, card.barcode_type)}
+            </div>
+            ${card.bonus_balance > 0 ? `
+                <div class="bonus-card-balance">
+                    <span class="bonus-label">Баланс бонусов:</span>
+                    <span class="bonus-value">${card.bonus_balance}</span>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// Компонент AI-совета
+function createAITip(tip) {
+    const typeStyles = {
+        success: { bg: 'var(--success-light)', border: 'var(--success)', icon: '✅' },
+        warning: { bg: 'var(--warning-light)', border: 'var(--warning)', icon: '⚠️' },
+        danger: { bg: 'var(--danger-light)', border: 'var(--danger)', icon: '🚨' },
+        info: { bg: 'var(--gray-100)', border: 'var(--info)', icon: 'ℹ️' }
+    };
+    
+    const style = typeStyles[tip.type] || typeStyles.info;
+    
+    return `
+        <div class="ai-tip" style="background: ${style.bg}; border-left: 4px solid ${style.border}; padding: 16px; border-radius: var(--radius); margin-bottom: 12px;">
+            <div class="ai-tip-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span class="ai-tip-icon">${tip.icon || style.icon}</span>
+                <span class="ai-tip-title" style="font-weight: 600;">${tip.title}</span>
+            </div>
+            <div class="ai-tip-message" style="font-size: 14px; color: var(--gray-700);">${tip.message}</div>
+        </div>
+    `;
+}
+
+// Компонент списка транзакций (компактный)
+function createTransactionItem(t, showActions = true) {
+    return `
+        <div class="transaction-item" data-id="${t.id}">
+            <div class="transaction-icon" style="background: ${t.category_color || '#667eea'}20">
+                ${t.category_icon || (t.type === 'transfer' ? '↔️' : '💰')}
+            </div>
+            <div class="transaction-info">
+                <div class="transaction-category">
+                    ${t.type === 'transfer' 
+                        ? `${t.account_name} → ${t.to_account_name}` 
+                        : (t.category_name || 'Без категории')}
+                </div>
+                ${t.description ? `<div class="transaction-description">${t.description}</div>` : ''}
+                <div class="transaction-meta">
+                    ${formatDate(t.date)} • ${t.account_name}${t.store_name ? ` • ${t.store_name}` : ''}
+                </div>
+            </div>
+            <div class="transaction-amount ${t.type}">
+                ${t.type === 'income' ? '+' : t.type === 'expense' ? '-' : ''}${formatMoney(t.amount)}
+            </div>
+            ${showActions ? `
+                <div class="transaction-actions">
+                    <button class="btn-icon-sm" onclick="showEditTransactionModal(${t.id})" title="Редактировать">✏️</button>
+                    <button class="btn-icon-sm danger" onclick="deleteTransaction(${t.id})" title="Удалить">🗑️</button>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// Компонент мини-графика (sparkline)
+function createSparkline(data, color = 'var(--primary)', width = 100, height = 30) {
+    if (!data || data.length < 2) return '';
+    
+    const max = Math.max(...data);
+    const min = Math.min(...data);
+    const range = max - min || 1;
+    
+    const points = data.map((value, index) => {
+        const x = (index / (data.length - 1)) * width;
+        const y = height - ((value - min) / range) * height;
+        return `${x},${y}`;
+    }).join(' ');
+    
+    return `
+        <svg width="${width}" height="${height}" class="sparkline">
+            <polyline
+                fill="none"
+                stroke="${color}"
+                stroke-width="2"
+                points="${points}"
+            />
+        </svg>
+    `;
+}
+
+// Компонент круговой диаграммы (простая)
+function createDonutChart(percent, color = 'var(--primary)', size = 60, strokeWidth = 8) {
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (percent / 100) * circumference;
+    
+    return `
+        <svg width="${size}" height="${size}" class="donut-chart">
+            <circle
+                cx="${size / 2}"
+                cy="${size / 2}"
+                r="${radius}"
+                fill="none"
+                stroke="var(--gray-200)"
+                stroke-width="${strokeWidth}"
+            />
+            <circle
+                cx="${size / 2}"
+                cy="${size / 2}"
+                r="${radius}"
+                fill="none"
+                stroke="${color}"
+                stroke-width="${strokeWidth}"
+                stroke-dasharray="${circumference}"
+                stroke-dashoffset="${offset}"
+                stroke-linecap="round"
+                transform="rotate(-90 ${size / 2} ${size / 2})"
+                style="transition: stroke-dashoffset 0.5s ease;"
+            />
+            <text
+                x="50%"
+                y="50%"
+                text-anchor="middle"
+                dy=".3em"
+                font-size="12"
+                font-weight="600"
+                fill="var(--gray-700)"
+            >${percent.toFixed(0)}%</text>
+        </svg>
     `;
 }

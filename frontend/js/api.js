@@ -48,8 +48,11 @@ const API = {
     // Кредитные карты
     creditCards: {
         getAll: () => api('/credit-cards'),
+        update: (id, data) => api(`/credit-cards/${id}`, 'PUT', data),
+        delete: (id) => api(`/credit-cards/${id}`, 'DELETE'),
         pay: (id, data) => api(`/credit-cards/${id}/pay`, 'POST', data),
-        updateLimit: (id, data) => api(`/credit-cards/${id}/update-limit`, 'PUT', data)
+        updateLimit: (id, data) => api(`/credit-cards/${id}/update-limit`, 'PUT', data),
+        updateDebt: (id, data) => api(`/credit-cards/${id}/update-debt`, 'PUT', data)
     },
     
     // Категории
@@ -67,6 +70,7 @@ const API = {
             return api(`/transactions${query ? `?${query}` : ''}`);
         },
         create: (data) => api('/transactions', 'POST', data),
+        update: (id, data) => api(`/transactions/${id}`, 'PUT', data),
         delete: (id) => api(`/transactions/${id}`, 'DELETE')
     },
     
@@ -83,6 +87,7 @@ const API = {
     credits: {
         getAll: () => api('/credits'),
         create: (data) => api('/credits', 'POST', data),
+        update: (id, data) => api(`/credits/${id}`, 'PUT', data),
         pay: (id, data) => api(`/credits/${id}/pay`, 'POST', data),
         delete: (id) => api(`/credits/${id}`, 'DELETE')
     },
@@ -91,6 +96,7 @@ const API = {
     mortgages: {
         getAll: () => api('/mortgages'),
         create: (data) => api('/mortgages', 'POST', data),
+        update: (id, data) => api(`/mortgages/${id}`, 'PUT', data),
         pay: (id, data) => api(`/mortgages/${id}/pay`, 'POST', data),
         getPayments: (id) => api(`/mortgages/${id}/payments`),
         delete: (id) => api(`/mortgages/${id}`, 'DELETE')
@@ -106,6 +112,7 @@ const API = {
     stores: {
         getAll: () => api('/stores'),
         create: (data) => api('/stores', 'POST', data),
+        update: (id, data) => api(`/stores/${id}`, 'PUT', data),
         delete: (id) => api(`/stores/${id}`, 'DELETE')
     },
     
@@ -113,6 +120,7 @@ const API = {
     products: {
         getAll: () => api('/products'),
         create: (data) => api('/products', 'POST', data),
+        update: (id, data) => api(`/products/${id}`, 'PUT', data),
         addPrice: (id, data) => api(`/products/${id}/prices`, 'POST', data),
         delete: (id) => api(`/products/${id}`, 'DELETE')
     },
@@ -132,8 +140,18 @@ const API = {
     taxes: {
         getAll: (year) => api(`/taxes${year ? `?year=${year}` : ''}`),
         create: (data) => api('/taxes', 'POST', data),
+        update: (id, data) => api(`/taxes/${id}`, 'PUT', data),
+        delete: (id) => api(`/taxes/${id}`, 'DELETE'),
         pay: (id) => api(`/taxes/${id}/pay`, 'POST'),
         transfer: (data) => api('/taxes/transfer', 'POST', data)
+    },
+    
+    // Бонусные карты
+    bonusCards: {
+        getAll: () => api('/bonus-cards'),
+        create: (data) => api('/bonus-cards', 'POST', data),
+        update: (id, data) => api(`/bonus-cards/${id}`, 'PUT', data),
+        delete: (id) => api(`/bonus-cards/${id}`, 'DELETE')
     },
     
     // Статистика
@@ -145,7 +163,14 @@ const API = {
         byStore: (params = {}) => {
             const query = new URLSearchParams(params).toString();
             return api(`/stats/by-store${query ? `?${query}` : ''}`);
-        }
+        },
+        trends: (months = 12) => api(`/stats/trends?months=${months}`)
+    },
+    
+    // AI Аналитика
+    ai: {
+        analyze: (data) => api('/ai/analyze', 'POST', data),
+        getTips: () => api('/ai/tips')
     },
     
     // Достижения

@@ -6,6 +6,9 @@ from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta
 import os
 import math
+import requests
+import json
+import hashlib
 
 app = Flask(__name__)
 CORS(app)
@@ -14,12 +17,16 @@ db_path = os.environ.get('DATABASE_URL', 'sqlite:////app/data/budget.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# DeepSeek API настройки
+DEEPSEEK_API_KEY = os.environ.get('DEEPSEEK_API_KEY', '')
+DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions'
+
 db = SQLAlchemy(app)
 
 # ============ МОДЕЛИ ============
 
 class Account(db.Model):
-    """Счета: дебетовые, кредитные карты, наличные, ИП, инвестиционные"""
+    """Счета: дебетовые, кредитные карты, наличные, ИП, инвестиционные, налоговый резерв"""
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     account_type = db.Column(db.String(30), default='debit')
@@ -31,18 +38,20 @@ class Account(db.Model):
     bank_name = db.Column(db.String(100), default='')
     # Для ИП счетов
     is_business = db.Column(db.Boolean, default=False)
-    tax_rate = db.Column(db.Float, default=0)  # Процент налога (6% для УСН)
-    linked_tax_account_id = db.Column(db.Integer, nullable=True)  # Связанный счёт для налогов
+    tax_rate = db.Column(db.Float, default=0)
+    linked_tax_account_id = db.Column(db.Integer, nullable=True)
     # Для инвестиционных счетов
     is_investment = db.Column(db.Boolean, default=False)
     broker_name = db.Column(db.String(100), default='')
+    # Для налогового резерва
+    is_tax_reserve = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Category(db.Model):
     """Категории доходов и расходов"""
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    type = db.Column(db.String(20), nullable=False)  # income, expense
+    type = db.Column(db.String(20), nullable=False)
     icon = db.Column(db.String(50), default='📦')
     color = db.Column(db.String(20), default='#667eea')
     budget_limit = db.Column(db.Float, default=0)
@@ -52,14 +61,14 @@ class Transaction(db.Model):
     """Транзакции"""
     id = db.Column(db.Integer, primary_key=True)
     amount = db.Column(db.Float, nullable=False)
-    type = db.Column(db.String(20), nullable=False)  # income, expense, transfer
+    type = db.Column(db.String(20), nullable=False)
     description = db.Column(db.String(255))
     date = db.Column(db.Date, default=date.today)
     account_id = db.Column(db.Integer, db.ForeignKey('account.id'))
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     to_account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=True)
     store_id = db.Column(db.Integer, db.ForeignKey('store.id'), nullable=True)
-    is_tax_transfer = db.Column(db.Boolean, default=False)  # Перевод на налоговый счёт
+    is_tax_transfer = db.Column(db.Boolean, default=False)
     tags = db.Column(db.String(255), default='')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -89,11 +98,11 @@ class CreditCard(db.Model):
     account_id = db.Column(db.Integer, db.ForeignKey('account.id'))
     credit_limit = db.Column(db.Float, nullable=False)
     current_debt = db.Column(db.Float, default=0)
-    min_payment_percent = db.Column(db.Float, default=5)  # Минимальный платёж %
-    grace_period_days = db.Column(db.Integer, default=55)  # Льготный период
-    interest_rate = db.Column(db.Float, default=0)  # Процент после льготного периода
-    statement_day = db.Column(db.Integer, default=1)  # День формирования выписки
-    payment_due_day = db.Column(db.Integer, default=20)  # День оплаты
+    min_payment_percent = db.Column(db.Float, default=5)
+    grace_period_days = db.Column(db.Integer, default=55)
+    interest_rate = db.Column(db.Float, default=0)
+    statement_day = db.Column(db.Integer, default=1)
+    payment_due_day = db.Column(db.Integer, default=20)
     cashback_percent = db.Column(db.Float, default=0)
     
     account = db.relationship('Account')
@@ -129,7 +138,7 @@ class Mortgage(db.Model):
     term_months = db.Column(db.Integer, nullable=False)
     remaining_months = db.Column(db.Integer, nullable=False)
     monthly_payment = db.Column(db.Float, nullable=False)
-    payment_type = db.Column(db.String(20), default='annuity')  # annuity, differentiated
+    payment_type = db.Column(db.String(20), default='annuity')
     start_date = db.Column(db.Date, nullable=True)
     next_payment_date = db.Column(db.Date, nullable=True)
     payment_day = db.Column(db.Integer, default=1)
@@ -145,10 +154,10 @@ class MortgagePayment(db.Model):
     mortgage_id = db.Column(db.Integer, db.ForeignKey('mortgage.id'))
     date = db.Column(db.Date, nullable=False)
     amount = db.Column(db.Float, nullable=False)
-    principal = db.Column(db.Float, default=0)  # Основной долг
-    interest = db.Column(db.Float, default=0)  # Проценты
-    is_extra = db.Column(db.Boolean, default=False)  # Досрочный платёж
-    reduce_type = db.Column(db.String(20), default='term')  # term или payment
+    principal = db.Column(db.Float, default=0)
+    interest = db.Column(db.Float, default=0)
+    is_extra = db.Column(db.Boolean, default=False)
+    reduce_type = db.Column(db.String(20), default='term')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Store(db.Model):
@@ -159,7 +168,7 @@ class Store(db.Model):
     address = db.Column(db.String(255), default='')
     icon = db.Column(db.String(50), default='🏪')
     color = db.Column(db.String(20), default='#667eea')
-    rating = db.Column(db.Float, default=0)  # Рейтинг по ценам (вычисляется)
+    rating = db.Column(db.Float, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Product(db.Model):
@@ -190,7 +199,7 @@ class Investment(db.Model):
     account_id = db.Column(db.Integer, db.ForeignKey('account.id'))
     ticker = db.Column(db.String(20), nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    asset_type = db.Column(db.String(30), default='stock')  # stock, bond, etf, crypto
+    asset_type = db.Column(db.String(30), default='stock')
     quantity = db.Column(db.Float, nullable=False)
     avg_buy_price = db.Column(db.Float, nullable=False)
     current_price = db.Column(db.Float, default=0)
@@ -205,7 +214,7 @@ class Investment(db.Model):
 class TaxPayment(db.Model):
     """Налоговые платежи"""
     id = db.Column(db.Integer, primary_key=True)
-    tax_type = db.Column(db.String(50), nullable=False)  # usn, ndfl, property, etc.
+    tax_type = db.Column(db.String(50), nullable=False)
     amount = db.Column(db.Float, nullable=False)
     period_start = db.Column(db.Date, nullable=False)
     period_end = db.Column(db.Date, nullable=False)
@@ -247,6 +256,28 @@ class Achievement(db.Model):
     unlocked = db.Column(db.Boolean, default=False)
     unlocked_at = db.Column(db.DateTime, nullable=True)
 
+class BonusCard(db.Model):
+    """Бонусные карты магазинов"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    store_name = db.Column(db.String(100), default='')
+    card_number = db.Column(db.String(50), nullable=False)
+    barcode_type = db.Column(db.String(20), default='CODE128')  # CODE128, EAN13, QR
+    icon = db.Column(db.String(50), default='🎫')
+    color = db.Column(db.String(20), default='#667eea')
+    bonus_balance = db.Column(db.Float, default=0)
+    notes = db.Column(db.String(255), default='')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class AIAnalysis(db.Model):
+    """Кэш AI-анализа"""
+    id = db.Column(db.Integer, primary_key=True)
+    analysis_type = db.Column(db.String(50), nullable=False)
+    period = db.Column(db.String(20), nullable=False)
+    data_hash = db.Column(db.String(64), nullable=False)
+    result = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 # ============ API ROUTES ============
 
 # --- Счета ---
@@ -274,7 +305,8 @@ def get_accounts():
             'tax_rate': a.tax_rate,
             'linked_tax_account_id': a.linked_tax_account_id,
             'is_investment': a.is_investment,
-            'broker_name': a.broker_name
+            'broker_name': a.broker_name,
+            'is_tax_reserve': a.is_tax_reserve
         }
         
         # Для кредитных карт
@@ -292,6 +324,8 @@ def get_accounts():
                 data['payment_due_day'] = card.payment_due_day
                 data['cashback_percent'] = card.cashback_percent
                 data['utilization'] = round((card.current_debt / card.credit_limit) * 100, 1) if card.credit_limit > 0 else 0
+                # Баланс для кредитки = -долг
+                data['balance'] = -card.current_debt
         
         # Для инвестиционных счетов
         if a.is_investment:
@@ -312,6 +346,11 @@ def get_accounts():
             ).all()
             data['pending_tax'] = sum(r.tax_amount for r in reserves)
         
+        # Для налогового резерва - показываем связанные бизнес-счета
+        if a.is_tax_reserve:
+            linked_accounts = Account.query.filter_by(linked_tax_account_id=a.id).all()
+            data['linked_business_accounts'] = [{'id': la.id, 'name': la.name} for la in linked_accounts]
+        
         result.append(data)
     
     return jsonify(result)
@@ -319,29 +358,37 @@ def get_accounts():
 @app.route('/api/accounts', methods=['POST'])
 def create_account():
     data = request.json
+    
+    # Определяем тип счёта
+    account_type = data.get('account_type', 'debit')
+    is_tax_reserve = account_type == 'tax_reserve'
+    is_investment = account_type == 'investment' or data.get('is_investment', False)
+    is_business = data.get('is_business', False)
+    
     account = Account(
         name=data['name'],
-        account_type=data.get('account_type', 'debit'),
+        account_type=account_type,
         balance=data.get('balance', 0),
         credit_limit=data.get('credit_limit', 0),
         icon=data.get('icon', '💳'),
         color=data.get('color', '#667eea'),
         bank_name=data.get('bank_name', ''),
-        is_business=data.get('is_business', False),
+        is_business=is_business,
         tax_rate=data.get('tax_rate', 0),
         linked_tax_account_id=data.get('linked_tax_account_id'),
-        is_investment=data.get('is_investment', False),
-        broker_name=data.get('broker_name', '')
+        is_investment=is_investment,
+        broker_name=data.get('broker_name', ''),
+        is_tax_reserve=is_tax_reserve
     )
     db.session.add(account)
     db.session.commit()
     
     # Создаём запись кредитной карты если нужно
-    if data.get('account_type') == 'credit_card':
+    if account_type == 'credit_card':
         card = CreditCard(
             account_id=account.id,
             credit_limit=data.get('credit_limit', 0),
-            current_debt=0,
+            current_debt=abs(data.get('current_debt', 0)),  # Долг всегда положительный в таблице
             min_payment_percent=data.get('min_payment_percent', 5),
             grace_period_days=data.get('grace_period_days', 55),
             interest_rate=data.get('interest_rate', 0),
@@ -371,12 +418,16 @@ def update_account(id):
     account.linked_tax_account_id = data.get('linked_tax_account_id', account.linked_tax_account_id)
     account.is_investment = data.get('is_investment', account.is_investment)
     account.broker_name = data.get('broker_name', account.broker_name)
+    account.is_tax_reserve = data.get('is_tax_reserve', account.is_tax_reserve)
     
     # Обновляем кредитную карту
     if account.account_type == 'credit_card':
         card = CreditCard.query.filter_by(account_id=id).first()
         if card:
             card.credit_limit = data.get('credit_limit', card.credit_limit)
+            # Обновляем долг если передан
+            if 'current_debt' in data:
+                card.current_debt = abs(data['current_debt'])
             card.min_payment_percent = data.get('min_payment_percent', card.min_payment_percent)
             card.grace_period_days = data.get('grace_period_days', card.grace_period_days)
             card.interest_rate = data.get('interest_rate', card.interest_rate)
@@ -397,6 +448,12 @@ def delete_account(id):
     ).delete(synchronize_session=False)
     CreditCard.query.filter_by(account_id=id).delete()
     Investment.query.filter_by(account_id=id).delete()
+    TaxReserve.query.filter(
+        (TaxReserve.business_account_id == id) | (TaxReserve.tax_account_id == id)
+    ).delete(synchronize_session=False)
+    
+    # Убираем ссылки на этот счёт как налоговый
+    Account.query.filter_by(linked_tax_account_id=id).update({'linked_tax_account_id': None})
     
     db.session.delete(account)
     db.session.commit()
@@ -409,9 +466,8 @@ def get_credit_cards():
     result = []
     
     for card, account in cards:
-        # Вычисляем дни до платежа
         today = date.today()
-        payment_date = today.replace(day=card.payment_due_day)
+        payment_date = today.replace(day=min(card.payment_due_day, 28))
         if payment_date < today:
             payment_date = (payment_date + relativedelta(months=1))
         days_until_payment = (payment_date - today).days
@@ -439,6 +495,64 @@ def get_credit_cards():
     
     return jsonify(result)
 
+@app.route('/api/credit-cards/<int:id>', methods=['PUT'])
+def update_credit_card(id):
+    """Полное редактирование кредитной карты"""
+    card = CreditCard.query.get_or_404(id)
+    account = Account.query.get(card.account_id)
+    data = request.json
+    
+    # Обновляем счёт
+    if 'name' in data:
+        account.name = data['name']
+    if 'icon' in data:
+        account.icon = data['icon']
+    if 'color' in data:
+        account.color = data['color']
+    if 'bank_name' in data:
+        account.bank_name = data['bank_name']
+    
+    # Обновляем карту
+    if 'credit_limit' in data:
+        card.credit_limit = data['credit_limit']
+    if 'current_debt' in data:
+        card.current_debt = abs(data['current_debt'])
+    if 'min_payment_percent' in data:
+        card.min_payment_percent = data['min_payment_percent']
+    if 'grace_period_days' in data:
+        card.grace_period_days = data['grace_period_days']
+    if 'interest_rate' in data:
+        card.interest_rate = data['interest_rate']
+    if 'statement_day' in data:
+        card.statement_day = data['statement_day']
+    if 'payment_due_day' in data:
+        card.payment_due_day = data['payment_due_day']
+    if 'cashback_percent' in data:
+        card.cashback_percent = data['cashback_percent']
+    
+    db.session.commit()
+    return jsonify({'message': 'Кредитная карта обновлена'})
+
+@app.route('/api/credit-cards/<int:id>', methods=['DELETE'])
+def delete_credit_card(id):
+    """Удаление кредитной карты"""
+    card = CreditCard.query.get_or_404(id)
+    account_id = card.account_id
+    
+    # Удаляем транзакции
+    Transaction.query.filter(
+        (Transaction.account_id == account_id) | (Transaction.to_account_id == account_id)
+    ).delete(synchronize_session=False)
+    
+    # Удаляем карту и счёт
+    db.session.delete(card)
+    account = Account.query.get(account_id)
+    if account:
+        db.session.delete(account)
+    
+    db.session.commit()
+    return jsonify({'message': 'Кредитная карта удалена'})
+
 @app.route('/api/credit-cards/<int:id>/pay', methods=['POST'])
 def pay_credit_card(id):
     card = CreditCard.query.get_or_404(id)
@@ -446,14 +560,11 @@ def pay_credit_card(id):
     amount = data['amount']
     from_account_id = data['from_account_id']
     
-    # Списываем с источника
     from_account = Account.query.get_or_404(from_account_id)
     from_account.balance -= amount
     
-    # Уменьшаем долг
     card.current_debt = max(0, card.current_debt - amount)
     
-    # Создаём транзакцию
     transaction = Transaction(
         amount=amount,
         type='transfer',
@@ -480,6 +591,19 @@ def update_credit_limit(id):
     return jsonify({
         'message': 'Лимит обновлён',
         'credit_limit': card.credit_limit,
+        'available_limit': card.credit_limit - card.current_debt
+    })
+
+@app.route('/api/credit-cards/<int:id>/update-debt', methods=['PUT'])
+def update_credit_debt(id):
+    """Обновление текущего долга по кредитной карте"""
+    card = CreditCard.query.get_or_404(id)
+    data = request.json
+    card.current_debt = abs(data['current_debt'])
+    db.session.commit()
+    return jsonify({
+        'message': 'Долг обновлён',
+        'current_debt': card.current_debt,
         'available_limit': card.credit_limit - card.current_debt
     })
 
@@ -546,11 +670,16 @@ def update_category(id):
     category.icon = data.get('icon', category.icon)
     category.color = data.get('color', category.color)
     category.budget_limit = data.get('budget_limit', category.budget_limit)
+    if 'type' in data:
+        category.type = data['type']
     db.session.commit()
     return jsonify({'message': 'Категория обновлена'})
 
 @app.route('/api/categories/<int:id>', methods=['DELETE'])
 def delete_category(id):
+    # Убираем категорию из транзакций
+    Transaction.query.filter_by(category_id=id).update({'category_id': None})
+    
     category = Category.query.get_or_404(id)
     db.session.delete(category)
     db.session.commit()
@@ -641,7 +770,6 @@ def create_transaction():
     if data['type'] == 'income':
         account.balance += data['amount']
         
-        # Если это бизнес-счёт с налогом - создаём резерв
         if account.is_business and account.tax_rate > 0:
             tax_amount = data['amount'] * account.tax_rate / 100
             reserve = TaxReserve(
@@ -657,7 +785,6 @@ def create_transaction():
     elif data['type'] == 'expense':
         account.balance -= data['amount']
         
-        # Если это кредитная карта - увеличиваем долг
         if account.account_type == 'credit_card':
             card = CreditCard.query.filter_by(account_id=account.id).first()
             if card:
@@ -668,7 +795,6 @@ def create_transaction():
         to_account = Account.query.get(data['to_account_id'])
         to_account.balance += data['amount']
         
-        # Если это перевод на налоговый счёт - отмечаем резервы как переведённые
         if data.get('is_tax_transfer'):
             TaxReserve.query.filter_by(
                 business_account_id=data['account_id'],
@@ -680,6 +806,58 @@ def create_transaction():
     db.session.commit()
     
     return jsonify({'id': transaction.id, 'message': 'Транзакция создана'}), 201
+
+@app.route('/api/transactions/<int:id>', methods=['PUT'])
+def update_transaction(id):
+    """Редактирование транзакции"""
+    transaction = Transaction.query.get_or_404(id)
+    data = request.json
+    
+    # Откатываем старую транзакцию
+    old_account = Account.query.get(transaction.account_id)
+    if transaction.type == 'income':
+        old_account.balance -= transaction.amount
+    elif transaction.type == 'expense':
+        old_account.balance += transaction.amount
+        if old_account.account_type == 'credit_card':
+            card = CreditCard.query.filter_by(account_id=old_account.id).first()
+            if card:
+                card.current_debt -= transaction.amount
+    elif transaction.type == 'transfer' and transaction.to_account_id:
+        old_account.balance += transaction.amount
+        old_to_account = Account.query.get(transaction.to_account_id)
+        if old_to_account:
+            old_to_account.balance -= transaction.amount
+    
+    # Обновляем данные
+    transaction.amount = data.get('amount', transaction.amount)
+    transaction.type = data.get('type', transaction.type)
+    transaction.description = data.get('description', transaction.description)
+    if data.get('date'):
+        transaction.date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+    transaction.account_id = data.get('account_id', transaction.account_id)
+    transaction.category_id = data.get('category_id', transaction.category_id)
+    transaction.to_account_id = data.get('to_account_id', transaction.to_account_id)
+    transaction.store_id = data.get('store_id', transaction.store_id)
+    
+    # Применяем новую транзакцию
+    new_account = Account.query.get(transaction.account_id)
+    if transaction.type == 'income':
+        new_account.balance += transaction.amount
+    elif transaction.type == 'expense':
+        new_account.balance -= transaction.amount
+        if new_account.account_type == 'credit_card':
+            card = CreditCard.query.filter_by(account_id=new_account.id).first()
+            if card:
+                card.current_debt += transaction.amount
+    elif transaction.type == 'transfer' and transaction.to_account_id:
+        new_account.balance -= transaction.amount
+        new_to_account = Account.query.get(transaction.to_account_id)
+        if new_to_account:
+            new_to_account.balance += transaction.amount
+    
+    db.session.commit()
+    return jsonify({'message': 'Транзакция обновлена'})
 
 @app.route('/api/transactions/<int:id>', methods=['DELETE'])
 def delete_transaction(id):
@@ -697,7 +875,8 @@ def delete_transaction(id):
     elif transaction.type == 'transfer' and transaction.to_account_id:
         account.balance += transaction.amount
         to_account = Account.query.get(transaction.to_account_id)
-        to_account.balance -= transaction.amount
+        if to_account:
+            to_account.balance -= transaction.amount
     
     db.session.delete(transaction)
     db.session.commit()
@@ -776,12 +955,13 @@ def update_goal(id):
     goal.current_amount = data.get('current_amount', goal.current_amount)
     if data.get('deadline'):
         goal.deadline = datetime.strptime(data['deadline'], '%Y-%m-%d').date()
+    elif 'deadline' in data and data['deadline'] is None:
+        goal.deadline = None
     goal.icon = data.get('icon', goal.icon)
     goal.color = data.get('color', goal.color)
     goal.priority = data.get('priority', goal.priority)
     goal.linked_account_id = data.get('linked_account_id', goal.linked_account_id)
     
-    # Проверяем выполнение
     if goal.current_amount >= goal.target_amount and not goal.is_completed:
         goal.is_completed = True
         goal.completed_at = datetime.utcnow()
@@ -856,8 +1036,7 @@ def create_credit():
     start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date() if data.get('start_date') else date.today()
     payment_day = data.get('payment_day', start_date.day)
     
-    # Вычисляем следующий платёж
-    next_payment = start_date.replace(day=payment_day)
+    next_payment = start_date.replace(day=min(payment_day, 28))
     if next_payment <= date.today():
         next_payment = next_payment + relativedelta(months=1)
     
@@ -879,13 +1058,38 @@ def create_credit():
     db.session.commit()
     return jsonify({'id': credit.id, 'message': 'Кредит добавлен'}), 201
 
+@app.route('/api/credits/<int:id>', methods=['PUT'])
+def update_credit(id):
+    """Редактирование кредита"""
+    credit = Credit.query.get_or_404(id)
+    data = request.json
+    
+    credit.name = data.get('name', credit.name)
+    credit.credit_type = data.get('credit_type', credit.credit_type)
+    credit.original_amount = data.get('original_amount', credit.original_amount)
+    credit.remaining_amount = data.get('remaining_amount', credit.remaining_amount)
+    credit.interest_rate = data.get('interest_rate', credit.interest_rate)
+    credit.monthly_payment = data.get('monthly_payment', credit.monthly_payment)
+    credit.term_months = data.get('term_months', credit.term_months)
+    credit.remaining_months = data.get('remaining_months', credit.remaining_months)
+    credit.payment_day = data.get('payment_day', credit.payment_day)
+    credit.bank_name = data.get('bank_name', credit.bank_name)
+    
+    if data.get('start_date'):
+        credit.start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
+    if data.get('next_payment_date'):
+        credit.next_payment_date = datetime.strptime(data['next_payment_date'], '%Y-%m-%d').date()
+    
+    db.session.commit()
+    return jsonify({'message': 'Кредит обновлён'})
+
 @app.route('/api/credits/<int:id>/pay', methods=['POST'])
 def pay_credit(id):
     credit = Credit.query.get_or_404(id)
     data = request.json
     amount = data['amount']
     is_extra = data.get('is_extra', False)
-    reduce_type = data.get('reduce_type', 'term')  # term или payment
+    reduce_type = data.get('reduce_type', 'term')
     
     credit.remaining_amount = max(0, credit.remaining_amount - amount)
     
@@ -893,17 +1097,14 @@ def pay_credit(id):
         credit.extra_payments_total += amount
         
         if reduce_type == 'term' and credit.remaining_months > 1:
-            # Уменьшаем срок
             new_months = math.ceil(credit.remaining_amount / credit.monthly_payment)
             credit.remaining_months = max(1, new_months)
         elif reduce_type == 'payment':
-            # Уменьшаем платёж
             if credit.remaining_months > 0:
                 credit.monthly_payment = credit.remaining_amount / credit.remaining_months
     else:
         credit.remaining_months = max(0, credit.remaining_months - 1)
     
-    # Обновляем дату следующего платежа
     if credit.remaining_amount > 0:
         credit.next_payment_date = credit.next_payment_date + relativedelta(months=1)
     
@@ -933,11 +1134,9 @@ def get_mortgages():
         days_until_payment = (m.next_payment_date - today).days if m.next_payment_date else None
         total_paid = m.original_amount - m.remaining_amount
         
-        # Вычисляем переплату
         total_to_pay = m.monthly_payment * m.term_months
         overpayment = total_to_pay - m.original_amount
         
-        # Вычисляем экономию от досрочных платежей
         months_saved = 0
         if m.extra_payments_total > 0:
             months_saved = math.floor(m.extra_payments_total / m.monthly_payment)
@@ -970,7 +1169,7 @@ def get_mortgages():
             'monthly_extra_costs': round((m.insurance_yearly + m.property_tax_yearly) / 12, 2),
             'total_monthly_cost': m.monthly_payment + round((m.insurance_yearly + m.property_tax_yearly) / 12, 2),
             'is_payment_soon': days_until_payment is not None and days_until_payment <= 5,
-            'equity': m.property_value - m.remaining_amount  # Собственный капитал
+            'equity': m.property_value - m.remaining_amount
         })
     
     return jsonify(result)
@@ -982,11 +1181,10 @@ def create_mortgage():
     start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date() if data.get('start_date') else date.today()
     payment_day = data.get('payment_day', start_date.day)
     
-    next_payment = start_date.replace(day=payment_day)
+    next_payment = start_date.replace(day=min(payment_day, 28))
     if next_payment <= date.today():
         next_payment = next_payment + relativedelta(months=1)
     
-    # Вычисляем ежемесячный платёж если не указан
     loan_amount = data['original_amount']
     rate = data['interest_rate'] / 100 / 12
     term = data['term_months']
@@ -994,7 +1192,6 @@ def create_mortgage():
     if data.get('monthly_payment'):
         monthly_payment = data['monthly_payment']
     else:
-        # Аннуитетный платёж
         if rate > 0:
             monthly_payment = loan_amount * (rate * (1 + rate)**term) / ((1 + rate)**term - 1)
         else:
@@ -1023,6 +1220,36 @@ def create_mortgage():
     db.session.commit()
     return jsonify({'id': mortgage.id, 'message': 'Ипотека добавлена'}), 201
 
+@app.route('/api/mortgages/<int:id>', methods=['PUT'])
+def update_mortgage(id):
+    """Редактирование ипотеки"""
+    mortgage = Mortgage.query.get_or_404(id)
+    data = request.json
+    
+    mortgage.name = data.get('name', mortgage.name)
+    mortgage.property_address = data.get('property_address', mortgage.property_address)
+    mortgage.property_value = data.get('property_value', mortgage.property_value)
+    mortgage.down_payment = data.get('down_payment', mortgage.down_payment)
+    mortgage.original_amount = data.get('original_amount', mortgage.original_amount)
+    mortgage.remaining_amount = data.get('remaining_amount', mortgage.remaining_amount)
+    mortgage.interest_rate = data.get('interest_rate', mortgage.interest_rate)
+    mortgage.term_months = data.get('term_months', mortgage.term_months)
+    mortgage.remaining_months = data.get('remaining_months', mortgage.remaining_months)
+    mortgage.monthly_payment = data.get('monthly_payment', mortgage.monthly_payment)
+    mortgage.payment_type = data.get('payment_type', mortgage.payment_type)
+    mortgage.payment_day = data.get('payment_day', mortgage.payment_day)
+    mortgage.bank_name = data.get('bank_name', mortgage.bank_name)
+    mortgage.insurance_yearly = data.get('insurance_yearly', mortgage.insurance_yearly)
+    mortgage.property_tax_yearly = data.get('property_tax_yearly', mortgage.property_tax_yearly)
+    
+    if data.get('start_date'):
+        mortgage.start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
+    if data.get('next_payment_date'):
+        mortgage.next_payment_date = datetime.strptime(data['next_payment_date'], '%Y-%m-%d').date()
+    
+    db.session.commit()
+    return jsonify({'message': 'Ипотека обновлена'})
+
 @app.route('/api/mortgages/<int:id>/pay', methods=['POST'])
 def pay_mortgage(id):
     mortgage = Mortgage.query.get_or_404(id)
@@ -1031,14 +1258,12 @@ def pay_mortgage(id):
     is_extra = data.get('is_extra', False)
     reduce_type = data.get('reduce_type', 'term')
     
-    # Вычисляем разбивку платежа (основной долг / проценты)
     monthly_rate = mortgage.interest_rate / 100 / 12
     interest_part = mortgage.remaining_amount * monthly_rate
     principal_part = amount - interest_part if not is_extra else amount
     
     mortgage.remaining_amount = max(0, mortgage.remaining_amount - principal_part)
     
-    # Сохраняем платёж в историю
     payment = MortgagePayment(
         mortgage_id=id,
         date=date.today(),
@@ -1054,14 +1279,12 @@ def pay_mortgage(id):
         mortgage.extra_payments_total += amount
         
         if reduce_type == 'term' and mortgage.remaining_months > 1:
-            # Пересчитываем срок
             if monthly_rate > 0:
                 new_months = -math.log(1 - (mortgage.remaining_amount * monthly_rate / mortgage.monthly_payment)) / math.log(1 + monthly_rate)
                 mortgage.remaining_months = max(1, math.ceil(new_months))
             else:
                 mortgage.remaining_months = math.ceil(mortgage.remaining_amount / mortgage.monthly_payment)
         elif reduce_type == 'payment':
-            # Пересчитываем платёж
             if mortgage.remaining_months > 0 and monthly_rate > 0:
                 mortgage.monthly_payment = mortgage.remaining_amount * (monthly_rate * (1 + monthly_rate)**mortgage.remaining_months) / ((1 + monthly_rate)**mortgage.remaining_months - 1)
             elif mortgage.remaining_months > 0:
@@ -1101,6 +1324,64 @@ def delete_mortgage(id):
     db.session.commit()
     return jsonify({'message': 'Ипотека удалена'})
 
+# --- Бонусные карты ---
+@app.route('/api/bonus-cards', methods=['GET'])
+def get_bonus_cards():
+    cards = BonusCard.query.order_by(BonusCard.name).all()
+    return jsonify([{
+        'id': c.id,
+        'name': c.name,
+        'store_name': c.store_name,
+        'card_number': c.card_number,
+        'barcode_type': c.barcode_type,
+        'icon': c.icon,
+        'color': c.color,
+        'bonus_balance': c.bonus_balance,
+        'notes': c.notes,
+        'created_at': c.created_at.isoformat()
+    } for c in cards])
+
+@app.route('/api/bonus-cards', methods=['POST'])
+def create_bonus_card():
+    data = request.json
+    card = BonusCard(
+        name=data['name'],
+        store_name=data.get('store_name', ''),
+        card_number=data['card_number'],
+        barcode_type=data.get('barcode_type', 'CODE128'),
+        icon=data.get('icon', '🎫'),
+        color=data.get('color', '#667eea'),
+        bonus_balance=data.get('bonus_balance', 0),
+        notes=data.get('notes', '')
+    )
+    db.session.add(card)
+    db.session.commit()
+    return jsonify({'id': card.id, 'message': 'Бонусная карта добавлена'}), 201
+
+@app.route('/api/bonus-cards/<int:id>', methods=['PUT'])
+def update_bonus_card(id):
+    card = BonusCard.query.get_or_404(id)
+    data = request.json
+    
+    card.name = data.get('name', card.name)
+    card.store_name = data.get('store_name', card.store_name)
+    card.card_number = data.get('card_number', card.card_number)
+    card.barcode_type = data.get('barcode_type', card.barcode_type)
+    card.icon = data.get('icon', card.icon)
+    card.color = data.get('color', card.color)
+    card.bonus_balance = data.get('bonus_balance', card.bonus_balance)
+    card.notes = data.get('notes', card.notes)
+    
+    db.session.commit()
+    return jsonify({'message': 'Бонусная карта обновлена'})
+
+@app.route('/api/bonus-cards/<int:id>', methods=['DELETE'])
+def delete_bonus_card(id):
+    card = BonusCard.query.get_or_404(id)
+    db.session.delete(card)
+    db.session.commit()
+    return jsonify({'message': 'Бонусная карта удалена'})
+
 # --- Калькулятор кредитов ---
 @app.route('/api/calculator/credit', methods=['POST'])
 def calculate_credit():
@@ -1109,9 +1390,7 @@ def calculate_credit():
     rate = data['interest_rate'] / 100 / 12
     term = data['term_months']
     extra_payment = data.get('extra_payment', 0)
-    reduce_type = data.get('reduce_type', 'term')
     
-    # Базовый расчёт
     if rate > 0:
         monthly_payment = amount * (rate * (1 + rate)**term) / ((1 + rate)**term - 1)
     else:
@@ -1120,13 +1399,12 @@ def calculate_credit():
     total_payment = monthly_payment * term
     overpayment = total_payment - amount
     
-    # Расчёт с досрочными платежами
     schedule = []
     remaining = amount
     total_interest = 0
     month = 0
     
-    while remaining > 0 and month < term * 2:  # Защита от бесконечного цикла
+    while remaining > 0 and month < term * 2:
         month += 1
         interest = remaining * rate
         principal = monthly_payment - interest
@@ -1151,7 +1429,6 @@ def calculate_credit():
         if remaining <= 0:
             break
     
-    # Сравнение стратегий
     strategies = {
         'base': {
             'term_months': term,
@@ -1175,7 +1452,7 @@ def calculate_credit():
         'monthly_payment': round(monthly_payment, 2),
         'total_payment': round(total_payment, 2),
         'overpayment': round(overpayment, 2),
-        'schedule': schedule[:24],  # Первые 24 месяца
+        'schedule': schedule[:24],
         'strategies': strategies
     })
 
@@ -1192,7 +1469,6 @@ def calculate_mortgage():
     schedule = []
     
     if payment_type == 'annuity':
-        # Аннуитетный платёж
         if rate > 0:
             monthly_payment = amount * (rate * (1 + rate)**term) / ((1 + rate)**term - 1)
         else:
@@ -1219,7 +1495,6 @@ def calculate_mortgage():
         total_payment = monthly_payment * term
         
     else:
-        # Дифференцированный платёж
         principal_part = amount / term
         remaining = amount
         total_interest = 0
@@ -1259,12 +1534,10 @@ def get_stores():
     result = []
     
     for s in stores:
-        # Вычисляем средний рейтинг по ценам
         prices = ProductPrice.query.filter_by(store_id=s.id).all()
         avg_price_ratio = 0
         
         if prices:
-            # Сравниваем с минимальными ценами
             ratios = []
             for p in prices:
                 min_price = db.session.query(db.func.min(ProductPrice.price)).filter(
@@ -1283,7 +1556,7 @@ def get_stores():
             'icon': s.icon,
             'color': s.color,
             'products_count': len(prices),
-            'price_rating': round(5 - (avg_price_ratio - 1) * 2, 1) if avg_price_ratio > 0 else 0  # 5 = лучший
+            'price_rating': round(5 - (avg_price_ratio - 1) * 2, 1) if avg_price_ratio > 0 else 0
         })
     
     return jsonify(result)
@@ -1302,9 +1575,24 @@ def create_store():
     db.session.commit()
     return jsonify({'id': store.id, 'message': 'Магазин добавлен'}), 201
 
+@app.route('/api/stores/<int:id>', methods=['PUT'])
+def update_store(id):
+    store = Store.query.get_or_404(id)
+    data = request.json
+    
+    store.name = data.get('name', store.name)
+    store.store_type = data.get('store_type', store.store_type)
+    store.address = data.get('address', store.address)
+    store.icon = data.get('icon', store.icon)
+    store.color = data.get('color', store.color)
+    
+    db.session.commit()
+    return jsonify({'message': 'Магазин обновлён'})
+
 @app.route('/api/stores/<int:id>', methods=['DELETE'])
 def delete_store(id):
     ProductPrice.query.filter_by(store_id=id).delete()
+    Transaction.query.filter_by(store_id=id).update({'store_id': None})
     store = Store.query.get_or_404(id)
     db.session.delete(store)
     db.session.commit()
@@ -1318,7 +1606,6 @@ def get_products():
     for p in products:
         prices = ProductPrice.query.filter_by(product_id=p.id).order_by(ProductPrice.date.desc()).all()
         
-        # Группируем по магазинам
         store_prices = {}
         for price in prices:
             if price.store_id not in store_prices:
@@ -1334,7 +1621,6 @@ def get_products():
         min_price = min([sp['price'] for sp in store_prices.values()]) if store_prices else 0
         max_price = max([sp['price'] for sp in store_prices.values()]) if store_prices else 0
         
-        # Находим лучший магазин
         best_store = None
         for sp in store_prices.values():
             if sp['price'] == min_price:
@@ -1369,6 +1655,19 @@ def create_product():
     db.session.add(product)
     db.session.commit()
     return jsonify({'id': product.id, 'message': 'Товар добавлен'}), 201
+
+@app.route('/api/products/<int:id>', methods=['PUT'])
+def update_product(id):
+    product = Product.query.get_or_404(id)
+    data = request.json
+    
+    product.name = data.get('name', product.name)
+    product.category = data.get('category', product.category)
+    product.unit = data.get('unit', product.unit)
+    product.icon = data.get('icon', product.icon)
+    
+    db.session.commit()
+    return jsonify({'message': 'Товар обновлён'})
 
 @app.route('/api/products/<int:id>/prices', methods=['POST'])
 def add_product_price(id):
@@ -1454,9 +1753,13 @@ def update_investment(id):
     investment = Investment.query.get_or_404(id)
     data = request.json
     
+    investment.name = data.get('name', investment.name)
+    investment.asset_type = data.get('asset_type', investment.asset_type)
     investment.quantity = data.get('quantity', investment.quantity)
     investment.avg_buy_price = data.get('avg_buy_price', investment.avg_buy_price)
     investment.current_price = data.get('current_price', investment.current_price)
+    investment.currency = data.get('currency', investment.currency)
+    investment.sector = data.get('sector', investment.sector)
     investment.dividends_received = data.get('dividends_received', investment.dividends_received)
     investment.last_updated = datetime.utcnow()
     
@@ -1471,7 +1774,6 @@ def buy_investment(id):
     quantity = data['quantity']
     price = data['price']
     
-    # Пересчитываем среднюю цену
     total_invested = investment.quantity * investment.avg_buy_price + quantity * price
     investment.quantity += quantity
     investment.avg_buy_price = total_invested / investment.quantity
@@ -1522,11 +1824,8 @@ def delete_investment(id):
 def get_investments_summary():
     investments = Investment.query.all()
     
-    # По типам активов
     by_type = {}
-    # По секторам
     by_sector = {}
-    # По валютам
     by_currency = {}
     
     total_invested = 0
@@ -1541,14 +1840,12 @@ def get_investments_summary():
         total_current += current
         total_dividends += i.dividends_received
         
-        # По типам
         if i.asset_type not in by_type:
             by_type[i.asset_type] = {'invested': 0, 'current': 0, 'count': 0}
         by_type[i.asset_type]['invested'] += invested
         by_type[i.asset_type]['current'] += current
         by_type[i.asset_type]['count'] += 1
         
-        # По секторам
         sector = i.sector or 'Другое'
         if sector not in by_sector:
             by_sector[sector] = {'invested': 0, 'current': 0, 'count': 0}
@@ -1556,7 +1853,6 @@ def get_investments_summary():
         by_sector[sector]['current'] += current
         by_sector[sector]['count'] += 1
         
-        # По валютам
         if i.currency not in by_currency:
             by_currency[i.currency] = {'invested': 0, 'current': 0, 'count': 0}
         by_currency[i.currency]['invested'] += invested
@@ -1581,12 +1877,10 @@ def get_investments_summary():
 def get_taxes():
     year = request.args.get('year', date.today().year, type=int)
     
-    # Налоговые платежи
     payments = TaxPayment.query.filter(
         db.extract('year', TaxPayment.period_start) == year
     ).order_by(TaxPayment.due_date).all()
     
-    # Резервы на налоги
     reserves = db.session.query(
         TaxReserve.business_account_id,
         Account.name,
@@ -1596,6 +1890,9 @@ def get_taxes():
     ).join(Account, TaxReserve.business_account_id == Account.id).filter(
         db.extract('year', TaxReserve.date) == year
     ).group_by(TaxReserve.business_account_id, Account.name).all()
+    
+    # Получаем налоговые резервные счета
+    tax_reserve_accounts = Account.query.filter_by(is_tax_reserve=True).all()
     
     return jsonify({
         'payments': [{
@@ -1617,10 +1914,18 @@ def get_taxes():
             'total_tax': r.total_tax,
             'pending_tax': r.pending_tax
         } for r in reserves],
+        'tax_reserve_accounts': [{
+            'id': a.id,
+            'name': a.name,
+            'balance': a.balance,
+            'icon': a.icon,
+            'color': a.color
+        } for a in tax_reserve_accounts],
         'summary': {
             'total_paid': sum(p.amount for p in payments if p.is_paid),
             'total_pending': sum(p.amount for p in payments if not p.is_paid),
-            'total_reserves': sum(r.pending_tax for r in reserves)
+            'total_reserves': sum(r.pending_tax for r in reserves),
+            'total_in_reserve_accounts': sum(a.balance for a in tax_reserve_accounts)
         }
     })
 
@@ -1639,6 +1944,32 @@ def create_tax_payment():
     db.session.commit()
     return jsonify({'id': payment.id, 'message': 'Налог добавлен'}), 201
 
+@app.route('/api/taxes/<int:id>', methods=['PUT'])
+def update_tax_payment(id):
+    payment = TaxPayment.query.get_or_404(id)
+    data = request.json
+    
+    payment.tax_type = data.get('tax_type', payment.tax_type)
+    payment.amount = data.get('amount', payment.amount)
+    payment.description = data.get('description', payment.description)
+    
+    if data.get('period_start'):
+        payment.period_start = datetime.strptime(data['period_start'], '%Y-%m-%d').date()
+    if data.get('period_end'):
+        payment.period_end = datetime.strptime(data['period_end'], '%Y-%m-%d').date()
+    if data.get('due_date'):
+        payment.due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date()
+    
+    db.session.commit()
+    return jsonify({'message': 'Налог обновлён'})
+
+@app.route('/api/taxes/<int:id>', methods=['DELETE'])
+def delete_tax_payment(id):
+    payment = TaxPayment.query.get_or_404(id)
+    db.session.delete(payment)
+    db.session.commit()
+    return jsonify({'message': 'Налог удалён'})
+
 @app.route('/api/taxes/<int:id>/pay', methods=['POST'])
 def pay_tax(id):
     payment = TaxPayment.query.get_or_404(id)
@@ -1649,12 +1980,10 @@ def pay_tax(id):
 
 @app.route('/api/taxes/transfer', methods=['POST'])
 def transfer_tax_reserve():
-    """Перевод накопленного налога на налоговый счёт"""
     data = request.json
     business_account_id = data['business_account_id']
     tax_account_id = data['tax_account_id']
     
-    # Получаем сумму к переводу
     pending = db.session.query(db.func.sum(TaxReserve.tax_amount)).filter(
         TaxReserve.business_account_id == business_account_id,
         TaxReserve.is_transferred == False
@@ -1663,20 +1992,17 @@ def transfer_tax_reserve():
     if pending <= 0:
         return jsonify({'error': 'Нет средств для перевода'}), 400
     
-    # Переводим
     business_account = Account.query.get(business_account_id)
     tax_account = Account.query.get(tax_account_id)
     
     business_account.balance -= pending
     tax_account.balance += pending
     
-    # Отмечаем резервы как переведённые
     TaxReserve.query.filter_by(
         business_account_id=business_account_id,
         is_transferred=False
     ).update({'is_transferred': True})
     
-    # Создаём транзакцию
     transaction = Transaction(
         amount=pending,
         type='transfer',
@@ -1694,6 +2020,232 @@ def transfer_tax_reserve():
         'amount': pending
     })
 
+# --- AI Аналитика (DeepSeek) ---
+@app.route('/api/ai/analyze', methods=['POST'])
+def ai_analyze():
+    """AI-анализ расходов с помощью DeepSeek"""
+    if not DEEPSEEK_API_KEY:
+        return jsonify({'error': 'DeepSeek API key not configured'}), 400
+    
+    data = request.json
+    period = data.get('period', 'month')
+    
+    # Получаем данные за период
+    today = date.today()
+    if period == 'month':
+        start_date = today.replace(day=1)
+    elif period == 'quarter':
+        start_date = today - relativedelta(months=3)
+    elif period == 'year':
+        start_date = today.replace(month=1, day=1)
+    else:
+        start_date = today - relativedelta(months=1)
+    
+    # Собираем статистику
+    expenses_by_category = db.session.query(
+        Category.name,
+        Category.icon,
+        db.func.sum(Transaction.amount).label('total')
+    ).join(Transaction).filter(
+        Transaction.type == 'expense',
+        Transaction.date >= start_date
+    ).group_by(Category.id).order_by(db.desc('total')).all()
+    
+    income_total = db.session.query(db.func.sum(Transaction.amount)).filter(
+        Transaction.type == 'income',
+        Transaction.date >= start_date
+    ).scalar() or 0
+    
+    expense_total = db.session.query(db.func.sum(Transaction.amount)).filter(
+        Transaction.type == 'expense',
+        Transaction.date >= start_date
+    ).scalar() or 0
+    
+    # Последние крупные траты
+    large_expenses = Transaction.query.filter(
+        Transaction.type == 'expense',
+        Transaction.date >= start_date
+    ).order_by(Transaction.amount.desc()).limit(10).all()
+    
+    # Формируем промпт для AI
+    expense_list = "\n".join([
+        f"- {e.icon} {e.name}: {e.total:,.0f} ₽" for e in expenses_by_category
+    ])
+    
+    large_expense_list = "\n".join([
+        f"- {t.description or t.category.name if t.category else 'Без категории'}: {t.amount:,.0f} ₽ ({t.date})"
+        for t in large_expenses
+    ])
+    
+    prompt = f"""Ты - финансовый консультант. Проанализируй расходы семьи за период и дай рекомендации.
+
+ДАННЫЕ:
+Период: {period}
+Общий доход: {income_total:,.0f} ₽
+Общие расходы: {expense_total:,.0f} ₽
+Накоплено: {income_total - expense_total:,.0f} ₽
+Норма сбережений: {((income_total - expense_total) / income_total * 100) if income_total > 0 else 0:.1f}%
+
+РАСХОДЫ ПО КАТЕГОРИЯМ:
+{expense_list}
+
+КРУПНЫЕ ТРАТЫ:
+{large_expense_list}
+
+ЗАДАНИЕ:
+1. Оцени структуру расходов (хорошо/нормально/плохо)
+2. Найди категории где можно сэкономить
+3. Укажи подозрительные или нерациональные траты
+4. Дай 3-5 конкретных советов по оптимизации бюджета
+5. Похвали если что-то сделано хорошо
+
+Отвечай на русском, структурированно, с эмодзи. Будь конкретным и полезным."""
+
+    try:
+        response = requests.post(
+            DEEPSEEK_API_URL,
+            headers={
+                'Authorization': f'Bearer {DEEPSEEK_API_KEY}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': 'deepseek-chat',
+                'messages': [
+                    {'role': 'system', 'content': 'Ты опытный финансовый консультант, помогающий семьям управлять бюджетом.'},
+                    {'role': 'user', 'content': prompt}
+                ],
+                'temperature': 0.7,
+                'max_tokens': 2000
+            },
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            ai_response = result['choices'][0]['message']['content']
+            
+            # Кэшируем результат
+            data_hash = hashlib.md5(f"{start_date}{expense_total}".encode()).hexdigest()
+            
+            # Удаляем старый кэш
+            AIAnalysis.query.filter_by(analysis_type='expense', period=period).delete()
+            
+            # Сохраняем новый
+            analysis = AIAnalysis(
+                analysis_type='expense',
+                period=period,
+                data_hash=data_hash,
+                result=ai_response
+            )
+            db.session.add(analysis)
+            db.session.commit()
+            
+            return jsonify({
+                'analysis': ai_response,
+                'stats': {
+                    'income': income_total,
+                    'expense': expense_total,
+                    'savings': income_total - expense_total,
+                    'savings_rate': round((income_total - expense_total) / income_total * 100, 1) if income_total > 0 else 0
+                }
+            })
+        else:
+            return jsonify({'error': f'DeepSeek API error: {response.status_code}'}), 500
+            
+    except requests.exceptions.Timeout:
+        return jsonify({'error': 'AI service timeout'}), 504
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ai/tips', methods=['GET'])
+def ai_tips():
+    """Получить быстрые советы на основе текущих данных"""
+    tips = []
+    today = date.today()
+    first_day = today.replace(day=1)
+    
+    # Проверяем превышение бюджета
+    over_budget = []
+    categories = Category.query.filter(Category.budget_limit > 0, Category.type == 'expense').all()
+    for cat in categories:
+        spent = db.session.query(db.func.sum(Transaction.amount)).filter(
+            Transaction.category_id == cat.id,
+            Transaction.date >= first_day,
+            Transaction.type == 'expense'
+        ).scalar() or 0
+        if spent > cat.budget_limit:
+            over_budget.append({
+                'category': cat.name,
+                'icon': cat.icon,
+                'budget': cat.budget_limit,
+                'spent': spent,
+                'over': spent - cat.budget_limit
+            })
+    
+    if over_budget:
+        tips.append({
+            'type': 'warning',
+            'icon': '⚠️',
+            'title': 'Превышение бюджета',
+            'message': f"Превышен бюджет в {len(over_budget)} категориях. Самое большое превышение: {over_budget[0]['icon']} {over_budget[0]['category']} (+{over_budget[0]['over']:,.0f} ₽)"
+        })
+    
+    # Проверяем норму сбережений
+    income = db.session.query(db.func.sum(Transaction.amount)).filter(
+        Transaction.type == 'income',
+        Transaction.date >= first_day
+    ).scalar() or 0
+    
+    expense = db.session.query(db.func.sum(Transaction.amount)).filter(
+        Transaction.type == 'expense',
+        Transaction.date >= first_day
+    ).scalar() or 0
+    
+    if income > 0:
+        savings_rate = (income - expense) / income * 100
+        if savings_rate < 10:
+            tips.append({
+                'type': 'danger',
+                'icon': '🚨',
+                'title': 'Низкая норма сбережений',
+                'message': f'Вы откладываете только {savings_rate:.1f}% дохода. Рекомендуется минимум 20%.'
+            })
+        elif savings_rate >= 30:
+            tips.append({
+                'type': 'success',
+                'icon': '🎉',
+                'title': 'Отличная норма сбережений!',
+                'message': f'Вы откладываете {savings_rate:.1f}% дохода. Так держать!'
+            })
+    
+    # Проверяем ближайшие платежи
+    upcoming = []
+    credits = Credit.query.all()
+    for c in credits:
+        if c.next_payment_date and (c.next_payment_date - today).days <= 3:
+            upcoming.append(f"{c.name}: {c.monthly_payment:,.0f} ₽")
+    
+    if upcoming:
+        tips.append({
+            'type': 'info',
+            'icon': '📅',
+            'title': 'Ближайшие платежи',
+            'message': f"Не забудьте: {', '.join(upcoming[:3])}"
+        })
+    
+    # Проверяем долг по кредитным картам
+    cards = CreditCard.query.all()
+    high_utilization = [c for c in cards if c.credit_limit > 0 and (c.current_debt / c.credit_limit) > 0.7]
+    if high_utilization:
+        tips.append({
+            'type': 'warning',
+            'icon': '💳',
+            'title': 'Высокая загрузка кредитных карт',
+            'message': f'{len(high_utilization)} карт(ы) использованы более чем на 70%. Это может влиять на кредитный рейтинг.'
+        })
+    
+    return jsonify(tips)
+
 # --- Статистика и дашборд ---
 @app.route('/api/dashboard', methods=['GET'])
 def get_dashboard():
@@ -1703,15 +2255,17 @@ def get_dashboard():
     last_month_start = (first_day_month - timedelta(days=1)).replace(day=1)
     last_month_end = first_day_month - timedelta(days=1)
     
-    # Общий баланс по типам счетов
     accounts = Account.query.all()
-    total_balance = sum(a.balance for a in accounts if a.account_type != 'credit_card')
-    total_credit_debt = sum(
-        CreditCard.query.filter_by(account_id=a.id).first().current_debt 
-        for a in accounts if a.account_type == 'credit_card' and CreditCard.query.filter_by(account_id=a.id).first()
-    )
+    total_balance = sum(a.balance for a in accounts if a.account_type not in ['credit_card'])
     
-    # Доходы и расходы
+    # Долг по кредитным картам
+    total_credit_debt = 0
+    for a in accounts:
+        if a.account_type == 'credit_card':
+            card = CreditCard.query.filter_by(account_id=a.id).first()
+            if card:
+                total_credit_debt += card.current_debt
+    
     monthly_income = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'income',
         Transaction.date >= first_day_month
@@ -1722,7 +2276,6 @@ def get_dashboard():
         Transaction.date >= first_day_month
     ).scalar() or 0
     
-    # Прошлый месяц для сравнения
     last_month_income = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'income',
         Transaction.date >= last_month_start,
@@ -1735,7 +2288,6 @@ def get_dashboard():
         Transaction.date <= last_month_end
     ).scalar() or 0
     
-    # Годовые показатели
     yearly_income = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'income',
         Transaction.date >= first_day_year
@@ -1746,7 +2298,6 @@ def get_dashboard():
         Transaction.date >= first_day_year
     ).scalar() or 0
     
-    # Цели
     goals = Goal.query.filter_by(is_completed=False).all()
     goals_total_target = sum(g.target_amount for g in goals)
     goals_total_current = sum(g.current_amount for g in goals)
@@ -1755,7 +2306,6 @@ def get_dashboard():
         Goal.completed_at >= first_day_month
     ).count()
     
-    # Кредиты и ипотека
     credits = Credit.query.all()
     mortgages = Mortgage.query.all()
     total_credit_remaining = sum(c.remaining_amount for c in credits)
@@ -1763,17 +2313,19 @@ def get_dashboard():
     monthly_credit_payments = sum(c.monthly_payment for c in credits)
     monthly_mortgage_payments = sum(m.monthly_payment for m in mortgages)
     
-    # Инвестиции
     investments = Investment.query.all()
     total_invested = sum(i.quantity * i.avg_buy_price for i in investments)
     total_investment_value = sum(i.quantity * i.current_price for i in investments)
     
-    # Налоги
     pending_taxes = db.session.query(db.func.sum(TaxReserve.tax_amount)).filter(
         TaxReserve.is_transferred == False
     ).scalar() or 0
     
-    # Ближайшие платежи
+    # Баланс налоговых резервных счетов
+    tax_reserve_balance = db.session.query(db.func.sum(Account.balance)).filter(
+        Account.is_tax_reserve == True
+    ).scalar() or 0
+    
     upcoming_payments = []
     
     for c in credits:
@@ -1798,7 +2350,7 @@ def get_dashboard():
     
     cards = CreditCard.query.all()
     for card in cards:
-        payment_date = today.replace(day=card.payment_due_day)
+        payment_date = today.replace(day=min(card.payment_due_day, 28))
         if payment_date < today:
             payment_date = payment_date + relativedelta(months=1)
         days_left = (payment_date - today).days
@@ -1813,7 +2365,6 @@ def get_dashboard():
     
     upcoming_payments.sort(key=lambda x: x['days_left'])
     
-    # Категории с превышением бюджета
     over_budget_categories = []
     categories = Category.query.filter(Category.budget_limit > 0, Category.type == 'expense').all()
     for cat in categories:
@@ -1832,7 +2383,6 @@ def get_dashboard():
                 'over': spent - cat.budget_limit
             })
     
-    # Тренды (последние 6 месяцев)
     trends = []
     for i in range(5, -1, -1):
         month_start = (today - relativedelta(months=i)).replace(day=1)
@@ -1898,7 +2448,8 @@ def get_dashboard():
             'profit_percent': round((total_investment_value - total_invested) / total_invested * 100, 2) if total_invested > 0 else 0
         },
         'taxes': {
-            'pending': pending_taxes
+            'pending': pending_taxes,
+            'in_reserve': tax_reserve_balance
         },
         'upcoming_payments': upcoming_payments[:5],
         'over_budget_categories': over_budget_categories,
@@ -1968,9 +2519,46 @@ def get_stats_by_store():
         'avg_check': round(r.total / r.count, 2) if r.count > 0 else 0
     } for r in results])
 
+@app.route('/api/stats/trends', methods=['GET'])
+def get_trends():
+    """Детальные тренды для графиков"""
+    months = request.args.get('months', 12, type=int)
+    today = date.today()
+    
+    trends = []
+    for i in range(months - 1, -1, -1):
+        month_start = (today - relativedelta(months=i)).replace(day=1)
+        month_end = (month_start + relativedelta(months=1)) - timedelta(days=1)
+        
+        income = db.session.query(db.func.sum(Transaction.amount)).filter(
+            Transaction.type == 'income',
+            Transaction.date >= month_start,
+            Transaction.date <= month_end
+        ).scalar() or 0
+        
+        expense = db.session.query(db.func.sum(Transaction.amount)).filter(
+            Transaction.type == 'expense',
+            Transaction.date >= month_start,
+            Transaction.date <= month_end
+        ).scalar() or 0
+        
+        trends.append({
+            'month': month_start.strftime('%Y-%m'),
+            'month_name': month_start.strftime('%b %Y'),
+            'income': income,
+            'expense': expense,
+            'savings': income - expense,
+            'savings_rate': round((income - expense) / income * 100, 1) if income > 0 else 0
+        })
+    
+    return jsonify(trends)
+
 # --- Достижения ---
 @app.route('/api/achievements', methods=['GET'])
 def get_achievements():
+    # Проверяем достижения перед выдачей
+    check_achievements()
+    
     achievements = Achievement.query.order_by(Achievement.unlocked.desc(), Achievement.points.desc()).all()
     return jsonify([{
         'id': a.id,
@@ -1988,22 +2576,15 @@ def check_achievements():
     today = date.today()
     first_day = today.replace(day=1)
     
-    # Первая транзакция
     unlock_achievement('first_transaction', Transaction.query.count() >= 1)
-    
-    # 100 транзакций
     unlock_achievement('century', Transaction.query.count() >= 100)
-    
-    # Первая цель достигнута
     unlock_achievement('goal_achiever', Goal.query.filter_by(is_completed=True).count() >= 1)
     
-    # Накопил 100000
     total_savings = db.session.query(db.func.sum(Account.balance)).filter(
         Account.account_type.in_(['debit', 'savings'])
     ).scalar() or 0
     unlock_achievement('saver_100k', total_savings >= 100000)
     
-    # Месяц в плюсе
     monthly_income = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'income',
         Transaction.date >= first_day
@@ -2013,6 +2594,28 @@ def check_achievements():
         Transaction.date >= first_day
     ).scalar() or 0
     unlock_achievement('profitable_month', monthly_income > monthly_expense)
+    
+    # Нет долгов
+    total_debt = Credit.query.count() + Mortgage.query.count()
+    total_card_debt = db.session.query(db.func.sum(CreditCard.current_debt)).scalar() or 0
+    unlock_achievement('debt_free', total_debt == 0 and total_card_debt == 0)
+    
+    # Инвестор
+    unlock_achievement('investor', Investment.query.count() >= 1)
+    
+    # Бюджетник - не превысил бюджет за месяц
+    over_budget = False
+    categories = Category.query.filter(Category.budget_limit > 0, Category.type == 'expense').all()
+    for cat in categories:
+        spent = db.session.query(db.func.sum(Transaction.amount)).filter(
+            Transaction.category_id == cat.id,
+            Transaction.date >= first_day,
+            Transaction.type == 'expense'
+        ).scalar() or 0
+        if spent > cat.budget_limit:
+            over_budget = True
+            break
+    unlock_achievement('budget_master', not over_budget and len(categories) > 0)
 
 def unlock_achievement(code, condition):
     if not condition:
@@ -2032,7 +2635,6 @@ def init_database():
         # Создаём категории по умолчанию
         if Category.query.count() == 0:
             default_categories = [
-                # Расходы
                 ('Продукты', 'expense', '🛒', '#4CAF50', 30000),
                 ('Транспорт', 'expense', '🚗', '#2196F3', 10000),
                 ('Жильё', 'expense', '🏠', '#9C27B0', 0),
@@ -2049,7 +2651,6 @@ def init_database():
                 ('Питомцы', 'expense', '🐕', '#795548', 5000),
                 ('Связь', 'expense', '📞', '#009688', 2000),
                 ('Другое', 'expense', '📦', '#9E9E9E', 0),
-                # Доходы
                 ('Зарплата', 'income', '💰', '#4CAF50', 0),
                 ('Фриланс', 'income', '💻', '#2196F3', 0),
                 ('Бизнес', 'income', '🏢', '#9C27B0', 0),
