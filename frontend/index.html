@@ -426,41 +426,57 @@
                 <!-- Calculator -->
                 <section class="tab-content" id="calculator-tab">
                     <div class="calculator-tabs">
-                        <button class="calc-tab active" data-calc="credit">Кредит</button>
-                        <button class="calc-tab" data-calc="mortgage">Ипотека</button>
-                        <button class="calc-tab" data-calc="early">Досрочное погашение</button>
+                        <button class="calc-tab active" data-calc="credit">💳 Кредит</button>
+                        <button class="calc-tab" data-calc="mortgage">🏠 Ипотека</button>
+                        <button class="calc-tab" data-calc="early">🚀 Досрочное погашение</button>
                     </div>
                     
                     <div class="calculator-content">
+                        <!-- Кредитный калькулятор -->
                         <div class="calc-section active" id="calc-credit">
                             <div class="calc-form">
                                 <div class="form-group">
-                                    <label class="form-label">Сумма кредита</label>
-                                    <input type="number" class="form-input" id="calcAmount" value="1000000">
+                                    <label class="form-label">Сумма кредита *</label>
+                                    <input type="number" class="form-input" id="calcAmount" value="1000000" placeholder="1000000">
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label class="form-label">Ставка, %</label>
+                                        <label class="form-label">Ставка, % *</label>
                                         <input type="number" class="form-input" id="calcRate" value="15" step="0.1">
                                     </div>
                                     <div class="form-group">
-                                        <label class="form-label">Срок, мес.</label>
+                                        <label class="form-label">Срок, мес. *</label>
                                         <input type="number" class="form-input" id="calcTerm" value="36">
                                     </div>
                                 </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">📅 Дата взятия кредита</label>
+                                    <input type="date" class="form-input" id="calcStartDate">
+                                    <div class="form-hint">Укажите дату, чтобы увидеть сколько уже оплачено</div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">День платежа в месяце</label>
+                                    <input type="number" class="form-input" id="calcPaymentDay" value="1" min="1" max="31">
+                                </div>
+                                
                                 <div class="form-group">
                                     <label class="form-label">Досрочный платёж (ежемесячно)</label>
-                                    <input type="number" class="form-input" id="calcExtra" value="0">
+                                    <input type="number" class="form-input" id="calcExtra" value="0" placeholder="0">
+                                    <div class="form-hint">Дополнительная сумма к ежемесячному платежу</div>
                                 </div>
-                                <button class="btn btn-primary btn-block" id="calcCreditBtn">Рассчитать</button>
+                                
+                                <button class="btn btn-primary btn-block" id="calcCreditBtn">🧮 Рассчитать</button>
                             </div>
                             <div class="calc-result" id="calcCreditResult"></div>
                         </div>
                         
+                        <!-- Ипотечный калькулятор -->
                         <div class="calc-section" id="calc-mortgage">
                             <div class="calc-form">
                                 <div class="form-group">
-                                    <label class="form-label">Стоимость недвижимости</label>
+                                    <label class="form-label">Стоимость недвижимости *</label>
                                     <input type="number" class="form-input" id="calcPropertyValue" value="10000000">
                                 </div>
                                 <div class="form-group">
@@ -469,51 +485,60 @@
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label class="form-label">Ставка, %</label>
+                                        <label class="form-label">Ставка, % *</label>
                                         <input type="number" class="form-input" id="calcMortgageRate" value="8" step="0.1">
                                     </div>
                                     <div class="form-group">
-                                        <label class="form-label">Срок, лет</label>
+                                        <label class="form-label">Срок, лет *</label>
                                         <input type="number" class="form-input" id="calcMortgageTerm" value="20">
                                     </div>
                                 </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">📅 Дата взятия ипотеки</label>
+                                    <input type="date" class="form-input" id="calcMortgageStartDate">
+                                    <div class="form-hint">Укажите дату, чтобы увидеть текущий остаток</div>
+                                </div>
+                                
                                 <div class="form-group">
                                     <label class="form-label">Тип платежа</label>
                                     <select class="form-select" id="calcPaymentType">
-                                        <option value="annuity">Аннуитетный</option>
-                                        <option value="differentiated">Дифференцированный</option>
+                                        <option value="annuity">Аннуитетный (равные платежи)</option>
+                                        <option value="differentiated">Дифференцированный (убывающие)</option>
                                     </select>
                                 </div>
-                                <button class="btn btn-primary btn-block" id="calcMortgageBtn">Рассчитать</button>
+                                <button class="btn btn-primary btn-block" id="calcMortgageBtn">🧮 Рассчитать</button>
                             </div>
                             <div class="calc-result" id="calcMortgageResult"></div>
                         </div>
                         
+                        <!-- Калькулятор досрочного погашения -->
                         <div class="calc-section" id="calc-early">
                             <div class="calc-form">
                                 <div class="form-group">
-                                    <label class="form-label">Остаток долга</label>
+                                    <label class="form-label">Остаток долга *</label>
                                     <input type="number" class="form-input" id="calcEarlyRemaining" value="500000">
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label class="form-label">Ставка, %</label>
+                                        <label class="form-label">Ставка, % *</label>
                                         <input type="number" class="form-input" id="calcEarlyRate" value="15" step="0.1">
                                     </div>
                                     <div class="form-group">
-                                        <label class="form-label">Осталось мес.</label>
+                                        <label class="form-label">Осталось мес. *</label>
                                         <input type="number" class="form-input" id="calcEarlyMonths" value="24">
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Текущий платёж</label>
+                                    <label class="form-label">Текущий ежемесячный платёж *</label>
                                     <input type="number" class="form-input" id="calcEarlyPayment" value="25000">
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Сумма досрочного погашения</label>
+                                    <label class="form-label">Сумма досрочного погашения *</label>
                                     <input type="number" class="form-input" id="calcEarlyAmount" value="100000">
+                                    <div class="form-hint">Единоразовый платёж сверх ежемесячного</div>
                                 </div>
-                                <button class="btn btn-primary btn-block" id="calcEarlyBtn">Сравнить варианты</button>
+                                <button class="btn btn-primary btn-block" id="calcEarlyBtn">📊 Сравнить варианты</button>
                             </div>
                             <div class="calc-result" id="calcEarlyResult"></div>
                         </div>

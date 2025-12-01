@@ -1085,6 +1085,7 @@ function renderCredits() {
     // Сводка
     const totalDebt = state.credits.reduce((sum, c) => sum + c.remaining_amount, 0);
     const monthlyPayment = state.credits.reduce((sum, c) => sum + c.monthly_payment, 0);
+    const totalPaidInterest = state.credits.reduce((sum, c) => sum + (c.paid_interest || 0), 0);
     
     const totalCreditsDebtEl = document.getElementById('totalCreditsDebt');
     const monthlyCreditsPaymentEl = document.getElementById('monthlyCreditsPayment');
@@ -1108,6 +1109,7 @@ function renderCredits() {
                 <div>
                     <div class="credit-name">${c.name}</div>
                     <div class="credit-bank">${c.bank_name || ''}</div>
+                    ${c.start_date ? `<div style="font-size: 11px; color: var(--gray-400);">с ${formatDate(c.start_date)}</div>` : ''}
                 </div>
                 <div class="credit-rate">${c.interest_rate}%</div>
             </div>
@@ -1127,18 +1129,24 @@ function renderCredits() {
                     <div class="credit-detail-value">${formatMoney(c.monthly_payment)}</div>
                 </div>
                 <div class="credit-detail">
-                    <div class="credit-detail-label">Осталось месяцев</div>
-                    <div class="credit-detail-value">${c.remaining_months}</div>
+                    <div class="credit-detail-label">Оплачено / Осталось</div>
+                    <div class="credit-detail-value">${c.months_paid || 0} / ${c.remaining_months} мес.</div>
                 </div>
                 <div class="credit-detail">
                     <div class="credit-detail-label">Следующий платёж</div>
                     <div class="credit-detail-value">${c.next_payment_date ? formatDate(c.next_payment_date) : '—'}</div>
                 </div>
                 <div class="credit-detail">
-                    <div class="credit-detail-label">Досрочно погашено</div>
-                    <div class="credit-detail-value">${formatMoney(c.extra_payments_total)}</div>
+                    <div class="credit-detail-label">Уплачено процентов</div>
+                    <div class="credit-detail-value" style="color: var(--danger);">${formatMoney(c.paid_interest || 0)}</div>
                 </div>
             </div>
+            
+            ${c.extra_payments_total > 0 ? `
+                <div style="font-size: 12px; color: var(--success); margin-top: 8px;">
+                    ✨ Досрочно погашено: ${formatMoney(c.extra_payments_total)}
+                </div>
+            ` : ''}
             
             <div class="credit-actions">
                 <button class="btn btn-sm btn-primary" onclick="showPayCreditModal(${c.id})">💳 Платёж</button>
@@ -2868,29 +2876,21 @@ function showCreditModal() {
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Сумма кредита *</label>
-                    <input type="number" class="form-input" name="original_amount" step="0.01" required>
+                    <input type="number" class="form-input" name="original_amount" step="0.01" required 
+                           placeholder="500000" id="creditOriginalAmount">
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Остаток долга</label>
-                    <input type="number" class="form-input" name="remaining_amount" step="0.01" placeholder="= сумме кредита">
-                </div>
-            </div>
-            
-            <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Ставка (%) *</label>
-                    <input type="number" class="form-input" name="interest_rate" step="0.1" required value="15">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Срок (мес.) *</label>
-                    <input type="number" class="form-input" name="term_months" required value="36">
+                    <input type="number" class="form-input" name="interest_rate" step="0.1" required 
+                           value="15" id="creditInterestRate">
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Ежемесячный платёж *</label>
-                    <input type="number" class="form-input" name="monthly_payment" step="0.01" required>
+                    <label class="form-label">Срок (мес.) *</label>
+                    <input type="number" class="form-input" name="term_months" required 
+                           value="36" id="creditTermMonths">
                 </div>
                 <div class="form-group">
                     <label class="form-label">День платежа</label>
@@ -2899,16 +2899,73 @@ function showCreditModal() {
             </div>
             
             <div class="form-group">
-                <label class="form-label">Дата начала</label>
-                <input type="date" class="form-input" name="start_date" value="${today}">
+                <label class="form-label">📅 Дата взятия кредита *</label>
+                <input type="date" class="form-input" name="start_date" value="${today}" id="creditStartDate">
+                <div class="form-hint">Укажите когда взяли кредит — система рассчитает уже оплаченные платежи</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Ежемесячный платёж</label>
+                <input type="number" class="form-input" name="monthly_payment" step="0.01" 
+                       placeholder="Рассчитается автоматически" id="creditMonthlyPayment">
+                <div class="form-hint">Оставьте пустым для автоматического расчёта</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <input type="checkbox" id="manualRemainingCheckbox"> 
+                    Указать остаток вручную
+                </label>
+            </div>
+            
+            <div class="form-group" id="remainingAmountGroup" style="display: none;">
+                <label class="form-label">Текущий остаток долга</label>
+                <input type="number" class="form-input" name="remaining_amount" step="0.01" 
+                       placeholder="Если знаете точный остаток" id="creditRemainingAmount">
+            </div>
+            
+            <!-- Блок предварительного расчёта -->
+            <div id="creditPreview" style="background: var(--gray-100); padding: 16px; border-radius: var(--radius); margin: 16px 0; display: none;">
+                <div style="font-weight: 600; margin-bottom: 12px;">📊 Предварительный расчёт</div>
+                <div class="credit-preview-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <div style="font-size: 12px; color: var(--gray-500);">Ежемесячный платёж</div>
+                        <div style="font-size: 18px; font-weight: 600;" id="previewPayment">—</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--gray-500);">Переплата</div>
+                        <div style="font-size: 18px; font-weight: 600; color: var(--danger);" id="previewOverpayment">—</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--gray-500);">Уже оплачено месяцев</div>
+                        <div style="font-size: 18px; font-weight: 600; color: var(--success);" id="previewPaidMonths">—</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--gray-500);">Текущий остаток</div>
+                        <div style="font-size: 18px; font-weight: 600;" id="previewRemaining">—</div>
+                    </div>
+                </div>
             </div>
             
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+                <button type="button" class="btn btn-info" onclick="previewCredit()">🔄 Рассчитать</button>
                 <button type="submit" class="btn btn-primary">Добавить</button>
             </div>
         </form>
     `);
+    
+    // Показ/скрытие поля остатка
+    document.getElementById('manualRemainingCheckbox').addEventListener('change', (e) => {
+        document.getElementById('remainingAmountGroup').style.display = e.target.checked ? 'block' : 'none';
+    });
+    
+    // Автоматический предпросмотр при изменении полей
+    const fieldsToWatch = ['creditOriginalAmount', 'creditInterestRate', 'creditTermMonths', 'creditStartDate'];
+    fieldsToWatch.forEach(id => {
+        document.getElementById(id)?.addEventListener('change', debounce(previewCredit, 500));
+        document.getElementById(id)?.addEventListener('input', debounce(previewCredit, 500));
+    });
     
     document.getElementById('creditForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -2917,22 +2974,69 @@ function showCreditModal() {
         const data = Object.fromEntries(formData);
         
         data.original_amount = parseFloat(data.original_amount);
-        data.remaining_amount = parseFloat(data.remaining_amount) || data.original_amount;
         data.interest_rate = parseFloat(data.interest_rate);
         data.term_months = parseInt(data.term_months);
-        data.remaining_months = data.term_months;
-        data.monthly_payment = parseFloat(data.monthly_payment);
         data.payment_day = parseInt(data.payment_day) || 1;
         
+        if (data.monthly_payment) {
+            data.monthly_payment = parseFloat(data.monthly_payment);
+        } else {
+            delete data.monthly_payment;
+        }
+        
+        if (data.remaining_amount && document.getElementById('manualRemainingCheckbox').checked) {
+            data.remaining_amount = parseFloat(data.remaining_amount);
+        } else {
+            delete data.remaining_amount;
+        }
+        
         try {
-            await API.credits.create(data);
+            const result = await API.credits.create(data);
             closeModal();
-            showToast('Кредит добавлен', 'success');
+            showToast(`Кредит добавлен. Оплачено месяцев: ${result.calculated?.months_passed || 0}`, 'success');
             loadAllData();
         } catch (error) {
             showToast('Ошибка добавления', 'error');
         }
     });
+}
+
+// Функция предпросмотра расчёта кредита
+async function previewCredit() {
+    const amount = parseFloat(document.getElementById('creditOriginalAmount')?.value) || 0;
+    const rate = parseFloat(document.getElementById('creditInterestRate')?.value) || 0;
+    const term = parseInt(document.getElementById('creditTermMonths')?.value) || 0;
+    const startDate = document.getElementById('creditStartDate')?.value;
+    
+    if (!amount || !term) {
+        document.getElementById('creditPreview').style.display = 'none';
+        return;
+    }
+    
+    try {
+        const result = await API.calculator.credit({
+            amount,
+            interest_rate: rate,
+            term_months: term,
+            start_date: startDate,
+            payment_day: parseInt(document.querySelector('input[name="payment_day"]')?.value) || 1
+        });
+        
+        document.getElementById('creditPreview').style.display = 'block';
+        document.getElementById('previewPayment').textContent = formatMoney(result.monthly_payment);
+        document.getElementById('previewOverpayment').textContent = formatMoney(result.overpayment);
+        document.getElementById('previewPaidMonths').textContent = `${result.months_passed} из ${term}`;
+        document.getElementById('previewRemaining').textContent = formatMoney(result.current_remaining);
+        
+        // Автозаполнение платежа если пусто
+        const paymentInput = document.getElementById('creditMonthlyPayment');
+        if (paymentInput && !paymentInput.value) {
+            paymentInput.placeholder = formatMoney(result.monthly_payment);
+        }
+        
+    } catch (error) {
+        console.error('Preview error:', error);
+    }
 }
 
 function showEditCreditModal(id) {
@@ -4603,49 +4707,132 @@ async function calculateCredit() {
     const rate = parseFloat(document.getElementById('calcRate').value) || 0;
     const term = parseInt(document.getElementById('calcTerm').value) || 0;
     const extra = parseFloat(document.getElementById('calcExtra').value) || 0;
+    const startDate = document.getElementById('calcStartDate')?.value;
     
     if (!amount || !rate || !term) {
-        showToast('Заполните все поля', 'warning');
+        showToast('Заполните сумму, ставку и срок', 'warning');
         return;
     }
     
     try {
         const result = await API.calculator.credit({
-            amount, interest_rate: rate, term_months: term, extra_payment: extra
+            amount, 
+            interest_rate: rate, 
+            term_months: term, 
+            extra_payment: extra,
+            start_date: startDate
         });
         
         const container = document.getElementById('calcCreditResult');
+        
+        // Определяем есть ли уже оплаченные месяцы
+        const hasPaidMonths = result.months_passed > 0;
+        
         container.innerHTML = `
-            <div class="calc-result-header">Результаты расчёта</div>
-            <div class="calc-result-item">
-                <span class="calc-result-label">Ежемесячный платёж</span>
-                <span class="calc-result-value highlight">${formatMoney(result.monthly_payment)}</span>
+            <div class="calc-result-header">📊 Результаты расчёта</div>
+            
+            <div class="calc-result-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px;">
+                <div class="calc-result-card" style="background: var(--gray-100); padding: 16px; border-radius: var(--radius);">
+                    <div style="font-size: 12px; color: var(--gray-500);">Ежемесячный платёж</div>
+                    <div style="font-size: 24px; font-weight: 700; color: var(--primary);">${formatMoney(result.monthly_payment)}</div>
+                </div>
+                <div class="calc-result-card" style="background: var(--danger-light); padding: 16px; border-radius: var(--radius);">
+                    <div style="font-size: 12px; color: var(--gray-500);">Переплата</div>
+                    <div style="font-size: 24px; font-weight: 700; color: var(--danger);">${formatMoney(result.overpayment)}</div>
+                </div>
             </div>
-            <div class="calc-result-item">
-                <span class="calc-result-label">Общая сумма выплат</span>
-                <span class="calc-result-value">${formatMoney(result.total_payment)}</span>
-            </div>
-            <div class="calc-result-item">
-                <span class="calc-result-label">Переплата</span>
-                <span class="calc-result-value" style="color: var(--danger)">${formatMoney(result.overpayment)}</span>
-            </div>
-            ${result.strategies.with_extra ? `
-                <div class="calc-comparison">
-                    <div class="calc-comparison-title">💡 С досрочными платежами</div>
-                    <div class="calc-comparison-options">
-                        <div class="calc-option">
-                            <div class="calc-option-title">Срок</div>
-                            <div class="calc-option-value">${result.strategies.with_extra.term_months} мес.</div>
-                            <div class="calc-option-savings">-${result.strategies.with_extra.months_saved} мес.</div>
+            
+            ${hasPaidMonths ? `
+                <div class="calc-paid-info" style="background: var(--success-light); padding: 16px; border-radius: var(--radius); margin-bottom: 20px;">
+                    <div style="font-weight: 600; margin-bottom: 8px;">✅ Уже оплачено</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                        <div>
+                            <div style="font-size: 12px; color: var(--gray-600);">Месяцев</div>
+                            <div style="font-size: 18px; font-weight: 600;">${result.months_passed} из ${term}</div>
                         </div>
-                        <div class="calc-option recommended">
-                            <div class="calc-option-title">Экономия</div>
-                            <div class="calc-option-value">${formatMoney(result.strategies.with_extra.savings)}</div>
-                            <div class="calc-option-savings">на процентах</div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--gray-600);">Основной долг</div>
+                            <div style="font-size: 18px; font-weight: 600;">${formatMoney(result.paid_principal)}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--gray-600);">Проценты</div>
+                            <div style="font-size: 18px; font-weight: 600;">${formatMoney(result.paid_interest)}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="calc-current-info" style="background: var(--warning-light); padding: 16px; border-radius: var(--radius); margin-bottom: 20px;">
+                    <div style="font-weight: 600; margin-bottom: 8px;">📍 Текущее состояние</div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <div>
+                            <div style="font-size: 12px; color: var(--gray-600);">Остаток долга</div>
+                            <div style="font-size: 24px; font-weight: 700;">${formatMoney(result.current_remaining)}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--gray-600);">Осталось месяцев</div>
+                            <div style="font-size: 24px; font-weight: 700;">${result.remaining_months}</div>
                         </div>
                     </div>
                 </div>
             ` : ''}
+            
+            <div class="calc-result-item" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--gray-200);">
+                <span class="calc-result-label">Общая сумма выплат</span>
+                <span class="calc-result-value">${formatMoney(result.total_payment)}</span>
+            </div>
+            
+            ${result.strategies.with_extra ? `
+                <div class="calc-comparison" style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, var(--success-light) 0%, #d1fae5 100%); border-radius: var(--radius);">
+                    <div class="calc-comparison-title" style="font-weight: 600; margin-bottom: 12px;">💡 С досрочными платежами +${formatMoney(extra)}/мес.</div>
+                    <div class="calc-comparison-options" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                        <div class="calc-option" style="text-align: center;">
+                            <div style="font-size: 12px; color: var(--gray-600);">Новый срок</div>
+                            <div style="font-size: 20px; font-weight: 700;">${result.strategies.with_extra.term_months} мес.</div>
+                            <div style="font-size: 13px; color: var(--success);">-${result.strategies.with_extra.months_saved} мес.</div>
+                        </div>
+                        <div class="calc-option" style="text-align: center;">
+                            <div style="font-size: 12px; color: var(--gray-600);">Экономия</div>
+                            <div style="font-size: 20px; font-weight: 700; color: var(--success);">${formatMoney(result.strategies.with_extra.savings)}</div>
+                        </div>
+                        <div class="calc-option" style="text-align: center;">
+                            <div style="font-size: 12px; color: var(--gray-600);">Переплата</div>
+                            <div style="font-size: 20px; font-weight: 700;">${formatMoney(result.strategies.with_extra.overpayment)}</div>
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
+            
+            <!-- График платежей -->
+            <div style="margin-top: 20px;">
+                <div style="font-weight: 600; margin-bottom: 12px;">📅 График платежей</div>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead style="position: sticky; top: 0; background: white;">
+                            <tr style="border-bottom: 2px solid var(--gray-200);">
+                                <th style="padding: 8px; text-align: left;">Месяц</th>
+                                <th style="padding: 8px; text-align: right;">Платёж</th>
+                                <th style="padding: 8px; text-align: right;">Основной</th>
+                                <th style="padding: 8px; text-align: right;">Проценты</th>
+                                <th style="padding: 8px; text-align: right;">Остаток</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${result.schedule.map(s => `
+                                <tr style="border-bottom: 1px solid var(--gray-100); ${s.is_paid ? 'background: var(--success-light); opacity: 0.7;' : ''}">
+                                    <td style="padding: 8px;">
+                                        ${s.month}
+                                        ${s.is_paid ? '<span style="color: var(--success); margin-left: 4px;">✓</span>' : ''}
+                                    </td>
+                                    <td style="padding: 8px; text-align: right;">${formatMoney(s.payment)}</td>
+                                    <td style="padding: 8px; text-align: right;">${formatMoney(s.principal)}</td>
+                                    <td style="padding: 8px; text-align: right; color: var(--danger);">${formatMoney(s.interest)}</td>
+                                    <td style="padding: 8px; text-align: right; font-weight: 600;">${formatMoney(s.remaining)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         `;
     } catch (error) {
         showToast('Ошибка расчёта', 'error');
