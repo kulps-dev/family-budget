@@ -3227,39 +3227,84 @@ def init_database():
         db.session.commit()
         print("База данных инициализирована")
 
-# ============ БЕЗОПАСНАЯ МИГРАЦИЯ ============
-def safe_migrate():
-    """Добавляет новые поля без удаления существующих данных"""
+# ============ АВТОМАТИЧЕСКАЯ МИГРАЦИЯ ============
+def auto_migrate():
+    """
+    Автоматически добавляет недостающие колонки в базу данных.
+    Сравнивает модели SQLAlchemy с реальной структурой таблиц.
+    """
     from sqlalchemy import inspect, text
     
-    try:
-        inspector = inspect(db.engine)
-        tables = inspector.get_table_names()
+    print("🔄 Проверяю структуру базы данных...")
+    
+    inspector = inspect(db.engine)
+    tables = inspector.get_table_names()
+    
+    # Словарь: модель -> список (колонка, тип SQL, значение по умолчанию)
+    model_columns = {
+        'transaction': [
+            ('is_business_expense', 'BOOLEAN', '0'),
+        ],
+        'account': [
+            ('is_business', 'BOOLEAN', '0'),
+            ('tax_rate', 'FLOAT', '0'),
+            ('linked_tax_account_id', 'INTEGER', 'NULL'),
+            ('is_investment', 'BOOLEAN', '0'),
+            ('broker_name', 'VARCHAR(100)', "''"),
+            ('is_tax_reserve', 'BOOLEAN', '0'),
+        ],
+        'credit': [
+            ('start_date', 'DATE', 'NULL'),
+            ('extra_payments_total', 'FLOAT', '0'),
+        ],
+        'mortgage': [
+            ('extra_payments_total', 'FLOAT', '0'),
+        ],
+        'investment': [
+            ('dividends_received', 'FLOAT', '0'),
+        ],
+    }
+    
+    migrations_done = 0
+    
+    for table_name, columns in model_columns.items():
+        if table_name not in tables:
+            print(f"  ⏭️  Таблица {table_name} не существует, пропускаю")
+            continue
         
-        # Список миграций: (таблица, поле, тип)
-        new_columns = [
-            ('transaction', 'is_business_expense', 'BOOLEAN DEFAULT 0'),
-        ]
+        # Получаем существующие колонки
+        existing_columns = [col['name'] for col in inspector.get_columns(table_name)]
         
-        for table, column, col_type in new_columns:
-            if table in tables:
-                existing_columns = [c['name'] for c in inspector.get_columns(table)]
-                if column not in existing_columns:
-                    print(f"🔄 Добавляю поле {table}.{column}...")
+        for column_name, column_type, default_value in columns:
+            if column_name not in existing_columns:
+                print(f"  🔧 Добавляю {table_name}.{column_name}...")
+                try:
                     with db.engine.connect() as conn:
-                        conn.execute(text(f'ALTER TABLE {table} ADD COLUMN {column} {col_type}'))
+                        # Формируем SQL запрос
+                        if default_value == 'NULL':
+                            sql = f'ALTER TABLE "{table_name}" ADD COLUMN {column_name} {column_type}'
+                        else:
+                            sql = f'ALTER TABLE "{table_name}" ADD COLUMN {column_name} {column_type} DEFAULT {default_value}'
+                        
+                        conn.execute(text(sql))
                         conn.commit()
-                    print(f"✅ Поле {table}.{column} добавлено!")
-    except Exception as e:
-        print(f"⚠️ Ошибка миграции: {e}")
+                    print(f"  ✅ {table_name}.{column_name} добавлено!")
+                    migrations_done += 1
+                except Exception as e:
+                    print(f"  ❌ Ошибка при добавлении {table_name}.{column_name}: {e}")
+    
+    if migrations_done > 0:
+        print(f"✅ Миграция завершена! Добавлено колонок: {migrations_done}")
+    else:
+        print("✅ База данных актуальна, миграция не требуется")
 
-# Инициализация базы данных при импорте модуля
-with app.app_context():
-    db.create_all()
-    safe_migrate()
+
+def init_default_data():
+    """Создаёт категории и достижения по умолчанию"""
     
     # Создаём категории по умолчанию
     if Category.query.count() == 0:
+        print("📁 Создаю категории по умолчанию...")
         default_categories = [
             ('Продукты', 'expense', '🛒', '#4CAF50', 30000),
             ('Транспорт', 'expense', '🚗', '#2196F3', 10000),
@@ -3289,9 +3334,11 @@ with app.app_context():
         
         for name, type_, icon, color, budget in default_categories:
             db.session.add(Category(name=name, type=type_, icon=icon, color=color, budget_limit=budget))
+        print("  ✅ Категории созданы!")
     
     # Создаём достижения
     if Achievement.query.count() == 0:
+        print("🏆 Создаю достижения...")
         achievements = [
             ('first_transaction', 'Первый шаг', 'Добавьте первую транзакцию', '🎉', 10),
             ('century', 'Сотня', '100 транзакций', '💯', 50),
@@ -3305,9 +3352,24 @@ with app.app_context():
         
         for code, name, desc, icon, points in achievements:
             db.session.add(Achievement(code=code, name=name, description=desc, icon=icon, points=points))
+        print("  ✅ Достижения созданы!")
     
     db.session.commit()
-    print("✅ База данных инициализирована")
+
+
+# ============ ИНИЦИАЛИЗАЦИЯ ПРИ СТАРТЕ ============
+with app.app_context():
+    # 1. Создаём таблицы (если их нет)
+    db.create_all()
+    
+    # 2. Автоматическая миграция (добавляем недостающие колонки)
+    auto_migrate()
+    
+    # 3. Создаём данные по умолчанию
+    init_default_data()
+    
+    print("🚀 База данных готова к работе!")
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
