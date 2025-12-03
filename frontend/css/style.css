@@ -437,7 +437,7 @@ body {
 .card-title {
     font-size: 14px;
     font-weight: 600;
-    color: var(--white);
+    color: var(--black);
     flex: 1;
 }
 
