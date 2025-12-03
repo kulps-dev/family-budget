@@ -2811,7 +2811,7 @@ def get_dashboard():
     except:
         has_business_column = False
     
-    # Прямые расходы (тип expense) - БЕЗ кредиток!
+    # Прямые расходы (тип expense)
     if has_business_column:
         monthly_expense_personal = db.session.query(db.func.sum(Transaction.amount)).filter(
             Transaction.type == 'expense',
@@ -2831,7 +2831,7 @@ def get_dashboard():
         ).scalar() or 0
         monthly_expense_business = 0
     
-    # Погашение кредиток (переводы С обычного счёта НА кредитку) - это РАСХОД с вашего счёта!
+    # Погашение кредитных карт (переводы С обычного счёта НА кредитку)
     credit_card_payments = 0
     if credit_card_ids and non_credit_card_ids:
         credit_card_payments = db.session.query(db.func.sum(Transaction.amount)).filter(
@@ -2842,19 +2842,17 @@ def get_dashboard():
             Transaction.is_tax_transfer == False
         ).scalar() or 0
     
-    # Погашение кредитов (переводы с описанием про кредит) - ищем в транзакциях!
+    # Погашение кредитов (переводы с описанием про кредит, но НЕ на кредитные карты)
     credit_payments_month = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'transfer',
         Transaction.date >= first_day_month,
         Transaction.is_tax_transfer == False,
+        ~Transaction.to_account_id.in_(credit_card_ids) if credit_card_ids else True,
         db.or_(
             Transaction.description.ilike('%кредит%'),
-            Transaction.description.ilike('%погашение%')
+            Transaction.description.ilike('%погашение кредит%')
         )
     ).scalar() or 0
-    
-    # Чтобы не дублировать - вычитаем если это уже посчитано в credit_card_payments
-    # (погашение кредитки тоже может содержать слово "кредит")
     
     # Погашение ипотеки (переводы с описанием про ипотеку)
     mortgage_payments_month = db.session.query(db.func.sum(Transaction.amount)).filter(
@@ -2864,11 +2862,10 @@ def get_dashboard():
         Transaction.description.ilike('%ипотек%')
     ).scalar() or 0
     
-    # Общая сумма погашения долгов (из реальных транзакций!)
-    total_debt_payments = credit_card_payments + mortgage_payments_month
-    # credit_payments_month не добавляем чтобы избежать дублирования
+    # Общая сумма погашения долгов
+    total_debt_payments = credit_card_payments + credit_payments_month + mortgage_payments_month
     
-    # ОБЩИЕ РАСХОДЫ = прямые расходы + погашение долгов (БЕЗ трат с кредиток!)
+    # ОБЩИЕ РАСХОДЫ = прямые расходы + погашение долгов
     monthly_expense = monthly_expense_personal + monthly_expense_business + total_debt_payments
     
     # Данные за прошлый месяц для сравнения
@@ -2897,6 +2894,19 @@ def get_dashboard():
             Transaction.is_tax_transfer == False
         ).scalar() or 0
     
+    # Прошлый месяц - погашение кредитов
+    last_month_credit_payments = db.session.query(db.func.sum(Transaction.amount)).filter(
+        Transaction.type == 'transfer',
+        Transaction.date >= last_month_start,
+        Transaction.date <= last_month_end,
+        Transaction.is_tax_transfer == False,
+        ~Transaction.to_account_id.in_(credit_card_ids) if credit_card_ids else True,
+        db.or_(
+            Transaction.description.ilike('%кредит%'),
+            Transaction.description.ilike('%погашение кредит%')
+        )
+    ).scalar() or 0
+    
     # Прошлый месяц - погашение ипотеки
     last_month_mortgage_payments = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'transfer',
@@ -2907,7 +2917,8 @@ def get_dashboard():
     ).scalar() or 0
     
     # Общие расходы прошлого месяца
-    last_month_expense = last_month_expense_direct + last_month_cc_payments + last_month_mortgage_payments
+    last_month_expense = (last_month_expense_direct + last_month_cc_payments + 
+                          last_month_credit_payments + last_month_mortgage_payments)
     
     # Годовые показатели
     yearly_income = db.session.query(db.func.sum(Transaction.amount)).filter(
@@ -3036,7 +3047,7 @@ def get_dashboard():
             Transaction.date <= month_end
         ).scalar() or 0
         
-        # Погашение кредиток (переводы С обычного счёта НА кредитку)
+        # Погашение кредиток
         cc_payments = 0
         if credit_card_ids and non_credit_card_ids:
             cc_payments = db.session.query(db.func.sum(Transaction.amount)).filter(
@@ -3048,7 +3059,20 @@ def get_dashboard():
                 Transaction.is_tax_transfer == False
             ).scalar() or 0
         
-        # Погашение ипотеки (по описанию в транзакциях)
+        # Погашение кредитов
+        credit_pay = db.session.query(db.func.sum(Transaction.amount)).filter(
+            Transaction.type == 'transfer',
+            Transaction.date >= month_start,
+            Transaction.date <= month_end,
+            Transaction.is_tax_transfer == False,
+            ~Transaction.to_account_id.in_(credit_card_ids) if credit_card_ids else True,
+            db.or_(
+                Transaction.description.ilike('%кредит%'),
+                Transaction.description.ilike('%погашение кредит%')
+            )
+        ).scalar() or 0
+        
+        # Погашение ипотеки
         mortgage_pay = db.session.query(db.func.sum(Transaction.amount)).filter(
             Transaction.type == 'transfer',
             Transaction.date >= month_start,
@@ -3058,8 +3082,7 @@ def get_dashboard():
         ).scalar() or 0
         
         # Общие расходы = прямые расходы + погашение долгов
-        # БЕЗ трат с кредиток - это просто рост долга!
-        total_expense = expense_direct + cc_payments + mortgage_pay
+        total_expense = expense_direct + cc_payments + credit_pay + mortgage_pay
         
         # Разделение на личные и бизнес
         expense_personal = expense_direct
@@ -3080,7 +3103,7 @@ def get_dashboard():
             'income': income,
             'expense': total_expense,
             'expense_direct': expense_direct,
-            'debt_payments': cc_payments + mortgage_pay,
+            'debt_payments': cc_payments + credit_pay + mortgage_pay,
             'expense_personal': expense_personal,
             'expense_business': expense_business,
             'savings': income - total_expense
@@ -3107,6 +3130,7 @@ def get_dashboard():
             'expense_personal': monthly_expense_personal,
             'expense_business': monthly_expense_business,
             'credit_card_payments': credit_card_payments,
+            'credit_payments': credit_payments_month,
             'mortgage_payments': mortgage_payments_month,
             'total_debt_payments': total_debt_payments,
             'savings': monthly_income - monthly_expense,

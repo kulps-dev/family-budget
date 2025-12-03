@@ -458,9 +458,12 @@ function renderDashboard() {
     document.getElementById('monthlySavings').textContent = formatMoney(d.monthly.savings);
     document.getElementById('savingsRate').textContent = `${d.monthly.savings_rate}%`;
     
-    // Разбивка расходов - только семейные и бизнес (БЕЗ кредиток!)
+    // Разбивка расходов
     const expensePersonalEl = document.getElementById('expensePersonal');
     const expenseBusinessEl = document.getElementById('expenseBusiness');
+    const creditCardPaymentsEl = document.getElementById('creditCardPayments');
+    const creditPaymentsEl = document.getElementById('creditPayments');
+    const mortgagePaymentsEl = document.getElementById('mortgagePayments');
     
     if (expensePersonalEl) {
         expensePersonalEl.textContent = formatMoney(d.monthly.expense_personal || 0);
@@ -468,11 +471,14 @@ function renderDashboard() {
     if (expenseBusinessEl) {
         expenseBusinessEl.textContent = formatMoney(d.monthly.expense_business || 0);
     }
-    
-    // Погашение долгов (отдельный блок если нужен)
-    const debtPaymentsEl = document.getElementById('debtPayments');
-    if (debtPaymentsEl) {
-        debtPaymentsEl.textContent = formatMoney(d.monthly.total_debt_payments || 0);
+    if (creditCardPaymentsEl) {
+        creditCardPaymentsEl.textContent = formatMoney(d.monthly.credit_card_payments || 0);
+    }
+    if (creditPaymentsEl) {
+        creditPaymentsEl.textContent = formatMoney(d.monthly.credit_payments || 0);
+    }
+    if (mortgagePaymentsEl) {
+        mortgagePaymentsEl.textContent = formatMoney(d.monthly.mortgage_payments || 0);
     }
     
     // Изменения
