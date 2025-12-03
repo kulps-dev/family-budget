@@ -89,6 +89,8 @@ const API = {
         create: (data) => api('/credits', 'POST', data),
         update: (id, data) => api(`/credits/${id}`, 'PUT', data),
         pay: (id, data) => api(`/credits/${id}/pay`, 'POST', data),
+        getPayments: (id) => api(`/credits/${id}/payments`),
+        deletePayment: (id, paymentId) => api(`/credits/${id}/payments/${paymentId}`, 'DELETE'),
         delete: (id) => api(`/credits/${id}`, 'DELETE')
     },
     

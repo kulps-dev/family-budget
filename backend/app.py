@@ -141,6 +141,24 @@ class Credit(db.Model):
     extra_payments_total = db.Column(db.Float, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class CreditPayment(db.Model):
+    """История платежей по кредиту"""
+    id = db.Column(db.Integer, primary_key=True)
+    credit_id = db.Column(db.Integer, db.ForeignKey('credit.id'))
+    date = db.Column(db.Date, nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    principal = db.Column(db.Float, default=0)  # Основной долг
+    interest = db.Column(db.Float, default=0)   # Проценты
+    is_regular = db.Column(db.Boolean, default=True)  # Обязательный платёж
+    is_extra = db.Column(db.Boolean, default=False)   # Досрочный
+    payment_number = db.Column(db.Integer, default=0)  # Номер платежа
+    remaining_after = db.Column(db.Float, default=0)   # Остаток после платежа
+    months_reduced = db.Column(db.Integer, default=0)  # На сколько сократился срок
+    notes = db.Column(db.String(255), default='')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    credit = db.relationship('Credit', backref='payments')
+
 class Mortgage(db.Model):
     """Ипотека"""
     id = db.Column(db.Integer, primary_key=True)
@@ -1101,49 +1119,84 @@ def get_credits():
     
     result = []
     for c in credits:
+        # Получаем историю платежей
+        payments = CreditPayment.query.filter_by(credit_id=c.id).order_by(CreditPayment.date).all()
+        regular_payments = [p for p in payments if p.is_regular and not p.is_extra]
+        extra_payments = [p for p in payments if p.is_extra]
+        
+        # Считаем статистику
+        total_paid = sum(p.amount for p in payments)
+        total_principal_paid = sum(p.principal for p in payments)
+        total_interest_paid = sum(p.interest for p in payments)
+        total_extra_paid = sum(p.amount for p in extra_payments)
+        
+        # Дней до платежа
         days_until_payment = (c.next_payment_date - today).days if c.next_payment_date else None
-        total_paid = c.original_amount - c.remaining_amount
         
-        # Рассчитываем сколько месяцев оплачено
-        months_paid = c.term_months - c.remaining_months
+        # Прогресс
+        progress = round((c.original_amount - c.remaining_amount) / c.original_amount * 100, 1) if c.original_amount > 0 else 0
         
-        # Рассчитываем переплату
+        # Рассчитываем общую переплату
         rate = c.interest_rate / 100 / 12
-        total_to_pay = c.monthly_payment * c.term_months
-        overpayment = total_to_pay - c.original_amount
+        if rate > 0 and c.remaining_months > 0:
+            remaining_interest = 0
+            temp_remaining = c.remaining_amount
+            for _ in range(c.remaining_months):
+                interest = temp_remaining * rate
+                principal = c.monthly_payment - interest
+                remaining_interest += interest
+                temp_remaining = max(0, temp_remaining - principal)
+            total_overpayment = total_interest_paid + remaining_interest
+        else:
+            total_overpayment = total_interest_paid
         
-        # Рассчитываем сколько процентов уже заплатили
-        paid_interest = 0
-        remaining = c.original_amount
-        for _ in range(months_paid):
-            interest = remaining * rate
-            principal = c.monthly_payment - interest
-            paid_interest += interest
-            remaining = max(0, remaining - principal)
+        # Формируем историю платежей для отображения
+        payments_history = [{
+            'id': p.id,
+            'date': p.date.isoformat(),
+            'amount': p.amount,
+            'principal': p.principal,
+            'interest': p.interest,
+            'is_regular': p.is_regular,
+            'is_extra': p.is_extra,
+            'payment_number': p.payment_number,
+            'remaining_after': p.remaining_after,
+            'months_reduced': p.months_reduced,
+            'notes': p.notes
+        } for p in payments[-12:]]  # Последние 12 платежей
         
         result.append({
             'id': c.id,
             'name': c.name,
             'credit_type': c.credit_type,
+            'bank_name': c.bank_name,
             'original_amount': c.original_amount,
             'remaining_amount': c.remaining_amount,
             'interest_rate': c.interest_rate,
             'monthly_payment': c.monthly_payment,
             'term_months': c.term_months,
             'remaining_months': c.remaining_months,
-            'months_paid': months_paid,
             'start_date': c.start_date.isoformat() if c.start_date else None,
             'next_payment_date': c.next_payment_date.isoformat() if c.next_payment_date else None,
             'payment_day': c.payment_day,
-            'bank_name': c.bank_name,
+            
+            # Статистика платежей
+            'payments_made': len(regular_payments),
+            'extra_payments_count': len(extra_payments),
+            'total_paid': round(total_paid, 2),
+            'total_principal_paid': round(total_principal_paid, 2),
+            'total_interest_paid': round(total_interest_paid, 2),
+            'total_extra_paid': round(total_extra_paid, 2),
+            'total_overpayment': round(total_overpayment, 2),
+            
+            # Прогресс и сроки
+            'progress': progress,
             'days_until_payment': days_until_payment,
-            'progress': round((total_paid / c.original_amount) * 100, 1) if c.original_amount > 0 else 0,
-            'total_paid': total_paid,
-            'paid_interest': round(paid_interest, 2),
-            'total_overpayment': round(overpayment, 2),
-            'remaining_overpayment': round(overpayment - paid_interest, 2),
-            'extra_payments_total': c.extra_payments_total,
-            'is_payment_soon': days_until_payment is not None and days_until_payment <= 5
+            'is_payment_soon': days_until_payment is not None and days_until_payment <= 5,
+            
+            # История
+            'payments_history': payments_history,
+            'has_more_payments': len(payments) > 12
         })
     
     return jsonify(result)
@@ -1160,7 +1213,7 @@ def create_credit():
     
     payment_day = data.get('payment_day', start_date.day)
     original_amount = data['original_amount']
-    interest_rate = data.get('interest_rate', 0)
+    interest_rate = data.get('interest_rate', 0)  # Поддержка дробных ставок типа 43.22
     term_months = data['term_months']
     
     # Рассчитываем ежемесячный платёж если не указан
@@ -1172,52 +1225,78 @@ def create_credit():
         else:
             monthly_payment = original_amount / term_months
     
-    # Рассчитываем сколько месяцев уже прошло с даты взятия кредита
+    # Рассчитываем сколько месяцев уже прошло
     today = date.today()
     months_passed = 0
     if start_date < today:
+        # Считаем полные месяцы
         months_passed = (today.year - start_date.year) * 12 + (today.month - start_date.month)
-        # Если день платежа ещё не наступил в этом месяце, уменьшаем на 1
+        # Корректируем по дню платежа
         if today.day < payment_day:
-            months_passed = max(0, months_passed - 1)
+            months_passed = max(0, months_passed)
     
-    # Если указан remaining_amount - используем его, иначе рассчитываем
+    # Рассчитываем остаток и создаём историю платежей
+    remaining_amount = original_amount
+    rate = interest_rate / 100 / 12
+    payments_to_create = []
+    
+    # Генерируем историю уже совершённых платежей
+    payment_date = start_date
+    try:
+        payment_date = payment_date.replace(day=min(payment_day, 28))
+    except ValueError:
+        payment_date = payment_date.replace(day=28)
+    
+    if payment_date <= start_date:
+        payment_date = payment_date + relativedelta(months=1)
+    
+    for i in range(months_passed):
+        if remaining_amount <= 0:
+            break
+            
+        if rate > 0:
+            interest = remaining_amount * rate
+            principal = monthly_payment - interest
+        else:
+            interest = 0
+            principal = monthly_payment
+        
+        if principal > remaining_amount:
+            principal = remaining_amount
+            
+        remaining_amount = max(0, remaining_amount - principal)
+        
+        payments_to_create.append({
+            'date': payment_date,
+            'amount': round(monthly_payment, 2),
+            'principal': round(principal, 2),
+            'interest': round(interest, 2),
+            'is_regular': True,
+            'is_extra': False,
+            'payment_number': i + 1,
+            'remaining_after': round(remaining_amount, 2)
+        })
+        
+        payment_date = payment_date + relativedelta(months=1)
+    
+    # Если указан remaining_amount вручную - используем его
     if 'remaining_amount' in data and data['remaining_amount'] is not None:
         remaining_amount = data['remaining_amount']
-        # Рассчитываем оставшиеся месяцы на основе остатка
-        if interest_rate > 0:
-            rate = interest_rate / 100 / 12
-            if monthly_payment > remaining_amount * rate:
-                remaining_months = math.ceil(
-                    -math.log(1 - (remaining_amount * rate / monthly_payment)) / math.log(1 + rate)
-                )
-            else:
-                remaining_months = term_months - months_passed
-        else:
-            remaining_months = math.ceil(remaining_amount / monthly_payment) if monthly_payment > 0 else term_months
-    else:
-        # Рассчитываем остаток на основе прошедших платежей
-        remaining_amount = original_amount
-        rate = interest_rate / 100 / 12
-        
-        for _ in range(months_passed):
-            if rate > 0:
-                interest = remaining_amount * rate
-                principal = monthly_payment - interest
-            else:
-                principal = monthly_payment
-            remaining_amount = max(0, remaining_amount - principal)
-        
-        remaining_months = term_months - months_passed
     
-    # Вычисляем следующую дату платежа
-    try:
-        next_payment = today.replace(day=min(payment_day, 28))
-    except ValueError:
-        next_payment = today.replace(day=28)
+    remaining_months = term_months - months_passed
+    if remaining_amount > 0 and rate > 0:
+        # Пересчитываем оставшиеся месяцы по остатку
+        if monthly_payment > remaining_amount * rate:
+            remaining_months = math.ceil(
+                -math.log(1 - (remaining_amount * rate / monthly_payment)) / math.log(1 + rate)
+            )
     
+    # Следующая дата платежа
+    next_payment = payment_date
     if next_payment <= today:
-        next_payment = next_payment + relativedelta(months=1)
+        next_payment = today.replace(day=min(payment_day, 28))
+        if next_payment <= today:
+            next_payment = next_payment + relativedelta(months=1)
     
     credit = Credit(
         name=data['name'],
@@ -1232,9 +1311,26 @@ def create_credit():
         next_payment_date=next_payment,
         payment_day=payment_day,
         bank_name=data.get('bank_name', ''),
-        extra_payments_total=data.get('extra_payments_total', 0)
+        extra_payments_total=0
     )
     db.session.add(credit)
+    db.session.flush()
+    
+    # Создаём записи о платежах
+    for p in payments_to_create:
+        payment = CreditPayment(
+            credit_id=credit.id,
+            date=p['date'],
+            amount=p['amount'],
+            principal=p['principal'],
+            interest=p['interest'],
+            is_regular=p['is_regular'],
+            is_extra=p['is_extra'],
+            payment_number=p['payment_number'],
+            remaining_after=p['remaining_after']
+        )
+        db.session.add(payment)
+    
     db.session.commit()
     
     return jsonify({
@@ -1242,9 +1338,11 @@ def create_credit():
         'message': 'Кредит добавлен',
         'calculated': {
             'months_passed': months_passed,
+            'payments_created': len(payments_to_create),
             'remaining_amount': round(remaining_amount, 2),
             'remaining_months': remaining_months,
-            'monthly_payment': round(monthly_payment, 2)
+            'monthly_payment': round(monthly_payment, 2),
+            'next_payment_date': next_payment.isoformat()
         }
     }), 201
 
@@ -1280,38 +1378,145 @@ def pay_credit(id):
     amount = data['amount']
     is_extra = data.get('is_extra', False)
     reduce_type = data.get('reduce_type', 'term')
+    payment_date = datetime.strptime(data['date'], '%Y-%m-%d').date() if data.get('date') else date.today()
     
-    credit.remaining_amount = max(0, credit.remaining_amount - amount)
+    rate = credit.interest_rate / 100 / 12
+    
+    # Рассчитываем разбивку платежа
+    if is_extra:
+        # Досрочный платёж идёт полностью на основной долг
+        principal = amount
+        interest = 0
+    else:
+        # Обычный платёж
+        interest = credit.remaining_amount * rate if rate > 0 else 0
+        principal = amount - interest
+    
+    if principal > credit.remaining_amount:
+        principal = credit.remaining_amount
+    
+    old_remaining = credit.remaining_amount
+    credit.remaining_amount = max(0, credit.remaining_amount - principal)
+    
+    months_reduced = 0
     
     if is_extra:
         credit.extra_payments_total += amount
         
         if reduce_type == 'term' and credit.remaining_months > 1:
-            new_months = math.ceil(credit.remaining_amount / credit.monthly_payment)
-            credit.remaining_months = max(1, new_months)
+            # Пересчитываем срок
+            if rate > 0 and credit.monthly_payment > credit.remaining_amount * rate:
+                new_months = math.ceil(
+                    -math.log(1 - (credit.remaining_amount * rate / credit.monthly_payment)) / math.log(1 + rate)
+                )
+                months_reduced = credit.remaining_months - new_months
+                credit.remaining_months = max(1, new_months)
+            else:
+                new_months = math.ceil(credit.remaining_amount / credit.monthly_payment) if credit.monthly_payment > 0 else 1
+                months_reduced = credit.remaining_months - new_months
+                credit.remaining_months = max(1, new_months)
         elif reduce_type == 'payment':
+            # Пересчитываем платёж
             if credit.remaining_months > 0:
-                credit.monthly_payment = credit.remaining_amount / credit.remaining_months
+                if rate > 0:
+                    credit.monthly_payment = credit.remaining_amount * (rate * (1 + rate)**credit.remaining_months) / ((1 + rate)**credit.remaining_months - 1)
+                else:
+                    credit.monthly_payment = credit.remaining_amount / credit.remaining_months
     else:
         credit.remaining_months = max(0, credit.remaining_months - 1)
     
-    if credit.remaining_amount > 0:
+    # Получаем номер платежа
+    last_payment = CreditPayment.query.filter_by(credit_id=id).order_by(CreditPayment.payment_number.desc()).first()
+    payment_number = (last_payment.payment_number + 1) if last_payment else 1
+    
+    # Создаём запись о платеже
+    payment = CreditPayment(
+        credit_id=id,
+        date=payment_date,
+        amount=amount,
+        principal=round(principal, 2),
+        interest=round(interest, 2),
+        is_regular=not is_extra,
+        is_extra=is_extra,
+        payment_number=payment_number if not is_extra else 0,
+        remaining_after=round(credit.remaining_amount, 2),
+        months_reduced=months_reduced,
+        notes=data.get('notes', f'{"Досрочное погашение" if is_extra else "Ежемесячный платёж"}')
+    )
+    db.session.add(payment)
+    
+    # Обновляем дату следующего платежа
+    if credit.remaining_amount > 0 and not is_extra:
         credit.next_payment_date = credit.next_payment_date + relativedelta(months=1)
     
     db.session.commit()
+    
     return jsonify({
         'message': 'Платёж внесён',
+        'payment_id': payment.id,
         'remaining_amount': credit.remaining_amount,
         'remaining_months': credit.remaining_months,
-        'monthly_payment': credit.monthly_payment
+        'monthly_payment': round(credit.monthly_payment, 2),
+        'months_reduced': months_reduced,
+        'principal_paid': round(principal, 2),
+        'interest_paid': round(interest, 2)
     })
 
 @app.route('/api/credits/<int:id>', methods=['DELETE'])
 def delete_credit(id):
+    # Удаляем все платежи
+    CreditPayment.query.filter_by(credit_id=id).delete()
     credit = Credit.query.get_or_404(id)
     db.session.delete(credit)
     db.session.commit()
     return jsonify({'message': 'Кредит удалён'})
+
+@app.route('/api/credits/<int:id>/payments', methods=['GET'])
+def get_credit_payments(id):
+    """Получить полную историю платежей по кредиту"""
+    payments = CreditPayment.query.filter_by(credit_id=id).order_by(CreditPayment.date.desc()).all()
+    
+    return jsonify([{
+        'id': p.id,
+        'date': p.date.isoformat(),
+        'amount': p.amount,
+        'principal': p.principal,
+        'interest': p.interest,
+        'is_regular': p.is_regular,
+        'is_extra': p.is_extra,
+        'payment_number': p.payment_number,
+        'remaining_after': p.remaining_after,
+        'months_reduced': p.months_reduced,
+        'notes': p.notes
+    } for p in payments])
+
+
+@app.route('/api/credits/<int:id>/payments/<int:payment_id>', methods=['DELETE'])
+def delete_credit_payment(id, payment_id):
+    """Удалить платёж (и пересчитать кредит)"""
+    payment = CreditPayment.query.get_or_404(payment_id)
+    credit = Credit.query.get_or_404(id)
+    
+    # Возвращаем сумму в остаток
+    credit.remaining_amount += payment.principal
+    
+    if payment.is_extra:
+        credit.extra_payments_total -= payment.amount
+    else:
+        credit.remaining_months += 1
+    
+    # Пересчитываем номера последующих платежей
+    if payment.is_regular:
+        CreditPayment.query.filter(
+            CreditPayment.credit_id == id,
+            CreditPayment.payment_number > payment.payment_number,
+            CreditPayment.is_regular == True
+        ).update({CreditPayment.payment_number: CreditPayment.payment_number - 1})
+    
+    db.session.delete(payment)
+    db.session.commit()
+    
+    return jsonify({'message': 'Платёж удалён', 'remaining_amount': credit.remaining_amount})
 
 # --- Ипотека ---
 @app.route('/api/mortgages', methods=['GET'])
@@ -3270,6 +3475,7 @@ def auto_migrate():
         'investment': [
             ('dividends_received', 'FLOAT', '0'),
         ],
+        'credit_payment': [],
     }
     
     migrations_done = 0

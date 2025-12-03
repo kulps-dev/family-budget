@@ -1145,7 +1145,7 @@ function renderCredits() {
     // Сводка
     const totalDebt = state.credits.reduce((sum, c) => sum + c.remaining_amount, 0);
     const monthlyPayment = state.credits.reduce((sum, c) => sum + c.monthly_payment, 0);
-    const totalPaidInterest = state.credits.reduce((sum, c) => sum + (c.paid_interest || 0), 0);
+    const totalPaidInterest = state.credits.reduce((sum, c) => sum + (c.total_interest_paid || 0), 0);
     
     const totalCreditsDebtEl = document.getElementById('totalCreditsDebt');
     const monthlyCreditsPaymentEl = document.getElementById('monthlyCreditsPayment');
@@ -1163,59 +1163,238 @@ function renderCredits() {
         return;
     }
     
-    container.innerHTML = state.credits.map(c => `
-        <div class="credit-item" data-id="${c.id}">
-            <div class="credit-header">
-                <div>
-                    <div class="credit-name">${c.name}</div>
-                    <div class="credit-bank">${c.bank_name || ''}</div>
-                    ${c.start_date ? `<div style="font-size: 11px; color: var(--gray-400);">с ${formatDate(c.start_date)}</div>` : ''}
+    container.innerHTML = state.credits.map(c => {
+        // Форматируем ставку (поддержка дробных)
+        const rateDisplay = c.interest_rate % 1 === 0 
+            ? c.interest_rate + '%' 
+            : c.interest_rate.toFixed(2).replace('.', ',') + '%';
+        
+        return `
+            <div class="credit-item" data-id="${c.id}">
+                <div class="credit-header">
+                    <div>
+                        <div class="credit-name">${c.name}</div>
+                        <div class="credit-bank">${c.bank_name || ''}</div>
+                    </div>
+                    <div class="credit-rate">${rateDisplay}</div>
                 </div>
-                <div class="credit-rate">${c.interest_rate}%</div>
+                
+                <!-- Основная информация -->
+                <div class="credit-main-info">
+                    <div class="credit-amounts">
+                        <div class="credit-remaining">${formatMoney(c.remaining_amount)}</div>
+                        <div class="credit-original">из ${formatMoney(c.original_amount)}</div>
+                    </div>
+                    
+                    <div class="credit-progress">
+                        <div class="credit-progress-fill" style="width: ${c.progress}%"></div>
+                    </div>
+                    <div class="credit-progress-label">${c.progress}% погашено</div>
+                </div>
+                
+                <!-- Статистика платежей - НОВЫЙ БЛОК -->
+                <div class="credit-stats-grid">
+                    <div class="credit-stat-card">
+                        <div class="credit-stat-icon">📅</div>
+                        <div class="credit-stat-info">
+                            <div class="credit-stat-value">${c.start_date ? formatDate(c.start_date) : '—'}</div>
+                            <div class="credit-stat-label">Дата взятия</div>
+                        </div>
+                    </div>
+                    
+                    <div class="credit-stat-card">
+                        <div class="credit-stat-icon">✅</div>
+                        <div class="credit-stat-info">
+                            <div class="credit-stat-value">${c.payments_made} из ${c.term_months}</div>
+                            <div class="credit-stat-label">Платежей внесено</div>
+                        </div>
+                    </div>
+                    
+                    <div class="credit-stat-card">
+                        <div class="credit-stat-icon">💰</div>
+                        <div class="credit-stat-info">
+                            <div class="credit-stat-value">${formatMoney(c.monthly_payment)}</div>
+                            <div class="credit-stat-label">Ежемесячный платёж</div>
+                        </div>
+                    </div>
+                    
+                    <div class="credit-stat-card">
+                        <div class="credit-stat-icon">⏳</div>
+                        <div class="credit-stat-info">
+                            <div class="credit-stat-value">${c.remaining_months} мес.</div>
+                            <div class="credit-stat-label">Осталось</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Детали платежей -->
+                <div class="credit-payment-details">
+                    <div class="credit-detail-row">
+                        <span>📆 Следующий платёж</span>
+                        <span class="${c.is_payment_soon ? 'text-warning' : ''}">${c.next_payment_date ? formatDate(c.next_payment_date) : '—'}</span>
+                    </div>
+                    <div class="credit-detail-row">
+                        <span>💵 Уплачено основного долга</span>
+                        <span class="text-success">${formatMoney(c.total_principal_paid || 0)}</span>
+                    </div>
+                    <div class="credit-detail-row">
+                        <span>📊 Уплачено процентов</span>
+                        <span class="text-danger">${formatMoney(c.total_interest_paid || 0)}</span>
+                    </div>
+                    <div class="credit-detail-row">
+                        <span>💸 Общая переплата</span>
+                        <span class="text-danger">${formatMoney(c.total_overpayment || 0)}</span>
+                    </div>
+                </div>
+                
+                <!-- Досрочные платежи -->
+                ${c.extra_payments_count > 0 ? `
+                    <div class="credit-extra-info">
+                        <div class="credit-extra-badge">
+                            🚀 Досрочных платежей: ${c.extra_payments_count}
+                        </div>
+                        <div class="credit-extra-amount">
+                            Погашено досрочно: ${formatMoney(c.total_extra_paid)}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <!-- История платежей (последние) -->
+                ${c.payments_history && c.payments_history.length > 0 ? `
+                    <div class="credit-payments-preview">
+                        <div class="credit-payments-header" onclick="toggleCreditPayments(${c.id})">
+                            <span>📋 История платежей</span>
+                            <span class="toggle-icon" id="toggle-icon-${c.id}">▼</span>
+                        </div>
+                        <div class="credit-payments-list" id="credit-payments-${c.id}" style="display: none;">
+                            ${c.payments_history.slice().reverse().map(p => `
+                                <div class="credit-payment-item ${p.is_extra ? 'extra' : ''}">
+                                    <div class="payment-date">
+                                        ${p.is_extra ? '🚀' : '📅'} ${formatDate(p.date)}
+                                        ${p.payment_number > 0 ? `<span class="payment-number">#${p.payment_number}</span>` : ''}
+                                    </div>
+                                    <div class="payment-breakdown">
+                                        <span class="payment-amount">${formatMoney(p.amount)}</span>
+                                        ${!p.is_extra ? `
+                                            <span class="payment-details">
+                                                (${formatMoney(p.principal)} + ${formatMoney(p.interest)} %)
+                                            </span>
+                                        ` : `
+                                            <span class="payment-details extra">досрочно</span>
+                                        `}
+                                    </div>
+                                    <div class="payment-remaining">
+                                        Остаток: ${formatMoney(p.remaining_after)}
+                                        ${p.months_reduced > 0 ? `<span class="months-saved">-${p.months_reduced} мес.</span>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                            ${c.has_more_payments ? `
+                                <button class="btn btn-sm btn-link" onclick="showAllCreditPayments(${c.id})">
+                                    Показать все платежи →
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <!-- Кнопки действий -->
+                <div class="credit-actions">
+                    <button class="btn btn-sm btn-primary" onclick="showPayCreditModal(${c.id})">💳 Платёж</button>
+                    <button class="btn btn-sm btn-success" onclick="showPayCreditModal(${c.id}, true)">🚀 Досрочно</button>
+                    <button class="btn btn-sm btn-secondary" onclick="showEditCreditModal(${c.id})">✏️</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteCredit(${c.id})">🗑️</button>
+                </div>
             </div>
-            
-            <div class="credit-amounts">
-                <div class="credit-remaining">${formatMoney(c.remaining_amount)}</div>
-                <div class="credit-original">из ${formatMoney(c.original_amount)}</div>
+        `;
+    }).join('');
+}
+
+// Добавляем функцию переключения истории
+function toggleCreditPayments(creditId) {
+    const list = document.getElementById(`credit-payments-${creditId}`);
+    const icon = document.getElementById(`toggle-icon-${creditId}`);
+    if (list) {
+        const isHidden = list.style.display === 'none';
+        list.style.display = isHidden ? 'block' : 'none';
+        if (icon) icon.textContent = isHidden ? '▲' : '▼';
+    }
+}
+
+// Показать все платежи в модальном окне
+async function showAllCreditPayments(creditId) {
+    const credit = state.credits.find(c => c.id === creditId);
+    if (!credit) return;
+    
+    try {
+        const payments = await api(`/credits/${creditId}/payments`);
+        
+        openModal(`📋 История платежей: ${credit.name}`, `
+            <div class="payments-full-history">
+                <div class="payments-summary">
+                    <div class="summary-item">
+                        <span>Всего платежей:</span>
+                        <strong>${payments.length}</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Обязательных:</span>
+                        <strong>${payments.filter(p => p.is_regular).length}</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Досрочных:</span>
+                        <strong>${payments.filter(p => p.is_extra).length}</strong>
+                    </div>
+                </div>
+                
+                <div class="payments-table-wrapper">
+                    <table class="payments-table">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Тип</th>
+                                <th>Сумма</th>
+                                <th>Основной</th>
+                                <th>Проценты</th>
+                                <th>Остаток</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${payments.map(p => `
+                                <tr class="${p.is_extra ? 'extra-row' : ''}">
+                                    <td>${formatDate(p.date)}</td>
+                                    <td>${p.is_extra ? '🚀 Досрочный' : `📅 #${p.payment_number}`}</td>
+                                    <td><strong>${formatMoney(p.amount)}</strong></td>
+                                    <td>${formatMoney(p.principal)}</td>
+                                    <td class="text-danger">${formatMoney(p.interest)}</td>
+                                    <td>${formatMoney(p.remaining_after)}</td>
+                                    <td>
+                                        <button class="btn-icon-sm danger" onclick="deleteCreditPayment(${creditId}, ${p.id})" title="Удалить">🗑️</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            
-            <div class="credit-progress">
-                <div class="credit-progress-fill" style="width: ${c.progress}%"></div>
-            </div>
-            
-            <div class="credit-details">
-                <div class="credit-detail">
-                    <div class="credit-detail-label">Ежемесячный платёж</div>
-                    <div class="credit-detail-value">${formatMoney(c.monthly_payment)}</div>
-                </div>
-                <div class="credit-detail">
-                    <div class="credit-detail-label">Оплачено / Осталось</div>
-                    <div class="credit-detail-value">${c.months_paid || 0} / ${c.remaining_months} мес.</div>
-                </div>
-                <div class="credit-detail">
-                    <div class="credit-detail-label">Следующий платёж</div>
-                    <div class="credit-detail-value">${c.next_payment_date ? formatDate(c.next_payment_date) : '—'}</div>
-                </div>
-                <div class="credit-detail">
-                    <div class="credit-detail-label">Уплачено процентов</div>
-                    <div class="credit-detail-value" style="color: var(--danger);">${formatMoney(c.paid_interest || 0)}</div>
-                </div>
-            </div>
-            
-            ${c.extra_payments_total > 0 ? `
-                <div style="font-size: 12px; color: var(--success); margin-top: 8px;">
-                    ✨ Досрочно погашено: ${formatMoney(c.extra_payments_total)}
-                </div>
-            ` : ''}
-            
-            <div class="credit-actions">
-                <button class="btn btn-sm btn-primary" onclick="showPayCreditModal(${c.id})">💳 Платёж</button>
-                <button class="btn btn-sm btn-success" onclick="showPayCreditModal(${c.id}, true)">🚀 Досрочно</button>
-                <button class="btn btn-sm btn-secondary" onclick="showEditCreditModal(${c.id})">✏️</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteCredit(${c.id})">🗑️</button>
-            </div>
-        </div>
-    `).join('');
+        `, 'large');
+    } catch (error) {
+        showToast('Ошибка загрузки истории', 'error');
+    }
+}
+
+// Удаление платежа
+async function deleteCreditPayment(creditId, paymentId) {
+    if (!confirm('Удалить этот платёж? Остаток по кредиту будет пересчитан.')) return;
+    
+    try {
+        await api(`/credits/${creditId}/payments/${paymentId}`, 'DELETE');
+        showToast('Платёж удалён', 'success');
+        closeModal();
+        loadAllData();
+    } catch (error) {
+        showToast('Ошибка удаления', 'error');
+    }
 }
 
 // ==================== ИПОТЕКА ====================
@@ -3206,53 +3385,126 @@ function showPayCreditModal(creditId, isExtra = false) {
     const credit = state.credits.find(c => c.id === creditId);
     if (!credit) return;
     
-    const title = isExtra ? 'Досрочное погашение' : 'Внести платёж';
+    const title = isExtra ? '🚀 Досрочное погашение' : '💳 Внести платёж';
+    const today = getCurrentDate();
+    
+    // Форматируем ставку
+    const rateDisplay = credit.interest_rate % 1 === 0 
+        ? credit.interest_rate + '%' 
+        : credit.interest_rate.toFixed(2).replace('.', ',') + '%';
     
     openModal(title, `
         <form id="payCreditForm">
-            <div style="background: var(--gray-100); padding: 20px; border-radius: var(--radius); margin-bottom: 20px;">
-                <div style="font-size: 14px; color: var(--gray-500);">Остаток долга</div>
-                <div style="font-size: 28px; font-weight: 800; color: var(--danger);">${formatMoney(credit.remaining_amount)}</div>
-                <div style="font-size: 13px; color: var(--gray-500); margin-top: 8px;">
-                    Ежемесячный платёж: ${formatMoney(credit.monthly_payment)}
+            <!-- Информация о кредите -->
+            <div class="credit-pay-info">
+                <div class="credit-pay-header">
+                    <div class="credit-pay-name">${credit.name}</div>
+                    <div class="credit-pay-rate">${rateDisplay}</div>
+                </div>
+                
+                <div class="credit-pay-stats">
+                    <div class="pay-stat">
+                        <div class="pay-stat-label">Остаток долга</div>
+                        <div class="pay-stat-value danger">${formatMoney(credit.remaining_amount)}</div>
+                    </div>
+                    <div class="pay-stat">
+                        <div class="pay-stat-label">Ежемесячный платёж</div>
+                        <div class="pay-stat-value">${formatMoney(credit.monthly_payment)}</div>
+                    </div>
+                    <div class="pay-stat">
+                        <div class="pay-stat-label">Осталось месяцев</div>
+                        <div class="pay-stat-value">${credit.remaining_months}</div>
+                    </div>
+                    <div class="pay-stat">
+                        <div class="pay-stat-label">Платежей внесено</div>
+                        <div class="pay-stat-value success">${credit.payments_made} из ${credit.term_months}</div>
+                    </div>
                 </div>
             </div>
             
+            <!-- Форма платежа -->
             <div class="form-group">
                 <label class="form-label">Сумма платежа *</label>
                 <input type="number" class="form-input" name="amount" step="0.01" required 
-                       value="${isExtra ? '' : credit.monthly_payment}">
+                       value="${isExtra ? '' : credit.monthly_payment}" id="payAmount">
+                ${!isExtra ? `
+                    <div class="form-hint">
+                        <button type="button" class="btn btn-sm btn-link" onclick="document.getElementById('payAmount').value=${credit.monthly_payment}">
+                            Ежемесячный платёж
+                        </button>
+                        <button type="button" class="btn btn-sm btn-link" onclick="document.getElementById('payAmount').value=${credit.remaining_amount}">
+                            Весь остаток
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Дата платежа</label>
+                <input type="date" class="form-input" name="date" value="${today}">
+                <div class="form-hint">Можно указать любую дату, включая выходные</div>
             </div>
             
             ${isExtra ? `
                 <div class="form-group">
                     <label class="form-label">Что уменьшить?</label>
-                    <div class="type-tabs">
-                        <button type="button" class="type-tab active" data-reduce="term">📅 Срок</button>
-                        <button type="button" class="type-tab" data-reduce="payment">💰 Платёж</button>
+                    <div class="reduce-options">
+                        <label class="reduce-option active" data-reduce="term">
+                            <input type="radio" name="reduce_type" value="term" checked>
+                            <div class="reduce-option-content">
+                                <div class="reduce-option-icon">📅</div>
+                                <div class="reduce-option-title">Уменьшить срок</div>
+                                <div class="reduce-option-desc">Быстрее погасите, больше сэкономите на процентах</div>
+                            </div>
+                        </label>
+                        <label class="reduce-option" data-reduce="payment">
+                            <input type="radio" name="reduce_type" value="payment">
+                            <div class="reduce-option-content">
+                                <div class="reduce-option-icon">💰</div>
+                                <div class="reduce-option-title">Уменьшить платёж</div>
+                                <div class="reduce-option-desc">Меньше ежемесячная нагрузка на бюджет</div>
+                            </div>
+                        </label>
                     </div>
-                    <input type="hidden" name="reduce_type" value="term">
-                    <div class="form-hint" style="margin-top: 12px;">
-                        <strong>Срок:</strong> быстрее погасите, больше сэкономите<br>
-                        <strong>Платёж:</strong> меньше ежемесячная нагрузка
+                </div>
+                
+                <!-- Предварительный расчёт -->
+                <div class="early-payment-preview" id="earlyPaymentPreview">
+                    <div class="preview-title">📊 Результат досрочного погашения</div>
+                    <div class="preview-content" id="previewContent">
+                        Введите сумму для расчёта
                     </div>
                 </div>
             ` : ''}
             
+            <div class="form-group">
+                <label class="form-label">Комментарий</label>
+                <input type="text" class="form-input" name="notes" placeholder="Необязательно">
+            </div>
+            
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
-                <button type="submit" class="btn btn-primary">Внести платёж</button>
+                <button type="submit" class="btn ${isExtra ? 'btn-success' : 'btn-primary'}">
+                    ${isExtra ? '🚀 Погасить досрочно' : '💳 Внести платёж'}
+                </button>
             </div>
         </form>
     `);
     
+    // Обработка выбора типа уменьшения
     if (isExtra) {
-        document.querySelectorAll('.type-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                document.querySelector('input[name="reduce_type"]').value = tab.dataset.reduce;
+        document.querySelectorAll('.reduce-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.reduce-option').forEach(o => o.classList.remove('active'));
+                option.classList.add('active');
+                option.querySelector('input').checked = true;
+                updateEarlyPaymentPreview(credit);
             });
+        });
+        
+        // Обновление предпросмотра при вводе суммы
+        document.getElementById('payAmount').addEventListener('input', () => {
+            updateEarlyPaymentPreview(credit);
         });
     }
     
@@ -3262,19 +3514,132 @@ function showPayCreditModal(creditId, isExtra = false) {
         const formData = new FormData(e.target);
         const data = {
             amount: parseFloat(formData.get('amount')),
+            date: formData.get('date'),
             is_extra: isExtra,
-            reduce_type: formData.get('reduce_type') || 'term'
+            reduce_type: formData.get('reduce_type') || 'term',
+            notes: formData.get('notes') || ''
         };
         
         try {
-            await API.credits.pay(creditId, data);
+            const result = await API.credits.pay(creditId, data);
             closeModal();
-            showToast('Платёж внесён', 'success');
+            
+            let message = 'Платёж внесён';
+            if (isExtra && result.months_reduced > 0) {
+                message = `Платёж внесён! Срок сокращён на ${result.months_reduced} мес.`;
+            }
+            
+            showToast(message, 'success');
             loadAllData();
         } catch (error) {
             showToast('Ошибка платежа', 'error');
         }
     });
+}
+
+// Функция расчёта предпросмотра досрочного погашения
+function updateEarlyPaymentPreview(credit) {
+    const amount = parseFloat(document.getElementById('payAmount')?.value) || 0;
+    const reduceType = document.querySelector('input[name="reduce_type"]:checked')?.value || 'term';
+    const preview = document.getElementById('previewContent');
+    
+    if (!preview || amount <= 0) {
+        if (preview) preview.innerHTML = 'Введите сумму для расчёта';
+        return;
+    }
+    
+    const rate = credit.interest_rate / 100 / 12;
+    const newRemaining = credit.remaining_amount - amount;
+    
+    if (newRemaining <= 0) {
+        preview.innerHTML = `
+            <div class="preview-result success">
+                <div class="preview-icon">🎉</div>
+                <div class="preview-text">Кредит будет полностью погашен!</div>
+            </div>
+        `;
+        return;
+    }
+    
+    if (reduceType === 'term') {
+        // Расчёт нового срока
+        let newMonths = credit.remaining_months;
+        if (rate > 0 && credit.monthly_payment > newRemaining * rate) {
+            newMonths = Math.ceil(
+                -Math.log(1 - (newRemaining * rate / credit.monthly_payment)) / Math.log(1 + rate)
+            );
+        } else {
+            newMonths = Math.ceil(newRemaining / credit.monthly_payment);
+        }
+        
+        const monthsSaved = credit.remaining_months - newMonths;
+        
+        // Расчёт экономии на процентах
+        let oldInterest = 0;
+        let temp = credit.remaining_amount;
+        for (let i = 0; i < credit.remaining_months && temp > 0; i++) {
+            const int = temp * rate;
+            oldInterest += int;
+            temp -= (credit.monthly_payment - int);
+        }
+        
+        let newInterest = 0;
+        temp = newRemaining;
+        for (let i = 0; i < newMonths && temp > 0; i++) {
+            const int = temp * rate;
+            newInterest += int;
+            temp -= (credit.monthly_payment - int);
+        }
+        
+        const interestSaved = oldInterest - newInterest;
+        
+        preview.innerHTML = `
+            <div class="preview-grid">
+                <div class="preview-item">
+                    <div class="preview-label">Новый срок</div>
+                    <div class="preview-value">${newMonths} мес.</div>
+                    <div class="preview-change success">-${monthsSaved} мес.</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Экономия на %</div>
+                    <div class="preview-value success">${formatMoney(interestSaved)}</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Новый остаток</div>
+                    <div class="preview-value">${formatMoney(newRemaining)}</div>
+                </div>
+            </div>
+        `;
+    } else {
+        // Расчёт нового платежа
+        let newPayment;
+        if (rate > 0) {
+            newPayment = newRemaining * (rate * Math.pow(1 + rate, credit.remaining_months)) / (Math.pow(1 + rate, credit.remaining_months) - 1);
+        } else {
+            newPayment = newRemaining / credit.remaining_months;
+        }
+        
+        const paymentReduction = credit.monthly_payment - newPayment;
+        
+        preview.innerHTML = `
+            <div class="preview-grid">
+                <div class="preview-item">
+                    <div class="preview-label">Новый платёж</div>
+                    <div class="preview-value">${formatMoney(newPayment)}</div>
+                    <div class="preview-change success">-${formatMoney(paymentReduction)}</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Срок</div>
+                    <div class="preview-value">${credit.remaining_months} мес.</div>
+                    <div class="preview-change">без изменений</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Новый остаток</div>
+                    <div class="preview-value">${formatMoney(newRemaining)}</div>
+                </div>
+            </div>
+        `;
+    }
 }
 
 // ----- БОНУСНАЯ КАРТА -----
@@ -4971,81 +5336,173 @@ function calculateEarlyPayment() {
     const payment = parseFloat(document.getElementById('calcEarlyPayment').value) || 0;
     const earlyAmount = parseFloat(document.getElementById('calcEarlyAmount').value) || 0;
     
-    if (!remaining || !rate || !months || !payment || !earlyAmount) {
-        showToast('Заполните все поля', 'warning');
+    if (!remaining || !months || !payment || !earlyAmount) {
+        showToast('Заполните все обязательные поля', 'warning');
         return;
     }
     
     const monthlyRate = rate / 100 / 12;
     
-    // Без досрочного погашения
-    const totalWithout = payment * months;
-    const interestWithout = totalWithout - remaining;
+    // ========== БЕЗ ДОСРОЧНОГО ПОГАШЕНИЯ ==========
+    let totalWithout = 0;
+    let interestWithout = 0;
+    let tempRemaining = remaining;
     
-    // Уменьшение срока
+    for (let i = 0; i < months && tempRemaining > 0; i++) {
+        const interest = tempRemaining * monthlyRate;
+        const principal = Math.min(payment - interest, tempRemaining);
+        interestWithout += interest;
+        totalWithout += payment;
+        tempRemaining -= principal;
+    }
+    
+    // ========== УМЕНЬШЕНИЕ СРОКА ==========
     const newRemaining = remaining - earlyAmount;
     let monthsReduced = 0;
-    let tempRemaining = newRemaining;
-    while (tempRemaining > 0 && monthsReduced < months * 2) {
+    let interestReduceTerm = 0;
+    tempRemaining = newRemaining;
+    
+    while (tempRemaining > 0.01 && monthsReduced < months * 2) {
         const interest = tempRemaining * monthlyRate;
         const principal = payment - interest;
+        if (principal <= 0) break;
+        interestReduceTerm += interest;
         tempRemaining -= principal;
         monthsReduced++;
     }
-    const totalReduceTerm = payment * monthsReduced;
-    const savingsReduceTerm = totalWithout - totalReduceTerm - earlyAmount;
     
-    // Уменьшение платежа
-    const newPayment = newRemaining * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+    const monthsSaved = months - monthsReduced;
+    const totalReduceTerm = payment * monthsReduced + earlyAmount;
+    const savingsReduceTerm = (totalWithout - totalReduceTerm);
+    
+    // ========== УМЕНЬШЕНИЕ ПЛАТЕЖА ==========
+    let newPayment;
+    if (monthlyRate > 0) {
+        newPayment = newRemaining * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+    } else {
+        newPayment = newRemaining / months;
+    }
+    
+    let interestReducePayment = 0;
+    tempRemaining = newRemaining;
+    for (let i = 0; i < months && tempRemaining > 0; i++) {
+        const interest = tempRemaining * monthlyRate;
+        interestReducePayment += interest;
+        tempRemaining -= (newPayment - interest);
+    }
+    
     const totalReducePayment = newPayment * months + earlyAmount;
     const savingsReducePayment = totalWithout - totalReducePayment;
+    const paymentReduction = payment - newPayment;
     
+    // ========== РЕНДЕР РЕЗУЛЬТАТА ==========
     const container = document.getElementById('calcEarlyResult');
+    
+    const betterOption = savingsReduceTerm > savingsReducePayment ? 'term' : 'payment';
+    
     container.innerHTML = `
-        <div class="calc-result-header">Сравнение вариантов</div>
-        
-        <div class="calc-comparison">
-            <div class="calc-comparison-title">Без досрочного погашения</div>
-            <div class="calc-result-item">
-                <span class="calc-result-label">Всего выплатите</span>
-                <span class="calc-result-value">${formatMoney(totalWithout)}</span>
-            </div>
-        </div>
-        
-        <div class="calc-comparison">
-            <div class="calc-comparison-title">🎯 Уменьшение срока</div>
-            <div class="calc-comparison-options">
-                <div class="calc-option ${savingsReduceTerm > savingsReducePayment ? 'recommended' : ''}">
-                    <div class="calc-option-title">Новый срок</div>
-                    <div class="calc-option-value">${monthsReduced} мес.</div>
-                    <div class="calc-option-savings">-${months - monthsReduced} мес.</div>
+        <div class="early-calc-results">
+            <!-- Текущая ситуация -->
+            <div class="calc-result-card current">
+                <div class="result-card-header">
+                    <span class="result-card-icon">📊</span>
+                    <span class="result-card-title">Без досрочного погашения</span>
                 </div>
-                <div class="calc-option ${savingsReduceTerm > savingsReducePayment ? 'recommended' : ''}">
-                    <div class="calc-option-title">Экономия</div>
-                    <div class="calc-option-value">${formatMoney(savingsReduceTerm)}</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="calc-comparison">
-            <div class="calc-comparison-title">💰 Уменьшение платежа</div>
-            <div class="calc-comparison-options">
-                <div class="calc-option ${savingsReducePayment > savingsReduceTerm ? 'recommended' : ''}">
-                    <div class="calc-option-title">Новый платёж</div>
-                    <div class="calc-option-value">${formatMoney(newPayment)}</div>
-                    <div class="calc-option-savings">-${formatMoney(payment - newPayment)}</div>
-                </div>
-                <div class="calc-option ${savingsReducePayment > savingsReduceTerm ? 'recommended' : ''}">
-                    <div class="calc-option-title">Экономия</div>
-                    <div class="calc-option-value">${formatMoney(savingsReducePayment)}</div>
+                <div class="result-card-body">
+                    <div class="result-row">
+                        <span>Осталось платить</span>
+                        <span>${months} мес.</span>
+                    </div>
+                    <div class="result-row">
+                        <span>Ежемесячный платёж</span>
+                        <span>${formatMoney(payment)}</span>
+                    </div>
+                    <div class="result-row">
+                        <span>Всего выплатите</span>
+                        <span>${formatMoney(totalWithout)}</span>
+                    </div>
+                    <div class="result-row highlight">
+                        <span>Переплата по процентам</span>
+                        <span class="text-danger">${formatMoney(interestWithout)}</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div style="margin-top: 20px; padding: 16px; background: var(--success-light); border-radius: var(--radius); text-align: center;">
-            <strong>💡 Рекомендация:</strong> ${savingsReduceTerm > savingsReducePayment 
-                ? 'Уменьшайте срок — экономия больше!' 
-                : 'Уменьшайте платёж — больше свободных денег!'}
+            
+            <!-- Вариант 1: Уменьшение срока -->
+            <div class="calc-result-card option ${betterOption === 'term' ? 'recommended' : ''}">
+                <div class="result-card-header">
+                    <span class="result-card-icon">📅</span>
+                    <span class="result-card-title">Уменьшить срок</span>
+                    ${betterOption === 'term' ? '<span class="badge-recommended">Рекомендуем</span>' : ''}
+                </div>
+                <div class="result-card-body">
+                    <div class="result-row">
+                        <span>Новый срок</span>
+                        <span><strong>${monthsReduced} мес.</strong> <span class="text-success">(-${monthsSaved})</span></span>
+                    </div>
+                    <div class="result-row">
+                        <span>Платёж остаётся</span>
+                        <span>${formatMoney(payment)}</span>
+                    </div>
+                    <div class="result-row">
+                        <span>Всего выплатите</span>
+                        <span>${formatMoney(totalReduceTerm)}</span>
+                    </div>
+                    <div class="result-row highlight">
+                        <span>Экономия</span>
+                        <span class="text-success">${formatMoney(savingsReduceTerm)}</span>
+                    </div>
+                </div>
+                <div class="result-card-footer">
+                    <div class="savings-breakdown">
+                        <span>💡 Вы сэкономите ${formatMoney(interestWithout - interestReduceTerm)} на процентах</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Вариант 2: Уменьшение платежа -->
+            <div class="calc-result-card option ${betterOption === 'payment' ? 'recommended' : ''}">
+                <div class="result-card-header">
+                    <span class="result-card-icon">💰</span>
+                    <span class="result-card-title">Уменьшить платёж</span>
+                    ${betterOption === 'payment' ? '<span class="badge-recommended">Рекомендуем</span>' : ''}
+                </div>
+                <div class="result-card-body">
+                    <div class="result-row">
+                        <span>Срок остаётся</span>
+                        <span>${months} мес.</span>
+                    </div>
+                    <div class="result-row">
+                        <span>Новый платёж</span>
+                        <span><strong>${formatMoney(newPayment)}</strong> <span class="text-success">(-${formatMoney(paymentReduction)})</span></span>
+                    </div>
+                    <div class="result-row">
+                        <span>Всего выплатите</span>
+                        <span>${formatMoney(totalReducePayment)}</span>
+                    </div>
+                    <div class="result-row highlight">
+                        <span>Экономия</span>
+                        <span class="text-success">${formatMoney(savingsReducePayment)}</span>
+                    </div>
+                </div>
+                <div class="result-card-footer">
+                    <div class="savings-breakdown">
+                        <span>💡 Ежемесячно освободится ${formatMoney(paymentReduction)}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Итоговая рекомендация -->
+            <div class="calc-recommendation">
+                <div class="recommendation-icon">${betterOption === 'term' ? '📅' : '💰'}</div>
+                <div class="recommendation-text">
+                    <strong>Рекомендация:</strong> 
+                    ${betterOption === 'term' 
+                        ? `Уменьшайте срок! Вы сэкономите на ${formatMoney(savingsReduceTerm - savingsReducePayment)} больше и погасите кредит на ${monthsSaved} мес. раньше.`
+                        : `Уменьшайте платёж! Это даст вам больше финансовой свободы — ${formatMoney(paymentReduction)} в месяц.`
+                    }
+                </div>
+            </div>
         </div>
     `;
 }
