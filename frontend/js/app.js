@@ -640,13 +640,22 @@ function renderTrendsChart(trends) {
                         label: 'Доходы',
                         data: trends.map(t => t.income),
                         backgroundColor: 'rgba(16, 185, 129, 0.8)',
-                        borderRadius: 4
+                        borderRadius: 4,
+                        order: 2
                     },
                     {
-                        label: 'Расходы',
-                        data: trends.map(t => t.expense),
+                        label: 'Семейные расходы',
+                        data: trends.map(t => t.expense_personal || t.expense * 0.7),
                         backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                        borderRadius: 4
+                        borderRadius: 4,
+                        order: 2
+                    },
+                    {
+                        label: 'Бизнес расходы',
+                        data: trends.map(t => t.expense_business || t.expense * 0.3),
+                        backgroundColor: 'rgba(156, 39, 176, 0.8)',
+                        borderRadius: 4,
+                        order: 2
                     }
                 ]
             },
@@ -656,7 +665,12 @@ function renderTrendsChart(trends) {
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 8,
+                            font: { size: 11 }
+                        }
                     },
                     tooltip: {
                         callbacks: {
@@ -665,6 +679,9 @@ function renderTrendsChart(trends) {
                     }
                 },
                 scales: {
+                    x: {
+                        stacked: false
+                    },
                     y: {
                         beginAtZero: true,
                         ticks: {
@@ -684,29 +701,26 @@ function renderTrendsChart(trends) {
         <div class="trends-chart">
             ${trends.map(t => {
                 const incomeHeight = (t.income / maxValue) * 140;
-                const expenseHeight = (t.expense / maxValue) * 140;
+                const expensePersonalHeight = ((t.expense_personal || t.expense * 0.7) / maxValue) * 140;
+                const expenseBusinessHeight = ((t.expense_business || t.expense * 0.3) / maxValue) * 140;
                 const monthName = new Date(t.month + '-01').toLocaleDateString('ru-RU', { month: 'short' });
                 
                 return `
                     <div class="trend-bar-group">
                         <div class="trend-bars">
                             <div class="trend-bar income" style="height: ${incomeHeight}px" title="Доходы: ${formatMoney(t.income)}"></div>
-                            <div class="trend-bar expense" style="height: ${expenseHeight}px" title="Расходы: ${formatMoney(t.expense)}"></div>
+                            <div class="trend-bar expense-personal" style="height: ${expensePersonalHeight}px" title="Семейные: ${formatMoney(t.expense_personal || t.expense * 0.7)}"></div>
+                            <div class="trend-bar expense-business" style="height: ${expenseBusinessHeight}px" title="Бизнес: ${formatMoney(t.expense_business || t.expense * 0.3)}"></div>
                         </div>
                         <div class="trend-label">${monthName}</div>
                     </div>
                 `;
             }).join('')}
         </div>
-        <div style="display: flex; justify-content: center; gap: 24px; margin-top: 16px; font-size: 13px;">
-            <span style="display: flex; align-items: center; gap: 6px;">
-                <span style="width: 12px; height: 12px; background: var(--success); border-radius: 2px;"></span>
-                Доходы
-            </span>
-            <span style="display: flex; align-items: center; gap: 6px;">
-                <span style="width: 12px; height: 12px; background: var(--danger); border-radius: 2px;"></span>
-                Расходы
-            </span>
+        <div class="trends-legend">
+            <span class="legend-item"><span class="legend-dot income"></span> Доходы</span>
+            <span class="legend-item"><span class="legend-dot expense-personal"></span> Семейные</span>
+            <span class="legend-item"><span class="legend-dot expense-business"></span> Бизнес</span>
         </div>
     `;
 }
@@ -1875,18 +1889,14 @@ function renderProducts() {
         <div class="product-card" data-id="${p.id}">
             <div class="product-header">
                 <div class="product-icon">${p.icon}</div>
-                <div>
+                <div class="product-info">
                     <div class="product-name">${p.name}</div>
                     <div class="product-unit">за ${p.unit}</div>
                 </div>
                 ${p.price_diff_percent > 0 ? `
-                    <div style="margin-left: auto; text-align: right;">
-                        <div style="font-size: 13px; color: var(--success); font-weight: 600;">
-                            Экономия до ${p.price_diff_percent}%
-                        </div>
-                        <div style="font-size: 12px; color: var(--gray-500);">
-                            ${formatMoney(p.price_diff)}
-                        </div>
+                    <div class="product-savings">
+                        <div class="savings-percent">-${p.price_diff_percent}%</div>
+                        <div class="savings-amount">${formatMoney(p.price_diff)}</div>
                     </div>
                 ` : ''}
                 <div class="product-actions-header">
@@ -1895,17 +1905,22 @@ function renderProducts() {
                 </div>
             </div>
             
-            <div class="product-prices">
+            <div class="product-prices-grid">
                 ${p.prices.map(price => `
-                    <div class="product-price-item ${price.price === p.min_price ? 'best' : ''}">
-                        <div class="product-price-store">${price.store_icon} ${price.store_name}</div>
-                        <div class="product-price-value">${formatMoney(price.price)}</div>
-                        ${price.is_sale ? '<div style="font-size: 11px; color: var(--danger);">🔥 Акция</div>' : ''}
+                    <div class="price-card ${price.price === p.min_price ? 'best-price' : ''} ${price.is_sale ? 'on-sale' : ''}">
+                        <div class="price-card-store">
+                            <span class="store-icon">${price.store_icon}</span>
+                            <span class="store-name">${price.store_name}</span>
+                        </div>
+                        <div class="price-card-value">${formatMoney(price.price)}</div>
+                        ${price.price === p.min_price ? '<div class="price-badge best">Лучшая цена</div>' : ''}
+                        ${price.is_sale ? '<div class="price-badge sale">🔥 Акция</div>' : ''}
+                        <div class="price-date">${formatDate(price.date)}</div>
                     </div>
                 `).join('')}
-                <div class="product-price-item add-price" onclick="showAddPriceModal(${p.id})">
-                    <div style="font-size: 24px;">+</div>
-                    <div style="font-size: 12px; color: var(--gray-500);">Добавить цену</div>
+                <div class="price-card add-price" onclick="showAddPriceModal(${p.id})">
+                    <div class="add-price-icon">+</div>
+                    <div class="add-price-text">Добавить цену</div>
                 </div>
             </div>
         </div>

@@ -2989,17 +2989,42 @@ def get_dashboard():
             Transaction.date <= month_end
         ).scalar() or 0
         
+        # Общие расходы
         expense = db.session.query(db.func.sum(Transaction.amount)).filter(
             Transaction.type == 'expense',
             Transaction.date >= month_start,
             Transaction.date <= month_end
         ).scalar() or 0
         
+        # Семейные расходы (не бизнес)
+        expense_personal = 0
+        expense_business = 0
+        
+        if has_business_column:
+            expense_personal = db.session.query(db.func.sum(Transaction.amount)).filter(
+                Transaction.type == 'expense',
+                Transaction.date >= month_start,
+                Transaction.date <= month_end,
+                Transaction.is_business_expense == False
+            ).scalar() or 0
+            
+            expense_business = db.session.query(db.func.sum(Transaction.amount)).filter(
+                Transaction.type == 'expense',
+                Transaction.date >= month_start,
+                Transaction.date <= month_end,
+                Transaction.is_business_expense == True
+            ).scalar() or 0
+        else:
+            expense_personal = expense
+            expense_business = 0
+        
         trends.append({
             'month': month_start.strftime('%Y-%m'),
             'month_name': month_start.strftime('%B'),
             'income': income,
             'expense': expense,
+            'expense_personal': expense_personal,
+            'expense_business': expense_business,
             'savings': income - expense
         })
     

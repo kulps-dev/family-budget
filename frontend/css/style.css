@@ -4178,3 +4178,235 @@ body {
 .btn-block {
     width: 100%;
 }
+
+
+/* ========== СРАВНЕНИЕ ЦЕН - ПЛАШКИ ========== */
+.product-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+}
+
+.product-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.product-icon {
+    font-size: 32px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gray-100);
+    border-radius: var(--radius);
+}
+
+.product-info {
+    flex: 1;
+}
+
+.product-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--gray-900);
+}
+
+.product-unit {
+    font-size: 13px;
+    color: var(--gray-500);
+}
+
+.product-savings {
+    text-align: right;
+    margin-right: 12px;
+}
+
+.product-savings .savings-percent {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--success);
+}
+
+.product-savings .savings-amount {
+    font-size: 12px;
+    color: var(--gray-500);
+}
+
+.product-actions-header {
+    display: flex;
+    gap: 4px;
+}
+
+/* Сетка плашек с ценами */
+.product-prices-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.price-card {
+    background: var(--gray-50);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 12px;
+    text-align: center;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.price-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.price-card.best-price {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border-color: var(--success);
+}
+
+.price-card.on-sale {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-color: var(--warning);
+}
+
+.price-card-store {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.price-card-store .store-icon {
+    font-size: 18px;
+}
+
+.price-card-store .store-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-700);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80px;
+}
+
+.price-card-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+}
+
+.price-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+
+.price-badge.best {
+    background: var(--success);
+    color: white;
+}
+
+.price-badge.sale {
+    background: var(--warning);
+    color: var(--gray-900);
+}
+
+.price-date {
+    font-size: 11px;
+    color: var(--gray-500);
+}
+
+/* Плашка добавления цены */
+.price-card.add-price {
+    background: white;
+    border: 2px dashed var(--gray-300);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100px;
+}
+
+.price-card.add-price:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.add-price-icon {
+    font-size: 28px;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+}
+
+.add-price-text {
+    font-size: 12px;
+    color: var(--gray-500);
+}
+
+/* Адаптив для мобильных */
+@media (max-width: 480px) {
+    .product-prices-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .price-card-value {
+        font-size: 16px;
+    }
+}
+
+
+/* ========== ТРЕНДЫ - ЛЕГЕНДА ========== */
+.trends-legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 16px;
+    font-size: 13px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.legend-dot.income {
+    background: var(--success);
+}
+
+.legend-dot.expense-personal {
+    background: var(--danger);
+}
+
+.legend-dot.expense-business {
+    background: #9C27B0;
+}
+
+.trend-bar.expense-personal {
+    background: var(--danger);
+}
+
+.trend-bar.expense-business {
+    background: #9C27B0;
+}
