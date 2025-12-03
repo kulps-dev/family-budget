@@ -2979,6 +2979,11 @@ def get_dashboard():
             })
     
     trends = []
+    
+    # Получаем ID кредитных и не-кредитных карт
+    credit_card_ids = [a.id for a in accounts if a.account_type == 'credit_card']
+    non_credit_card_ids = [a.id for a in accounts if a.account_type != 'credit_card']
+    
     for i in range(5, -1, -1):
         month_start = (today - relativedelta(months=i)).replace(day=1)
         month_end = (month_start + relativedelta(months=1)) - timedelta(days=1)
@@ -2990,27 +2995,41 @@ def get_dashboard():
             Transaction.date <= month_end
         ).scalar() or 0
         
-        # ВСЕ расходы за месяц (expense транзакции)
-        total_expense = db.session.query(db.func.sum(Transaction.amount)).filter(
+        # Расходы типа expense
+        expense_direct = db.session.query(db.func.sum(Transaction.amount)).filter(
             Transaction.type == 'expense',
             Transaction.date >= month_start,
             Transaction.date <= month_end
         ).scalar() or 0
         
-        # Разделение на семейные и бизнес (только если колонка существует)
+        # Траты с кредиток (переводы С кредитки НА обычный счёт, кроме налоговых)
+        credit_card_spending = 0
+        if credit_card_ids and non_credit_card_ids:
+            credit_card_spending = db.session.query(db.func.sum(Transaction.amount)).filter(
+                Transaction.type == 'transfer',
+                Transaction.date >= month_start,
+                Transaction.date <= month_end,
+                Transaction.account_id.in_(credit_card_ids),
+                Transaction.to_account_id.in_(non_credit_card_ids),
+                Transaction.is_tax_transfer == False
+            ).scalar() or 0
+        
+        # Общие расходы = прямые расходы + траты с кредиток
+        total_expense = expense_direct + credit_card_spending
+        
+        # Разделение на семейные и бизнес
         expense_personal = total_expense
         expense_business = 0
         
         if has_business_column:
-            # Бизнес расходы
-            expense_business = db.session.query(db.func.sum(Transaction.amount)).filter(
+            expense_business_direct = db.session.query(db.func.sum(Transaction.amount)).filter(
                 Transaction.type == 'expense',
                 Transaction.date >= month_start,
                 Transaction.date <= month_end,
                 Transaction.is_business_expense == True
             ).scalar() or 0
             
-            # Семейные = всего минус бизнес
+            expense_business = expense_business_direct
             expense_personal = total_expense - expense_business
         
         trends.append({
@@ -3018,6 +3037,8 @@ def get_dashboard():
             'month_name': month_start.strftime('%B'),
             'income': income,
             'expense': total_expense,
+            'expense_direct': expense_direct,
+            'expense_credit_cards': credit_card_spending,
             'expense_personal': expense_personal,
             'expense_business': expense_business,
             'savings': income - total_expense

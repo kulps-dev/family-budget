@@ -4180,225 +4180,285 @@ body {
 }
 
 
-/* ========== СРАВНЕНИЕ ЦЕН ========== */
+/* ========== СРАВНЕНИЕ ЦЕН - КОМПАКТНЫЙ ДИЗАЙН ========== */
 
-/* Магазины */
-.stores-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 16px;
+/* Секции */
+.stores-section, .products-section {
+    margin-bottom: 24px;
 }
 
-.store-item {
+.stores-section h4, .products-section h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-600);
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: white;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
+    gap: 8px;
 }
 
-.store-item-icon {
+/* Чипсы магазинов */
+.stores-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.store-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 20px;
+    font-size: 13px;
+    transition: all 0.15s;
+}
+
+.store-chip:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+}
+
+.store-chip-icon {
+    font-size: 16px;
+}
+
+.store-chip-name {
+    font-weight: 500;
+    color: var(--gray-800);
+}
+
+.store-chip-count {
+    background: var(--gray-100);
+    color: var(--gray-500);
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.store-chip-delete {
+    width: 18px;
+    height: 18px;
+    border: none;
+    background: var(--gray-100);
+    color: var(--gray-500);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0;
+    transition: all 0.15s;
+}
+
+.store-chip:hover .store-chip-delete {
+    opacity: 1;
+}
+
+.store-chip-delete:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* Строка сравнения товара */
+.price-compare-row {
+    background: white;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.15s;
+}
+
+.price-compare-row:hover {
+    box-shadow: var(--shadow);
+}
+
+/* Левая часть - товар */
+.price-compare-product {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 180px;
+    flex-shrink: 0;
+}
+
+.product-emoji {
     font-size: 24px;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--gray-100);
-    border-radius: var(--radius);
+    border-radius: 8px;
 }
 
-.store-item-info {
+.product-details {
     flex: 1;
+    min-width: 0;
 }
 
-.store-item-name {
+.product-title {
     font-weight: 600;
-    color: var(--gray-900);
-}
-
-.store-item-count {
-    font-size: 12px;
-    color: var(--gray-500);
-}
-
-.store-item-rating {
-    color: #fbbf24;
     font-size: 14px;
-    letter-spacing: 1px;
-}
-
-.store-item-actions {
-    display: flex;
-    gap: 4px;
-}
-
-/* Товары для сравнения */
-.product-compare-card {
-    background: white;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-    margin-bottom: 16px;
-    overflow: hidden;
-}
-
-.product-compare-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px;
-    background: var(--gray-50);
-    border-bottom: 1px solid var(--gray-200);
-}
-
-.product-compare-icon {
-    font-size: 28px;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-}
-
-.product-compare-info {
-    flex: 1;
-}
-
-.product-compare-name {
-    font-weight: 600;
-    font-size: 15px;
     color: var(--gray-900);
-}
-
-.product-compare-unit {
-    font-size: 12px;
-    color: var(--gray-500);
-}
-
-.product-compare-savings .savings-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    background: var(--success);
-    color: white;
-    font-size: 11px;
-    font-weight: 600;
-    border-radius: 20px;
-}
-
-.product-compare-actions {
-    display: flex;
-    gap: 4px;
-}
-
-/* Контейнер цен */
-.product-prices-container {
-    padding: 16px;
-}
-
-.prices-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 12px;
-}
-
-.no-prices {
-    text-align: center;
-    color: var(--gray-500);
-    padding: 20px;
-    font-size: 14px;
-}
-
-/* Плитка цены */
-.price-tile {
-    flex: 1;
-    min-width: 120px;
-    max-width: 160px;
-    padding: 12px;
-    background: var(--gray-50);
-    border: 2px solid var(--gray-200);
-    border-radius: var(--radius);
-    text-align: center;
-    transition: all 0.2s;
-}
-
-.price-tile:hover {
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
-}
-
-.price-tile.best {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    border-color: var(--success);
-}
-
-.price-tile.sale {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    border-color: #f59e0b;
-}
-
-.price-tile-store {
-    font-size: 12px;
-    color: var(--gray-600);
-    margin-bottom: 6px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.price-tile-value {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--gray-900);
-    margin-bottom: 4px;
+.product-meta {
+    font-size: 12px;
+    color: var(--gray-500);
 }
 
-.price-tile-badge {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 600;
-    padding: 2px 6px;
+.product-quick-actions {
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.price-compare-row:hover .product-quick-actions {
+    opacity: 1;
+}
+
+.btn-micro {
+    width: 22px;
+    height: 22px;
+    border: none;
+    background: var(--gray-100);
+    color: var(--gray-600);
     border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
 }
 
-.price-tile-badge.best {
-    background: var(--success);
+.btn-micro:hover {
+    background: var(--primary);
     color: white;
 }
 
-.price-tile-badge.sale {
-    background: #f59e0b;
-    color: white;
+.btn-micro.danger:hover {
+    background: var(--danger);
 }
 
-.add-price-btn {
-    width: 100%;
+/* Правая часть - цены */
+.price-compare-prices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
+}
+
+.price-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 13px;
+    position: relative;
+    transition: all 0.15s;
+}
+
+.price-chip:hover {
+    border-color: var(--gray-300);
+}
+
+.price-chip.best {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border-color: #86efac;
+}
+
+.price-chip.worst {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.price-chip.sale {
+    background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
+    border-color: #fde047;
+}
+
+.price-chip-store {
+    font-size: 16px;
+}
+
+.price-chip-value {
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.price-chip.best .price-chip-value {
+    color: #15803d;
+}
+
+.price-chip.worst .price-chip-value {
+    color: #b91c1c;
+}
+
+.price-chip-badge {
+    font-size: 12px;
+}
+
+.no-prices-hint {
+    color: var(--gray-400);
+    font-size: 13px;
+    font-style: italic;
+}
+
+.empty-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gray-500);
+    font-size: 14px;
+    padding: 12px;
 }
 
 /* Мобильная адаптация */
-@media (max-width: 480px) {
-    .prices-row {
+@media (max-width: 640px) {
+    .price-compare-row {
         flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
     }
     
-    .price-tile {
-        max-width: none;
+    .price-compare-product {
+        min-width: auto;
     }
     
-    .product-compare-header {
-        flex-wrap: wrap;
+    .product-quick-actions {
+        opacity: 1;
     }
     
-    .product-compare-savings {
-        width: 100%;
-        margin-top: 8px;
+    .price-compare-prices {
+        padding-left: 46px;
+    }
+}
+
+@media (max-width: 480px) {
+    .price-compare-prices {
+        padding-left: 0;
+    }
+    
+    .price-chip {
+        flex: 1;
+        min-width: calc(50% - 3px);
+        justify-content: center;
     }
 }
 

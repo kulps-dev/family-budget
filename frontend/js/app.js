@@ -1869,26 +1869,23 @@ function renderStores() {
     if (!container) return;
     
     if (state.stores.length === 0) {
-        container.innerHTML = '<div class="empty-state small">Добавьте магазины для сравнения цен</div>';
+        container.innerHTML = `
+            <div class="empty-hint">
+                <span>🏪</span>
+                <span>Добавьте магазины</span>
+            </div>
+        `;
         return;
     }
     
     container.innerHTML = `
-        <div class="stores-list">
+        <div class="stores-chips">
             ${state.stores.map(s => `
-                <div class="store-item" data-id="${s.id}">
-                    <div class="store-item-icon">${s.icon}</div>
-                    <div class="store-item-info">
-                        <div class="store-item-name">${s.name}</div>
-                        <div class="store-item-count">${s.products_count} товаров</div>
-                    </div>
-                    <div class="store-item-rating">
-                        ${'★'.repeat(Math.round(s.price_rating || 0))}${'☆'.repeat(5 - Math.round(s.price_rating || 0))}
-                    </div>
-                    <div class="store-item-actions">
-                        <button class="btn-icon-sm" onclick="showEditStoreModal(${s.id})" title="Редактировать">✏️</button>
-                        <button class="btn-icon-sm danger" onclick="deleteStore(${s.id})" title="Удалить">🗑️</button>
-                    </div>
+                <div class="store-chip" data-id="${s.id}">
+                    <span class="store-chip-icon">${s.icon}</span>
+                    <span class="store-chip-name">${s.name}</span>
+                    <span class="store-chip-count">${s.products_count}</span>
+                    <button class="store-chip-delete" onclick="event.stopPropagation(); deleteStore(${s.id})">×</button>
                 </div>
             `).join('')}
         </div>
@@ -1900,48 +1897,53 @@ function renderProducts() {
     if (!container) return;
     
     if (state.products.length === 0) {
-        container.innerHTML = '<div class="empty-state small">Добавьте товары для отслеживания цен</div>';
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📦</div>
+                <div class="empty-state-text">Добавьте товары для сравнения цен</div>
+            </div>
+        `;
         return;
     }
     
-    container.innerHTML = state.products.map(p => `
-        <div class="product-compare-card" data-id="${p.id}">
-            <div class="product-compare-header">
-                <div class="product-compare-icon">${p.icon}</div>
-                <div class="product-compare-info">
-                    <div class="product-compare-name">${p.name}</div>
-                    <div class="product-compare-unit">за ${p.unit}</div>
-                </div>
-                ${p.price_diff_percent > 0 ? `
-                    <div class="product-compare-savings">
-                        <span class="savings-badge">Экономия до ${p.price_diff_percent}%</span>
+    container.innerHTML = state.products.map(p => {
+        const hasPrices = p.prices && p.prices.length > 0;
+        const bestPrice = p.min_price;
+        const worstPrice = p.max_price;
+        
+        return `
+            <div class="price-compare-row">
+                <div class="price-compare-product">
+                    <span class="product-emoji">${p.icon}</span>
+                    <div class="product-details">
+                        <div class="product-title">${p.name}</div>
+                        <div class="product-meta">${p.unit}${p.price_diff_percent > 0 ? ` • <span class="text-success">−${p.price_diff_percent}%</span>` : ''}</div>
                     </div>
-                ` : ''}
-                <div class="product-compare-actions">
-                    <button class="btn-icon-sm" onclick="showEditProductModal(${p.id})">✏️</button>
-                    <button class="btn-icon-sm danger" onclick="deleteProduct(${p.id})">🗑️</button>
+                    <div class="product-quick-actions">
+                        <button class="btn-micro" onclick="showAddPriceModal(${p.id})" title="Добавить цену">+</button>
+                        <button class="btn-micro" onclick="showEditProductModal(${p.id})" title="Редактировать">✎</button>
+                        <button class="btn-micro danger" onclick="deleteProduct(${p.id})" title="Удалить">×</button>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="product-prices-container">
-                ${p.prices.length > 0 ? `
-                    <div class="prices-row">
-                        ${p.prices.map(price => `
-                            <div class="price-tile ${price.price === p.min_price ? 'best' : ''} ${price.is_sale ? 'sale' : ''}">
-                                <div class="price-tile-store">${price.store_icon} ${price.store_name}</div>
-                                <div class="price-tile-value">${formatMoney(price.price)}</div>
-                                ${price.price === p.min_price ? '<span class="price-tile-badge best">👍 Лучшая</span>' : ''}
-                                ${price.is_sale ? '<span class="price-tile-badge sale">🔥 Акция</span>' : ''}
+                
+                <div class="price-compare-prices">
+                    ${hasPrices ? p.prices.map(price => {
+                        const isBest = price.price === bestPrice;
+                        const isWorst = price.price === worstPrice && p.prices.length > 1;
+                        
+                        return `
+                            <div class="price-chip ${isBest ? 'best' : ''} ${isWorst ? 'worst' : ''} ${price.is_sale ? 'sale' : ''}">
+                                <div class="price-chip-store">${price.store_icon}</div>
+                                <div class="price-chip-value">${price.price.toLocaleString('ru-RU')} ₽</div>
+                                ${isBest ? '<div class="price-chip-badge">👍</div>' : ''}
+                                ${price.is_sale ? '<div class="price-chip-badge">🔥</div>' : ''}
                             </div>
-                        `).join('')}
-                    </div>
-                ` : '<div class="no-prices">Нет данных о ценах</div>'}
-                <button class="btn btn-sm btn-secondary add-price-btn" onclick="showAddPriceModal(${p.id})">
-                    + Добавить цену
-                </button>
+                        `;
+                    }).join('') : '<div class="no-prices-hint">Нет цен</div>'}
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // ==================== НАЛОГИ ====================
