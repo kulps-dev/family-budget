@@ -1,6 +1,6 @@
 /* frontend/css/style.css - Оптимизированная версия */
 
-# /* ==================== ПЕРЕМЕННЫЕ ==================== */
+ /* ==================== ПЕРЕМЕННЫЕ ==================== */
 :root {
     --primary: #6366f1;
     --primary-dark: #4f46e5;
@@ -53,7 +53,7 @@
     --mobile-nav-height: 70px;
 }
 
-# /* ==================== СБРОС И БАЗОВЫЕ СТИЛИ ==================== */
+ /* ==================== СБРОС И БАЗОВЫЕ СТИЛИ ==================== */
 *, *::before, *::after {
     margin: 0;
     padding: 0;
@@ -74,7 +74,7 @@ body {
     overflow-x: hidden;
 }
 
-# /* ==================== LAYOUT ==================== */
+ /* ==================== LAYOUT ==================== */
 .app {
     display: flex;
     min-height: 100vh;
@@ -299,7 +299,7 @@ body {
     padding-bottom: 100px;
 }
 
-# /* ==================== КНОПКИ ==================== */
+ /* ==================== КНОПКИ ==================== */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -410,7 +410,7 @@ body {
     padding: 4px 8px;
 }
 
-# /* ==================== КАРТОЧКИ ==================== */
+ /* ==================== КАРТОЧКИ ==================== */
 .card {
     background: var(--white);
     border-radius: var(--radius-lg);
@@ -512,7 +512,7 @@ body {
     opacity: 0.9;
 }
 
-# /* ==================== ДАШБОРД ==================== */
+ /* ==================== ДАШБОРД ==================== */
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -782,7 +782,7 @@ body {
 .trend-bar.expense { background: var(--danger); }
 .trend-label { font-size: 12px; color: var(--gray-500); font-weight: 500; }
 
-# /* ==================== ТРАНЗАКЦИИ ==================== */
+ /* ==================== ТРАНЗАКЦИИ ==================== */
 .filters-bar {
     background: var(--white);
     border-radius: var(--radius-lg);
@@ -873,7 +873,7 @@ body {
 
 .transaction-item:hover .transaction-actions { opacity: 1; }
 
-# /* ==================== СЧЕТА ==================== */
+ /* ==================== СЧЕТА ==================== */
 .accounts-sections {
     display: flex;
     flex-direction: column;
@@ -959,7 +959,7 @@ body {
     border-top: 1px solid var(--gray-200);
 }
 
-# /* ==================== КРЕДИТНЫЕ КАРТЫ ==================== */
+ /* ==================== КРЕДИТНЫЕ КАРТЫ ==================== */
 .credit-cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -1054,7 +1054,7 @@ body {
     border: 1px solid rgba(255,255,255,0.3);
 }
 
-# /* ==================== КАТЕГОРИИ ==================== */
+ /* ==================== КАТЕГОРИИ ==================== */
 .categories-tabs {
     display: flex;
     gap: 12px;
@@ -1150,7 +1150,7 @@ body {
 .category-card:hover .category-delete,
 .category-card:hover .category-edit { opacity: 1; }
 
-# /* ==================== ЦЕЛИ ==================== */
+ /* ==================== ЦЕЛИ ==================== */
 .goals-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -1266,7 +1266,7 @@ body {
 
 .goal-actions { display: flex; gap: 12px; }
 
-# /* ==================== КРЕДИТЫ ==================== */
+ /* ==================== КРЕДИТЫ ==================== */
 .credits-summary-card {
     background: var(--gradient-primary);
     border-radius: var(--radius-lg);
@@ -1360,7 +1360,7 @@ body {
 
 .credit-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 
-# /* ==================== ИПОТЕКА ==================== */
+ /* ==================== ИПОТЕКА ==================== */
 .mortgages-summary {
     background: var(--gradient-primary);
     border-radius: var(--radius-lg);
@@ -1447,7 +1447,7 @@ body {
 
 .mortgage-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 
-# /* ==================== КАЛЬКУЛЯТОР ==================== */
+ /* ==================== КАЛЬКУЛЯТОР ==================== */
 .calculator-tabs {
     display: flex;
     gap: 8px;
@@ -1525,7 +1525,7 @@ body {
     background: linear-gradient(135deg, var(--primary-light) 0%, #e0e7ff 100%);
 }
 
-# /* ==================== ИНВЕСТИЦИИ ==================== */
+ /* ==================== ИНВЕСТИЦИИ ==================== */
 .investments-summary-cards {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -1670,7 +1670,7 @@ body {
     margin-bottom: 16px;
 }
 
-# /* ==================== НАЛОГИ ==================== */
+ /* ==================== НАЛОГИ ==================== */
 .taxes-summary {
     background: var(--gradient-warning);
     border-radius: var(--radius-lg);
@@ -1723,7 +1723,7 @@ body {
 .tax-reserve-details { font-size: 13px; color: var(--gray-600); margin-top: 4px; }
 .tax-reserve-amount { font-size: 20px; font-weight: 700; color: var(--warning); }
 
-# /* ==================== АНАЛИТИКА ==================== */
+/* ==================== АНАЛИТИКА ==================== */
 .analytics-header {
     display: flex;
     justify-content: space-between;
@@ -1781,7 +1781,7 @@ body {
 .analytics-card.wide { grid-column: span 2; }
 .analytics-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
 
-# /* ==================== БОНУСНЫЕ КАРТЫ ==================== */
+ /* ==================== БОНУСНЫЕ КАРТЫ ==================== */
 .bonus-cards-header {
     text-align: center;
     margin-bottom: 32px;
@@ -1869,7 +1869,7 @@ body {
 .bonus-card-actions { display: flex; gap: 8px; }
 .bonus-card-actions .btn { flex: 1; }
 
-# /* ==================== ДОСТИЖЕНИЯ ==================== */
+ /* ==================== ДОСТИЖЕНИЯ ==================== */
 .achievements-header {
     text-align: center;
     margin-bottom: 32px;
@@ -1930,7 +1930,7 @@ body {
 
 .achievement-date { font-size: 12px; color: var(--gray-400); margin-top: 12px; }
 
-# /* ==================== ФОРМЫ ==================== */
+ /* ==================== ФОРМЫ ==================== */
 .form-group { margin-bottom: 20px; }
 
 .form-label {
@@ -2069,7 +2069,7 @@ body {
 .color-option:hover { transform: scale(1.15); }
 .color-option.selected { border-color: var(--gray-900); box-shadow: var(--shadow-md); }
 
-# /* ==================== МОДАЛЬНЫЕ ОКНА ==================== */
+ /* ==================== МОДАЛЬНЫЕ ОКНА ==================== */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -2145,7 +2145,7 @@ body {
     flex: 1;
 }
 
-# /* ==================== МОБИЛЬНАЯ НАВИГАЦИЯ ==================== */
+ /* ==================== МОБИЛЬНАЯ НАВИГАЦИЯ ==================== */
 .mobile-nav {
     display: none;
     position: fixed;
@@ -2177,7 +2177,7 @@ body {
 .mobile-nav-item.active { color: var(--primary); }
 .mobile-nav-item .nav-icon { font-size: 22px; }
 
-## /* FAB */
+ /* FAB */
 .fab {
     display: none;
     position: fixed;
@@ -2201,7 +2201,7 @@ body {
 .fab:hover { transform: scale(1.1); }
 .fab:active { transform: scale(0.95); }
 
-# /* ==================== TOAST ==================== */
+ /* ==================== TOAST ==================== */
 .toast-container {
     position: fixed;
     top: 24px;
