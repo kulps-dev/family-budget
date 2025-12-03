@@ -2692,6 +2692,7 @@ def ai_tips():
 
 # --- Статистика и дашборд ---
 
+@app.route('/api/dashboard', methods=['GET'])
 def get_dashboard():
     today = date.today()
     first_day_month = today.replace(day=1)
