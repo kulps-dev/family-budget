@@ -2983,49 +2983,44 @@ def get_dashboard():
         month_start = (today - relativedelta(months=i)).replace(day=1)
         month_end = (month_start + relativedelta(months=1)) - timedelta(days=1)
         
+        # Доходы за месяц
         income = db.session.query(db.func.sum(Transaction.amount)).filter(
             Transaction.type == 'income',
             Transaction.date >= month_start,
             Transaction.date <= month_end
         ).scalar() or 0
         
-        # Общие расходы
-        expense = db.session.query(db.func.sum(Transaction.amount)).filter(
+        # ВСЕ расходы за месяц (expense транзакции)
+        total_expense = db.session.query(db.func.sum(Transaction.amount)).filter(
             Transaction.type == 'expense',
             Transaction.date >= month_start,
             Transaction.date <= month_end
         ).scalar() or 0
         
-        # Семейные расходы (не бизнес)
-        expense_personal = 0
+        # Разделение на семейные и бизнес (только если колонка существует)
+        expense_personal = total_expense
         expense_business = 0
         
         if has_business_column:
-            expense_personal = db.session.query(db.func.sum(Transaction.amount)).filter(
-                Transaction.type == 'expense',
-                Transaction.date >= month_start,
-                Transaction.date <= month_end,
-                Transaction.is_business_expense == False
-            ).scalar() or 0
-            
+            # Бизнес расходы
             expense_business = db.session.query(db.func.sum(Transaction.amount)).filter(
                 Transaction.type == 'expense',
                 Transaction.date >= month_start,
                 Transaction.date <= month_end,
                 Transaction.is_business_expense == True
             ).scalar() or 0
-        else:
-            expense_personal = expense
-            expense_business = 0
+            
+            # Семейные = всего минус бизнес
+            expense_personal = total_expense - expense_business
         
         trends.append({
             'month': month_start.strftime('%Y-%m'),
             'month_name': month_start.strftime('%B'),
             'income': income,
-            'expense': expense,
+            'expense': total_expense,
             'expense_personal': expense_personal,
             'expense_business': expense_business,
-            'savings': income - expense
+            'savings': income - total_expense
         })
     
     total_balance_without_tax = sum(

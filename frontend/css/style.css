@@ -4180,28 +4180,30 @@ body {
 }
 
 
-/* ========== СРАВНЕНИЕ ЦЕН - ПЛАШКИ ========== */
-.product-card {
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    box-shadow: var(--shadow);
+/* ========== СРАВНЕНИЕ ЦЕН ========== */
+
+/* Магазины */
+.stores-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     margin-bottom: 16px;
 }
 
-.product-header {
+.store-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--gray-200);
+    padding: 12px 16px;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
 }
 
-.product-icon {
-    font-size: 32px;
-    width: 48px;
-    height: 48px;
+.store-item-icon {
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4209,163 +4211,194 @@ body {
     border-radius: var(--radius);
 }
 
-.product-info {
+.store-item-info {
     flex: 1;
 }
 
-.product-name {
+.store-item-name {
     font-weight: 600;
-    font-size: 16px;
     color: var(--gray-900);
 }
 
-.product-unit {
-    font-size: 13px;
-    color: var(--gray-500);
-}
-
-.product-savings {
-    text-align: right;
-    margin-right: 12px;
-}
-
-.product-savings .savings-percent {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--success);
-}
-
-.product-savings .savings-amount {
+.store-item-count {
     font-size: 12px;
     color: var(--gray-500);
 }
 
-.product-actions-header {
+.store-item-rating {
+    color: #fbbf24;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.store-item-actions {
     display: flex;
     gap: 4px;
 }
 
-/* Сетка плашек с ценами */
-.product-prices-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 12px;
+/* Товары для сравнения */
+.product-compare-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    overflow: hidden;
 }
 
-.price-card {
+.product-compare-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.product-compare-icon {
+    font-size: 28px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.product-compare-info {
+    flex: 1;
+}
+
+.product-compare-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--gray-900);
+}
+
+.product-compare-unit {
+    font-size: 12px;
+    color: var(--gray-500);
+}
+
+.product-compare-savings .savings-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: var(--success);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 20px;
+}
+
+.product-compare-actions {
+    display: flex;
+    gap: 4px;
+}
+
+/* Контейнер цен */
+.product-prices-container {
+    padding: 16px;
+}
+
+.prices-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.no-prices {
+    text-align: center;
+    color: var(--gray-500);
+    padding: 20px;
+    font-size: 14px;
+}
+
+/* Плитка цены */
+.price-tile {
+    flex: 1;
+    min-width: 120px;
+    max-width: 160px;
+    padding: 12px;
     background: var(--gray-50);
     border: 2px solid var(--gray-200);
     border-radius: var(--radius);
-    padding: 12px;
     text-align: center;
-    transition: all 0.2s ease;
-    position: relative;
+    transition: all 0.2s;
 }
 
-.price-card:hover {
+.price-tile:hover {
     border-color: var(--primary);
     transform: translateY(-2px);
+    box-shadow: var(--shadow);
 }
 
-.price-card.best-price {
+.price-tile.best {
     background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
     border-color: var(--success);
 }
 
-.price-card.on-sale {
+.price-tile.sale {
     background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    border-color: var(--warning);
+    border-color: #f59e0b;
 }
 
-.price-card-store {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    margin-bottom: 8px;
-}
-
-.price-card-store .store-icon {
-    font-size: 18px;
-}
-
-.price-card-store .store-name {
+.price-tile-store {
     font-size: 12px;
-    font-weight: 500;
-    color: var(--gray-700);
+    color: var(--gray-600);
+    margin-bottom: 6px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 80px;
 }
 
-.price-card-value {
-    font-size: 20px;
+.price-tile-value {
+    font-size: 18px;
     font-weight: 700;
     color: var(--gray-900);
     margin-bottom: 4px;
 }
 
-.price-badge {
+.price-tile-badge {
     display: inline-block;
     font-size: 10px;
     font-weight: 600;
     padding: 2px 6px;
     border-radius: 4px;
-    margin-bottom: 4px;
 }
 
-.price-badge.best {
+.price-tile-badge.best {
     background: var(--success);
     color: white;
 }
 
-.price-badge.sale {
-    background: var(--warning);
-    color: var(--gray-900);
+.price-tile-badge.sale {
+    background: #f59e0b;
+    color: white;
 }
 
-.price-date {
-    font-size: 11px;
-    color: var(--gray-500);
+.add-price-btn {
+    width: 100%;
 }
 
-/* Плашка добавления цены */
-.price-card.add-price {
-    background: white;
-    border: 2px dashed var(--gray-300);
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100px;
-}
-
-.price-card.add-price:hover {
-    border-color: var(--primary);
-    background: var(--primary-light);
-}
-
-.add-price-icon {
-    font-size: 28px;
-    color: var(--gray-400);
-    margin-bottom: 4px;
-}
-
-.add-price-text {
-    font-size: 12px;
-    color: var(--gray-500);
-}
-
-/* Адаптив для мобильных */
+/* Мобильная адаптация */
 @media (max-width: 480px) {
-    .product-prices-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .prices-row {
+        flex-direction: column;
     }
     
-    .price-card-value {
-        font-size: 16px;
+    .price-tile {
+        max-width: none;
+    }
+    
+    .product-compare-header {
+        flex-wrap: wrap;
+    }
+    
+    .product-compare-savings {
+        width: 100%;
+        margin-top: 8px;
     }
 }
 
