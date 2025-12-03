@@ -1,4 +1,6 @@
-/* frontend/css/style.css */
+/* frontend/css/style.css - Оптимизированная версия */
+
+# /* ==================== ПЕРЕМЕННЫЕ ==================== */
 :root {
     --primary: #6366f1;
     --primary-dark: #4f46e5;
@@ -36,7 +38,6 @@
     --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
     
     --radius-sm: 8px;
@@ -46,14 +47,14 @@
     --radius-full: 9999px;
     
     --transition: all 0.2s ease;
-    --transition-slow: all 0.3s ease;
     
     --sidebar-width: 280px;
     --header-height: 70px;
     --mobile-nav-height: 70px;
 }
 
-* {
+# /* ==================== СБРОС И БАЗОВЫЕ СТИЛИ ==================== */
+*, *::before, *::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -73,7 +74,7 @@ body {
     overflow-x: hidden;
 }
 
-/* App Layout */
+# /* ==================== LAYOUT ==================== */
 .app {
     display: flex;
     min-height: 100vh;
@@ -277,7 +278,6 @@ body {
     height: 2px;
     background: var(--gray-600);
     border-radius: 2px;
-    transition: var(--transition);
 }
 
 .page-title {
@@ -299,7 +299,7 @@ body {
     padding-bottom: 100px;
 }
 
-/* Buttons */
+# /* ==================== КНОПКИ ==================== */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -348,6 +348,16 @@ body {
     color: var(--white);
 }
 
+.btn-warning {
+    background: var(--gradient-warning);
+    color: var(--white);
+}
+
+.btn-info {
+    background: var(--info);
+    color: var(--white);
+}
+
 .btn-icon {
     width: 44px;
     height: 44px;
@@ -368,15 +378,39 @@ body {
 
 .btn-block {
     width: 100%;
-    margin-top: 20px;
 }
 
-.btn-icon-left {
-    font-size: 18px;
-    font-weight: 700;
+.btn-icon-sm {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    background: var(--gray-100);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 14px;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Cards */
+.btn-icon-sm:hover {
+    background: var(--gray-200);
+}
+
+.btn-icon-sm.danger:hover {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+.btn-link {
+    background: none;
+    color: var(--primary);
+    padding: 4px 8px;
+}
+
+# /* ==================== КАРТОЧКИ ==================== */
 .card {
     background: var(--white);
     border-radius: var(--radius-lg);
@@ -414,10 +448,6 @@ body {
     font-weight: 500;
 }
 
-.card-link:hover {
-    text-decoration: underline;
-}
-
 .card-value {
     font-size: 32px;
     font-weight: 800;
@@ -438,25 +468,10 @@ body {
     font-weight: 500;
 }
 
-.card-change.positive {
-    color: var(--success);
-}
+.card-change.positive { color: var(--success); }
+.card-change.negative { color: var(--danger); }
 
-.card-change.negative {
-    color: var(--danger);
-}
-
-/* Dashboard Grid */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-}
-
-.card-wide {
-    grid-column: span 2;
-}
-
+/* Специальные карточки */
 .card-balance {
     background: var(--gradient-primary);
     color: var(--white);
@@ -471,33 +486,59 @@ body {
     color: var(--white);
 }
 
-.card-income {
-    border-left: 4px solid var(--success);
+.card-income { border-left: 4px solid var(--success); }
+.card-expense { border-left: 4px solid var(--danger); }
+.card-savings { border-left: 4px solid var(--warning); }
+
+.card-debt-payments {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
 }
 
-.card-expense {
-    border-left: 4px solid var(--danger);
+/* Разбивка расходов */
+.expense-breakdown,
+.balance-details {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    font-size: 13px;
 }
 
-.card-savings {
-    border-left: 4px solid var(--warning);
+.breakdown-row,
+.balance-detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    opacity: 0.9;
 }
 
-/* Upcoming Payments */
+# /* ==================== ДАШБОРД ==================== */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.card-wide {
+    grid-column: span 2;
+}
+
+/* Ближайшие платежи */
 .upcoming-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
 }
 
 .upcoming-item {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: var(--gray-50);
+    gap: 12px;
+    padding: 12px 16px;
     border-radius: var(--radius);
+    background: var(--gray-50);
     transition: var(--transition);
+    border-left: 3px solid transparent;
 }
 
 .upcoming-item:hover {
@@ -505,34 +546,62 @@ body {
 }
 
 .upcoming-item.urgent {
-    background: var(--danger-light);
-    border-left: 4px solid var(--danger);
+    background: rgba(239, 68, 68, 0.08);
+    border-left-color: var(--danger);
+}
+
+.upcoming-item.warning {
+    background: rgba(245, 158, 11, 0.08);
+    border-left-color: var(--warning);
 }
 
 .upcoming-icon {
     font-size: 24px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
 }
 
 .upcoming-info {
     flex: 1;
+    min-width: 0;
 }
 
 .upcoming-name {
     font-weight: 600;
+    font-size: 14px;
     color: var(--gray-900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .upcoming-date {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--gray-500);
+    margin-top: 2px;
+}
+
+.upcoming-item.urgent .upcoming-date {
+    color: var(--danger);
+    font-weight: 600;
 }
 
 .upcoming-amount {
     font-weight: 700;
+    font-size: 14px;
     color: var(--gray-900);
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
-/* Over Budget */
+/* Превышение бюджета */
 .over-budget-list {
     display: flex;
     flex-direction: column;
@@ -549,75 +618,137 @@ body {
     border-left: 4px solid var(--danger);
 }
 
-.over-budget-icon {
-    font-size: 20px;
+.over-budget-icon { font-size: 20px; }
+.over-budget-info { flex: 1; }
+.over-budget-name { font-weight: 600; font-size: 14px; }
+.over-budget-amount { font-size: 13px; color: var(--danger); }
+
+/* Долги */
+.debts-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.over-budget-info {
-    flex: 1;
-}
-
-.over-budget-name {
-    font-weight: 600;
+.debt-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray-100);
     font-size: 14px;
 }
 
-.over-budget-amount {
-    font-size: 13px;
+.debt-item:last-child { border-bottom: none; }
+
+.debt-item.total {
+    font-weight: 700;
     color: var(--danger);
+    padding-top: 12px;
+    border-top: 2px solid var(--gray-200);
 }
 
-/* Chart Container */
-.chart-container {
-    min-height: 200px;
+/* Инвестиции мини */
+.investments-mini {
+    text-align: center;
+    padding: 20px 0;
 }
 
-.chart-bar {
+.investment-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--gray-900);
+}
+
+.investment-profit {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--success);
+    margin-top: 8px;
+}
+
+.investment-profit.negative { color: var(--danger); }
+
+/* Цели мини */
+.goals-mini {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
+    flex-direction: column;
+    gap: 16px;
 }
 
-.chart-label {
-    width: 120px;
-    font-size: 13px;
-    font-weight: 500;
+.goal-mini-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.goal-mini-header {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.chart-bar-track {
-    flex: 1;
-    height: 24px;
+.goal-mini-icon { font-size: 20px; }
+.goal-mini-name { flex: 1; font-weight: 500; font-size: 14px; }
+.goal-mini-percent { font-size: 13px; font-weight: 600; color: var(--primary); }
+
+.goal-mini-progress {
+    height: 8px;
     background: var(--gray-100);
     border-radius: var(--radius-full);
     overflow: hidden;
 }
 
-.chart-bar-fill {
+.goal-mini-progress-fill {
     height: 100%;
+    background: var(--gradient-primary);
     border-radius: var(--radius-full);
     transition: width 0.5s ease;
+}
+
+/* Транзакции мини */
+.transactions-mini {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.transaction-mini-item {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    padding-right: 12px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--white);
-    min-width: fit-content;
+    gap: 16px;
+    padding: 12px;
+    background: var(--gray-50);
+    border-radius: var(--radius);
 }
 
-.chart-value {
-    font-size: 13px;
-    font-weight: 600;
-    width: 100px;
-    text-align: right;
+.transaction-mini-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
 }
 
-/* Trends Chart */
+.transaction-mini-info { flex: 1; }
+.transaction-mini-category { font-weight: 600; font-size: 14px; }
+.transaction-mini-date { font-size: 12px; color: var(--gray-500); }
+.transaction-mini-amount { font-weight: 700; font-size: 15px; }
+.transaction-mini-amount.income { color: var(--success); }
+.transaction-mini-amount.expense { color: var(--danger); }
+.transaction-mini-amount.transfer { color: var(--info); }
+
+/* Графики */
+.chart-container {
+    min-height: 200px;
+    position: relative;
+}
+
+.chart-container canvas {
+    max-width: 100%;
+}
+
 .trends-chart {
     display: flex;
     align-items: flex-end;
@@ -647,181 +778,11 @@ body {
     transition: height 0.5s ease;
 }
 
-.trend-bar.income {
-    background: var(--success);
-}
+.trend-bar.income { background: var(--success); }
+.trend-bar.expense { background: var(--danger); }
+.trend-label { font-size: 12px; color: var(--gray-500); font-weight: 500; }
 
-.trend-bar.expense {
-    background: var(--danger);
-}
-
-.trend-label {
-    font-size: 12px;
-    color: var(--gray-500);
-    font-weight: 500;
-}
-
-/* Goals Mini */
-.goals-mini {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.goal-mini-item {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.goal-mini-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.goal-mini-icon {
-    font-size: 20px;
-}
-
-.goal-mini-name {
-    flex: 1;
-    font-weight: 500;
-    font-size: 14px;
-}
-
-.goal-mini-percent {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--primary);
-}
-
-.goal-mini-progress {
-    height: 8px;
-    background: var(--gray-100);
-    border-radius: var(--radius-full);
-    overflow: hidden;
-}
-
-.goal-mini-progress-fill {
-    height: 100%;
-    background: var(--gradient-primary);
-    border-radius: var(--radius-full);
-    transition: width 0.5s ease;
-}
-
-/* Debts Summary */
-.debts-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.debt-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--gray-100);
-    font-size: 14px;
-}
-
-.debt-item:last-child {
-    border-bottom: none;
-}
-
-.debt-item.total {
-    font-weight: 700;
-    color: var(--danger);
-    padding-top: 16px;
-    border-top: 2px solid var(--gray-200);
-}
-
-/* Investments Mini */
-.investments-mini {
-    text-align: center;
-    padding: 20px 0;
-}
-
-.investment-value {
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--gray-900);
-}
-
-.investment-profit {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--success);
-    margin-top: 8px;
-}
-
-.investment-profit.negative {
-    color: var(--danger);
-}
-
-/* Transactions Mini */
-.transactions-mini {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.transaction-mini-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 12px;
-    background: var(--gray-50);
-    border-radius: var(--radius);
-    transition: var(--transition);
-}
-
-.transaction-mini-item:hover {
-    background: var(--gray-100);
-}
-
-.transaction-mini-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-}
-
-.transaction-mini-info {
-    flex: 1;
-}
-
-.transaction-mini-category {
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.transaction-mini-date {
-    font-size: 12px;
-    color: var(--gray-500);
-}
-
-.transaction-mini-amount {
-    font-weight: 700;
-    font-size: 15px;
-}
-
-.transaction-mini-amount.income {
-    color: var(--success);
-}
-
-.transaction-mini-amount.expense {
-    color: var(--danger);
-}
-
-.transaction-mini-amount.transfer {
-    color: var(--info);
-}
-
-/* Filters */
+# /* ==================== ТРАНЗАКЦИИ ==================== */
 .filters-bar {
     background: var(--white);
     border-radius: var(--radius-lg);
@@ -835,10 +796,6 @@ body {
     gap: 12px;
     align-items: center;
     flex-wrap: wrap;
-}
-
-.filters-row + .filters-row {
-    margin-top: 12px;
 }
 
 .filter-group {
@@ -865,11 +822,6 @@ body {
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.filter-separator {
-    color: var(--gray-400);
-}
-
-/* Transactions List */
 .transactions-list {
     display: flex;
     flex-direction: column;
@@ -900,66 +852,28 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 24px;
+    flex-shrink: 0;
 }
 
-.transaction-info {
-    flex: 1;
-}
+.transaction-info { flex: 1; min-width: 0; }
+.transaction-category { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
+.transaction-description { font-size: 14px; color: var(--gray-500); }
+.transaction-meta { font-size: 12px; color: var(--gray-400); margin-top: 4px; }
+.transaction-amount { font-size: 20px; font-weight: 700; white-space: nowrap; }
+.transaction-amount.income { color: var(--success); }
+.transaction-amount.expense { color: var(--danger); }
+.transaction-amount.transfer { color: var(--info); }
 
-.transaction-category {
-    font-weight: 600;
-    font-size: 16px;
-    margin-bottom: 4px;
-}
-
-.transaction-description {
-    font-size: 14px;
-    color: var(--gray-500);
-}
-
-.transaction-meta {
-    font-size: 12px;
-    color: var(--gray-400);
-    margin-top: 4px;
-}
-
-.transaction-amount {
-    font-size: 20px;
-    font-weight: 700;
-}
-
-.transaction-amount.income {
-    color: var(--success);
-}
-
-.transaction-amount.expense {
-    color: var(--danger);
-}
-
-.transaction-amount.transfer {
-    color: var(--info);
-}
-
-.transaction-delete {
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
+.transaction-actions {
+    display: flex;
+    gap: 4px;
     opacity: 0;
-    transition: var(--transition);
-    padding: 8px;
+    transition: opacity 0.2s;
 }
 
-.transaction-item:hover .transaction-delete {
-    opacity: 0.5;
-}
+.transaction-item:hover .transaction-actions { opacity: 1; }
 
-.transaction-delete:hover {
-    opacity: 1 !important;
-    color: var(--danger);
-}
-
-/* Accounts */
+# /* ==================== СЧЕТА ==================== */
 .accounts-sections {
     display: flex;
     flex-direction: column;
@@ -997,15 +911,6 @@ body {
     overflow: hidden;
 }
 
-.account-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-}
-
 .account-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-md);
@@ -1028,25 +933,10 @@ body {
     font-size: 24px;
 }
 
-.account-info {
-    flex: 1;
-}
-
-.account-name {
-    font-weight: 600;
-    font-size: 16px;
-}
-
-.account-bank {
-    font-size: 13px;
-    color: var(--gray-500);
-}
-
-.account-balance {
-    font-size: 28px;
-    font-weight: 800;
-    margin-bottom: 16px;
-}
+.account-info { flex: 1; }
+.account-name { font-weight: 600; font-size: 16px; }
+.account-bank { font-size: 13px; color: var(--gray-500); }
+.account-balance { font-size: 28px; font-weight: 800; margin-bottom: 16px; }
 
 .account-details {
     display: flex;
@@ -1065,9 +955,11 @@ body {
     display: flex;
     gap: 8px;
     margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--gray-200);
 }
 
-/* Credit Cards */
+# /* ==================== КРЕДИТНЫЕ КАРТЫ ==================== */
 .credit-cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -1098,17 +990,11 @@ body {
     justify-content: space-between;
     align-items: start;
     margin-bottom: 24px;
+    position: relative;
 }
 
-.credit-card-name {
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.credit-card-bank {
-    font-size: 13px;
-    opacity: 0.7;
-}
+.credit-card-name { font-size: 18px; font-weight: 700; }
+.credit-card-bank { font-size: 13px; opacity: 0.7; }
 
 .credit-card-chip {
     width: 48px;
@@ -1117,25 +1003,10 @@ body {
     border-radius: 6px;
 }
 
-.credit-card-balance {
-    margin-bottom: 24px;
-}
-
-.credit-card-label {
-    font-size: 12px;
-    opacity: 0.7;
-    margin-bottom: 4px;
-}
-
-.credit-card-debt {
-    font-size: 32px;
-    font-weight: 800;
-}
-
-.credit-card-limit {
-    font-size: 14px;
-    opacity: 0.8;
-}
+.credit-card-balance { margin-bottom: 24px; position: relative; }
+.credit-card-label { font-size: 12px; opacity: 0.7; margin-bottom: 4px; }
+.credit-card-debt { font-size: 32px; font-weight: 800; }
+.credit-card-limit { font-size: 14px; opacity: 0.8; }
 
 .credit-card-progress {
     height: 8px;
@@ -1152,13 +1023,8 @@ body {
     transition: width 0.5s ease;
 }
 
-.credit-card-progress-fill.warning {
-    background: var(--warning);
-}
-
-.credit-card-progress-fill.danger {
-    background: var(--danger);
-}
+.credit-card-progress-fill.warning { background: var(--warning); }
+.credit-card-progress-fill.danger { background: var(--danger); }
 
 .credit-card-info {
     display: grid;
@@ -1166,39 +1032,29 @@ body {
     gap: 16px;
     padding-top: 16px;
     border-top: 1px solid rgba(255,255,255,0.1);
+    position: relative;
 }
 
-.credit-card-info-item {
-    text-align: center;
-}
-
-.credit-card-info-value {
-    font-size: 16px;
-    font-weight: 700;
-}
-
-.credit-card-info-label {
-    font-size: 11px;
-    opacity: 0.7;
-}
+.credit-card-info-item { text-align: center; }
+.credit-card-info-value { font-size: 16px; font-weight: 700; }
+.credit-card-info-label { font-size: 11px; opacity: 0.7; }
 
 .credit-card-actions {
     display: flex;
     gap: 12px;
     margin-top: 20px;
+    flex-wrap: wrap;
+    position: relative;
 }
 
 .credit-card-actions .btn {
     flex: 1;
+    min-width: 80px;
     background: rgba(255,255,255,0.2);
     border: 1px solid rgba(255,255,255,0.3);
 }
 
-.credit-card-actions .btn:hover {
-    background: rgba(255,255,255,0.3);
-}
-
-/* Categories */
+# /* ==================== КАТЕГОРИИ ==================== */
 .categories-tabs {
     display: flex;
     gap: 12px;
@@ -1246,21 +1102,10 @@ body {
     box-shadow: var(--shadow-lg);
 }
 
-.category-icon {
-    font-size: 36px;
-    margin-bottom: 12px;
-}
-
-.category-name {
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 8px;
-}
-
-.category-budget {
-    font-size: 12px;
-    color: var(--gray-500);
-}
+.category-icon { font-size: 36px; margin-bottom: 12px; }
+.category-name { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+.category-budget { font-size: 12px; color: var(--gray-500); }
+.category-spent { font-size: 12px; color: var(--gray-500); margin-top: 8px; }
 
 .category-progress {
     height: 4px;
@@ -1276,27 +1121,36 @@ body {
     transition: width 0.5s ease;
 }
 
-.category-delete {
+.category-delete,
+.category-edit {
     position: absolute;
     top: 8px;
-    right: 8px;
     width: 24px;
     height: 24px;
     border-radius: var(--radius-full);
-    background: var(--danger);
-    color: var(--white);
     border: none;
-    font-size: 14px;
+    font-size: 12px;
     cursor: pointer;
     opacity: 0;
     transition: var(--transition);
 }
 
-.category-card:hover .category-delete {
-    opacity: 1;
+.category-delete {
+    right: 8px;
+    background: var(--danger);
+    color: var(--white);
 }
 
-/* Goals */
+.category-edit {
+    left: 8px;
+    background: var(--primary);
+    color: var(--white);
+}
+
+.category-card:hover .category-delete,
+.category-card:hover .category-edit { opacity: 1; }
+
+# /* ==================== ЦЕЛИ ==================== */
 .goals-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -1338,11 +1192,6 @@ body {
     border-radius: var(--radius-lg);
     padding: 24px;
     box-shadow: var(--shadow);
-    transition: var(--transition);
-}
-
-.goal-card:hover {
-    box-shadow: var(--shadow-lg);
 }
 
 .goal-header {
@@ -1362,37 +1211,13 @@ body {
     font-size: 28px;
 }
 
-.goal-info {
-    flex: 1;
-}
+.goal-info { flex: 1; }
+.goal-name { font-size: 18px; font-weight: 700; }
+.goal-deadline { font-size: 13px; color: var(--gray-500); }
 
-.goal-name {
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.goal-deadline {
-    font-size: 13px;
-    color: var(--gray-500);
-}
-
-.goal-priority {
-    display: flex;
-    gap: 2px;
-}
-
-.goal-priority-star {
-    color: var(--warning);
-    font-size: 14px;
-}
-
-.goal-priority-star.empty {
-    opacity: 0.3;
-}
-
-.goal-progress-section {
-    margin-bottom: 20px;
-}
+.goal-priority { display: flex; gap: 2px; }
+.goal-priority-star { color: var(--warning); font-size: 14px; }
+.goal-priority-star.empty { opacity: 0.3; }
 
 .goal-progress-bar {
     height: 12px;
@@ -1422,15 +1247,8 @@ body {
     margin-bottom: 20px;
 }
 
-.goal-current {
-    font-size: 28px;
-    font-weight: 800;
-}
-
-.goal-target {
-    font-size: 14px;
-    color: var(--gray-500);
-}
+.goal-current { font-size: 28px; font-weight: 800; }
+.goal-target { font-size: 14px; color: var(--gray-500); }
 
 .goal-stats {
     display: grid;
@@ -1442,51 +1260,27 @@ body {
     margin-bottom: 20px;
 }
 
-.goal-stat {
-    text-align: center;
-}
+.goal-stat { text-align: center; }
+.goal-stat-value { font-size: 16px; font-weight: 700; }
+.goal-stat-label { font-size: 11px; color: var(--gray-500); }
 
-.goal-stat-value {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--gray-900);
-}
+.goal-actions { display: flex; gap: 12px; }
 
-.goal-stat-label {
-    font-size: 11px;
-    color: var(--gray-500);
-}
-
-.goal-actions {
-    display: flex;
-    gap: 12px;
-}
-
-/* Credits */
+# /* ==================== КРЕДИТЫ ==================== */
 .credits-summary-card {
-    background: var(--gradient-danger);
+    background: var(--gradient-primary);
     border-radius: var(--radius-lg);
-    padding: 32px;
+    padding: 24px;
     color: var(--white);
-    display: flex;
-    justify-content: space-around;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
     margin-bottom: 24px;
 }
 
-.summary-item {
-    text-align: center;
-}
-
-.summary-label {
-    font-size: 14px;
-    opacity: 0.8;
-    margin-bottom: 8px;
-}
-
-.summary-value {
-    font-size: 32px;
-    font-weight: 800;
-}
+.summary-item { text-align: center; }
+.summary-label { font-size: 13px; opacity: 0.9; margin-bottom: 4px; }
+.summary-value { font-size: 24px; font-weight: 800; }
 
 .credits-grid {
     display: grid;
@@ -1499,6 +1293,18 @@ body {
     border-radius: var(--radius-lg);
     padding: 24px;
     box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.credit-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
 }
 
 .credit-header {
@@ -1508,15 +1314,8 @@ body {
     margin-bottom: 20px;
 }
 
-.credit-name {
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.credit-bank {
-    font-size: 13px;
-    color: var(--gray-500);
-}
+.credit-name { font-size: 18px; font-weight: 700; }
+.credit-bank { font-size: 13px; color: var(--gray-500); }
 
 .credit-rate {
     background: var(--gray-100);
@@ -1526,20 +1325,9 @@ body {
     font-weight: 600;
 }
 
-.credit-amounts {
-    margin-bottom: 16px;
-}
-
-.credit-remaining {
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--danger);
-}
-
-.credit-original {
-    font-size: 14px;
-    color: var(--gray-500);
-}
+.credit-amounts { margin-bottom: 16px; }
+.credit-remaining { font-size: 28px; font-weight: 800; color: var(--danger); }
+.credit-original { font-size: 14px; color: var(--gray-500); }
 
 .credit-progress {
     height: 8px;
@@ -1566,28 +1354,13 @@ body {
     margin-bottom: 20px;
 }
 
-.credit-detail {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
+.credit-detail { text-align: center; }
+.credit-detail-label { font-size: 12px; color: var(--gray-500); }
+.credit-detail-value { font-size: 14px; font-weight: 600; }
 
-.credit-detail-label {
-    font-size: 12px;
-    color: var(--gray-500);
-}
+.credit-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 
-.credit-detail-value {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.credit-actions {
-    display: flex;
-    gap: 12px;
-}
-
-/* Mortgages */
+# /* ==================== ИПОТЕКА ==================== */
 .mortgages-summary {
     background: var(--gradient-primary);
     border-radius: var(--radius-lg);
@@ -1602,20 +1375,9 @@ body {
     gap: 24px;
 }
 
-.mortgage-summary-item {
-    text-align: center;
-}
-
-.mortgage-summary-value {
-    font-size: 28px;
-    font-weight: 800;
-}
-
-.mortgage-summary-label {
-    font-size: 13px;
-    opacity: 0.8;
-    margin-top: 8px;
-}
+.mortgage-summary-item { text-align: center; }
+.mortgage-summary-value { font-size: 28px; font-weight: 800; }
+.mortgage-summary-label { font-size: 13px; opacity: 0.8; margin-top: 8px; }
 
 .mortgages-grid {
     display: grid;
@@ -1636,20 +1398,10 @@ body {
     padding: 24px;
 }
 
-.mortgage-name {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
+.mortgage-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.mortgage-address { font-size: 13px; opacity: 0.7; }
 
-.mortgage-address {
-    font-size: 13px;
-    opacity: 0.7;
-}
-
-.mortgage-body {
-    padding: 24px;
-}
+.mortgage-body { padding: 24px; }
 
 .mortgage-amounts {
     display: flex;
@@ -1657,31 +1409,12 @@ body {
     margin-bottom: 16px;
 }
 
-.mortgage-remaining {
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--primary);
-}
+.mortgage-remaining { font-size: 28px; font-weight: 800; color: var(--primary); }
+.mortgage-original { font-size: 14px; color: var(--gray-500); }
 
-.mortgage-original {
-    font-size: 14px;
-    color: var(--gray-500);
-}
-
-.mortgage-equity {
-    text-align: right;
-}
-
-.mortgage-equity-value {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--success);
-}
-
-.mortgage-equity-label {
-    font-size: 12px;
-    color: var(--gray-500);
-}
+.mortgage-equity { text-align: right; }
+.mortgage-equity-value { font-size: 20px; font-weight: 700; color: var(--success); }
+.mortgage-equity-label { font-size: 12px; color: var(--gray-500); }
 
 .mortgage-progress {
     height: 12px;
@@ -1708,53 +1441,43 @@ body {
     margin-bottom: 20px;
 }
 
-.mortgage-detail {
-    text-align: center;
-}
+.mortgage-detail { text-align: center; }
+.mortgage-detail-value { font-size: 16px; font-weight: 700; }
+.mortgage-detail-label { font-size: 11px; color: var(--gray-500); }
 
-.mortgage-detail-value {
-    font-size: 16px;
-    font-weight: 700;
-}
+.mortgage-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 
-.mortgage-detail-label {
-    font-size: 11px;
-    color: var(--gray-500);
-}
-
-.mortgage-actions {
-    display: flex;
-    gap: 12px;
-}
-
-/* Calculator */
+# /* ==================== КАЛЬКУЛЯТОР ==================== */
 .calculator-tabs {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     margin-bottom: 24px;
+    padding: 4px;
+    background: var(--gray-100);
+    border-radius: var(--radius-lg);
 }
 
 .calc-tab {
-    padding: 12px 24px;
+    flex: 1;
+    padding: 12px 16px;
     border: none;
-    background: var(--white);
+    background: transparent;
     border-radius: var(--radius);
     font-size: 14px;
     font-weight: 600;
+    color: var(--gray-600);
     cursor: pointer;
     transition: var(--transition);
-    color: var(--gray-600);
-    box-shadow: var(--shadow);
 }
 
 .calc-tab.active {
-    background: var(--gradient-primary);
-    color: var(--white);
+    background: white;
+    color: var(--primary);
+    box-shadow: var(--shadow-sm);
 }
 
 .calculator-content {
     display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 24px;
 }
 
@@ -1763,16 +1486,12 @@ body {
 }
 
 .calc-section.active {
-    display: contents;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
 }
 
-.calc-form {
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    box-shadow: var(--shadow);
-}
-
+.calc-form,
 .calc-result {
     background: var(--white);
     border-radius: var(--radius-lg);
@@ -1784,81 +1503,32 @@ body {
     font-size: 18px;
     font-weight: 700;
     margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--gray-100);
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--gray-100);
 }
 
-.calc-result-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--gray-100);
-}
-
-.calc-result-label {
-    color: var(--gray-600);
-}
-
-.calc-result-value {
-    font-weight: 700;
-}
-
-.calc-result-value.highlight {
-    color: var(--primary);
-    font-size: 18px;
-}
-
-.calc-comparison {
-    margin-top: 24px;
-    padding: 20px;
-    background: var(--gray-50);
-    border-radius: var(--radius);
-}
-
-.calc-comparison-title {
-    font-weight: 700;
-    margin-bottom: 16px;
-}
-
-.calc-comparison-options {
+.calc-result-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
+    margin-bottom: 20px;
 }
 
-.calc-option {
+.calc-result-card {
+    background: var(--gray-50);
     padding: 16px;
-    background: var(--white);
     border-radius: var(--radius);
     text-align: center;
 }
 
-.calc-option.recommended {
-    border: 2px solid var(--success);
-    background: var(--success-light);
+.calc-result-card.highlight {
+    background: linear-gradient(135deg, var(--primary-light) 0%, #e0e7ff 100%);
 }
 
-.calc-option-title {
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-.calc-option-value {
-    font-size: 20px;
-    font-weight: 800;
-    color: var(--primary);
-}
-
-.calc-option-savings {
-    font-size: 13px;
-    color: var(--success);
-    margin-top: 8px;
-}
-
-/* Investments */
+# /* ==================== ИНВЕСТИЦИИ ==================== */
 .investments-summary-cards {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
     margin-bottom: 24px;
 }
@@ -1878,23 +1548,16 @@ body {
     color: var(--white);
 }
 
-.investments-summary-cards .summary-icon {
-    font-size: 32px;
+.investments-summary-cards .summary-card.dividends {
+    background: var(--gradient-warning);
+    color: var(--white);
 }
 
-.investments-summary-cards .summary-label {
-    font-size: 13px;
-    color: var(--gray-500);
-}
-
-.investments-summary-cards .summary-card.profit .summary-label {
-    color: rgba(255,255,255,0.8);
-}
-
-.investments-summary-cards .summary-value {
-    font-size: 24px;
-    font-weight: 800;
-}
+.investments-summary-cards .summary-icon { font-size: 32px; }
+.investments-summary-cards .summary-label { font-size: 13px; color: var(--gray-500); }
+.investments-summary-cards .summary-card.profit .summary-label,
+.investments-summary-cards .summary-card.dividends .summary-label { color: rgba(255,255,255,0.8); }
+.investments-summary-cards .summary-value { font-size: 24px; font-weight: 800; }
 
 .investments-accounts {
     display: flex;
@@ -1918,71 +1581,100 @@ body {
     align-items: center;
 }
 
-.investment-account-name {
-    font-size: 18px;
-    font-weight: 700;
-}
+.investment-account-name { font-size: 18px; font-weight: 700; }
+.investment-account-value { font-size: 24px; font-weight: 800; }
+.investment-account-profit { font-size: 14px; opacity: 0.9; }
 
-.investment-account-value {
-    font-size: 24px;
-    font-weight: 800;
-}
-
-.investment-account-profit {
-    font-size: 14px;
-    opacity: 0.9;
-}
-
-.investments-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.investments-table th,
-.investments-table td {
+.investments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     padding: 16px;
-    text-align: left;
-    border-bottom: 1px solid var(--gray-100);
 }
 
-.investments-table th {
+.investment-card {
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.investment-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+}
+
+.investment-card-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    cursor: pointer;
+    gap: 16px;
+}
+
+.investment-main-info { flex: 1; min-width: 0; }
+
+.investment-ticker-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.investment-ticker { font-size: 18px; font-weight: 700; }
+.investment-type-badge { font-size: 14px; }
+.investment-name { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
+.investment-sector { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+.investment-numbers { text-align: right; }
+.investment-value { font-size: 18px; font-weight: 700; }
+.investment-profit { font-size: 13px; font-weight: 600; }
+.investment-profit.positive { color: var(--success); }
+.investment-profit.negative { color: var(--danger); }
+
+.investment-expand-icon {
+    color: var(--gray-400);
     font-size: 12px;
-    font-weight: 600;
-    color: var(--gray-500);
-    text-transform: uppercase;
+    transition: transform 0.2s;
 }
 
-.investments-table tr:hover {
+.investment-card.expanded .investment-expand-icon { transform: rotate(180deg); }
+
+.investment-details {
+    border-top: 1px solid var(--gray-100);
+    padding: 16px;
     background: var(--gray-50);
 }
 
-.investment-ticker {
-    font-weight: 700;
-    color: var(--primary);
+.investment-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
 }
 
-.investment-name {
-    font-size: 13px;
-    color: var(--gray-500);
+.investment-stat {
+    text-align: center;
+    padding: 12px;
+    background: white;
+    border-radius: var(--radius-sm);
 }
 
-.investment-profit {
-    font-weight: 600;
+.investment-stat-label { font-size: 11px; color: var(--gray-500); text-transform: uppercase; }
+.investment-stat-value { font-size: 15px; font-weight: 600; margin-top: 4px; }
+
+.investment-actions-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
 }
 
-.investment-profit.positive {
-    color: var(--success);
-}
-
-.investment-profit.negative {
-    color: var(--danger);
-}
-
-/* Taxes */
+# /* ==================== НАЛОГИ ==================== */
 .taxes-summary {
     background: var(--gradient-warning);
     border-radius: var(--radius-lg);
-    padding: 32px;
+    padding: 24px;
     color: var(--white);
     margin-bottom: 24px;
 }
@@ -1993,125 +1685,85 @@ body {
     gap: 24px;
 }
 
-.tax-summary-item {
-    text-align: center;
-}
+.tax-summary-item { text-align: center; }
+.tax-summary-value { font-size: 28px; font-weight: 800; }
+.tax-summary-label { font-size: 13px; opacity: 0.8; margin-top: 4px; }
 
-.tax-summary-value {
-    font-size: 28px;
-    font-weight: 800;
-}
-
-.tax-summary-label {
-    font-size: 13px;
-    opacity: 0.8;
-    margin-top: 8px;
-}
-
-.taxes-reserves {
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: var(--shadow);
-}
-
-.taxes-reserves h3 {
-    font-size: 18px;
-    margin-bottom: 20px;
-}
-
-.tax-reserve-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-    background: var(--gray-50);
-    border-radius: var(--radius);
-    margin-bottom: 12px;
-}
-
-.tax-reserve-info {
-    flex: 1;
-}
-
-.tax-reserve-account {
-    font-weight: 600;
-}
-
-.tax-reserve-details {
-    font-size: 13px;
-    color: var(--gray-500);
-}
-
-.tax-reserve-amount {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--warning);
-}
-
+.taxes-reserves,
 .taxes-payments {
     background: var(--white);
     border-radius: var(--radius-lg);
     padding: 24px;
+    margin-bottom: 24px;
     box-shadow: var(--shadow);
 }
 
+.taxes-reserves h3,
 .taxes-payments h3 {
     font-size: 18px;
     margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.tax-payment-item {
+.tax-reserve-item {
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: var(--gray-50);
+    background: var(--warning-light);
     border-radius: var(--radius);
     margin-bottom: 12px;
+    border-left: 4px solid var(--warning);
 }
 
-.tax-payment-item.overdue {
-    background: var(--danger-light);
-    border-left: 4px solid var(--danger);
-}
+.tax-reserve-info { flex: 1; }
+.tax-reserve-account { font-weight: 600; font-size: 15px; }
+.tax-reserve-details { font-size: 13px; color: var(--gray-600); margin-top: 4px; }
+.tax-reserve-amount { font-size: 20px; font-weight: 700; color: var(--warning); }
 
-.tax-payment-item.paid {
-    opacity: 0.6;
-}
-
-.tax-payment-icon {
-    font-size: 24px;
-}
-
-.tax-payment-info {
-    flex: 1;
-}
-
-.tax-payment-type {
-    font-weight: 600;
-}
-
-.tax-payment-period {
-    font-size: 13px;
-    color: var(--gray-500);
-}
-
-.tax-payment-amount {
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.tax-payment-due {
-    font-size: 12px;
-    color: var(--gray-500);
-}
-
-/* Analytics */
-.analytics-filters {
+# /* ==================== АНАЛИТИКА ==================== */
+.analytics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
 }
+
+.analytics-filters {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.analytics-period-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.analytics-custom-dates {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--gray-50);
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+}
+
+.analytics-custom-dates .form-input {
+    width: 150px;
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+.date-separator { color: var(--gray-400); font-weight: 500; }
 
 .analytics-grid {
     display: grid;
@@ -2126,155 +1778,98 @@ body {
     box-shadow: var(--shadow);
 }
 
-.analytics-card.wide {
-    grid-column: span 2;
-}
+.analytics-card.wide { grid-column: span 2; }
+.analytics-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
 
-.analytics-card h3 {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 20px;
-}
-
-/* Price Comparison */
-.prices-header {
+# /* ==================== БОНУСНЫЕ КАРТЫ ==================== */
+.bonus-cards-header {
     text-align: center;
     margin-bottom: 32px;
 }
 
-.prices-header h3 {
-    font-size: 24px;
-    font-weight: 800;
-    margin-bottom: 8px;
-}
+.bonus-cards-header h3 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+.bonus-cards-header p { color: var(--gray-500); }
 
-.prices-header p {
-    color: var(--gray-500);
-}
-
-.stores-section,
-.products-section {
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: var(--shadow);
-}
-
-.stores-section h4,
-.products-section h4 {
-    font-size: 18px;
-    margin-bottom: 20px;
-}
-
-.stores-grid {
+.bonus-cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
 }
 
-.store-card {
-    background: var(--gray-50);
-    border-radius: var(--radius);
-    padding: 20px;
-    text-align: center;
-    transition: var(--transition);
-}
-
-.store-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-}
-
-.store-icon {
-    font-size: 36px;
-    margin-bottom: 12px;
-}
-
-.store-name {
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-.store-rating {
-    display: flex;
-    justify-content: center;
-    gap: 4px;
-}
-
-.store-rating-star {
-    color: var(--warning);
-}
-
-.products-grid {
+.bonus-card-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    margin-bottom: 16px;
-}
-
-.product-card {
-    background: var(--gray-50);
-    border-radius: var(--radius);
-    padding: 20px;
-}
-
-.product-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 16px;
-}
-
-.product-icon {
-    font-size: 32px;
-}
-
-.product-name {
-    font-weight: 600;
-    font-size: 16px;
-}
-
-.product-unit {
-    font-size: 13px;
-    color: var(--gray-500);
-}
-
-.product-prices {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 12px;
 }
 
-.product-price-item {
-    background: var(--white);
-    border-radius: var(--radius-sm);
-    padding: 12px;
+.bonus-card-display {
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+}
+
+.bonus-card-display::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+}
+
+.bonus-card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.bonus-card-icon { font-size: 32px; }
+.bonus-card-info { flex: 1; }
+.bonus-card-name { font-size: 18px; font-weight: 700; }
+.bonus-card-store { font-size: 13px; opacity: 0.8; }
+
+.bonus-card-barcode {
+    background: white;
+    border-radius: var(--radius);
+    padding: 16px;
     text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
 }
 
-.product-price-item.best {
-    background: var(--success-light);
-    border: 2px solid var(--success);
+.barcode-number-display {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-900);
+    letter-spacing: 2px;
+    margin-top: 8px;
 }
 
-.product-price-store {
-    font-size: 13px;
-    color: var(--gray-500);
-    margin-bottom: 4px;
+.bonus-card-balance {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    position: relative;
 }
 
-.product-price-value {
-    font-size: 18px;
-    font-weight: 700;
-}
+.bonus-label { font-size: 13px; opacity: 0.8; }
+.bonus-value { font-size: 20px; font-weight: 700; }
 
-.product-price-item.best .product-price-value {
-    color: var(--success);
-}
+.bonus-card-actions { display: flex; gap: 8px; }
+.bonus-card-actions .btn { flex: 1; }
 
-/* Achievements */
+# /* ==================== ДОСТИЖЕНИЯ ==================== */
 .achievements-header {
     text-align: center;
     margin-bottom: 32px;
@@ -2291,19 +1886,9 @@ body {
     box-shadow: var(--shadow-glow);
 }
 
-.points-icon {
-    font-size: 28px;
-}
-
-.points-value {
-    font-size: 32px;
-    font-weight: 800;
-}
-
-.points-label {
-    font-size: 14px;
-    opacity: 0.8;
-}
+.points-icon { font-size: 28px; }
+.points-value { font-size: 32px; font-weight: 800; }
+.points-label { font-size: 14px; opacity: 0.8; }
 
 .achievements-grid {
     display: grid;
@@ -2317,36 +1902,15 @@ body {
     padding: 24px;
     text-align: center;
     box-shadow: var(--shadow);
-    transition: var(--transition);
     position: relative;
-    overflow: hidden;
 }
 
-.achievement-card.locked {
-    opacity: 0.5;
-    filter: grayscale(1);
-}
+.achievement-card.locked { opacity: 0.5; filter: grayscale(1); }
+.achievement-card.unlocked { border: 2px solid var(--warning); }
 
-.achievement-card.unlocked {
-    border: 2px solid var(--warning);
-}
-
-.achievement-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-}
-
-.achievement-name {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 8px;
-}
-
-.achievement-description {
-    font-size: 14px;
-    color: var(--gray-500);
-    margin-bottom: 16px;
-}
+.achievement-icon { font-size: 48px; margin-bottom: 16px; }
+.achievement-name { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.achievement-description { font-size: 14px; color: var(--gray-500); margin-bottom: 16px; }
 
 .achievement-points {
     display: inline-flex;
@@ -2364,16 +1928,10 @@ body {
     color: var(--warning);
 }
 
-.achievement-date {
-    font-size: 12px;
-    color: var(--gray-400);
-    margin-top: 12px;
-}
+.achievement-date { font-size: 12px; color: var(--gray-400); margin-top: 12px; }
 
-/* Forms */
-.form-group {
-    margin-bottom: 20px;
-}
+# /* ==================== ФОРМЫ ==================== */
+.form-group { margin-bottom: 20px; }
 
 .form-label {
     display: block;
@@ -2422,9 +1980,7 @@ body {
     margin-top: 24px;
 }
 
-.form-actions .btn {
-    flex: 1;
-}
+.form-actions .btn { flex: 1; }
 
 /* Type Tabs */
 .type-tabs {
@@ -2454,17 +2010,9 @@ body {
     box-shadow: var(--shadow);
 }
 
-.type-tab.income.active {
-    color: var(--success);
-}
-
-.type-tab.expense.active {
-    color: var(--danger);
-}
-
-.type-tab.transfer.active {
-    color: var(--info);
-}
+.type-tab.income.active { color: var(--success); }
+.type-tab.expense.active { color: var(--danger); }
+.type-tab.transfer.active { color: var(--info); }
 
 /* Icon Picker */
 .icon-picker {
@@ -2518,16 +2066,10 @@ body {
     transition: var(--transition);
 }
 
-.color-option:hover {
-    transform: scale(1.15);
-}
+.color-option:hover { transform: scale(1.15); }
+.color-option.selected { border-color: var(--gray-900); box-shadow: var(--shadow-md); }
 
-.color-option.selected {
-    border-color: var(--gray-900);
-    box-shadow: var(--shadow-md);
-}
-
-/* Modal */
+# /* ==================== МОДАЛЬНЫЕ ОКНА ==================== */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -2559,7 +2101,7 @@ body {
     max-height: 90vh;
     overflow: hidden;
     transform: translateY(20px) scale(0.95);
-    transition: var(--transition-slow);
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
 }
@@ -2567,6 +2109,9 @@ body {
 .modal-overlay.active .modal {
     transform: translateY(0) scale(1);
 }
+
+.modal-large { max-width: 800px; }
+.modal-fullscreen { max-width: 95vw; max-height: 95vh; width: 95vw; }
 
 .modal-header {
     display: flex;
@@ -2576,10 +2121,7 @@ body {
     border-bottom: 1px solid var(--gray-100);
 }
 
-.modal-title {
-    font-size: 20px;
-    font-weight: 700;
-}
+.modal-title { font-size: 20px; font-weight: 700; }
 
 .modal-close {
     width: 36px;
@@ -2595,9 +2137,7 @@ body {
     justify-content: center;
 }
 
-.modal-close:hover {
-    background: var(--gray-200);
-}
+.modal-close:hover { background: var(--gray-200); }
 
 .modal-body {
     padding: 24px;
@@ -2605,7 +2145,7 @@ body {
     flex: 1;
 }
 
-/* Mobile Navigation */
+# /* ==================== МОБИЛЬНАЯ НАВИГАЦИЯ ==================== */
 .mobile-nav {
     display: none;
     position: fixed;
@@ -2634,15 +2174,10 @@ body {
     padding: 8px;
 }
 
-.mobile-nav-item.active {
-    color: var(--primary);
-}
+.mobile-nav-item.active { color: var(--primary); }
+.mobile-nav-item .nav-icon { font-size: 22px; }
 
-.mobile-nav-item .nav-icon {
-    font-size: 22px;
-}
-
-/* FAB */
+## /* FAB */
 .fab {
     display: none;
     position: fixed;
@@ -2655,22 +2190,18 @@ body {
     color: var(--white);
     border: none;
     font-size: 28px;
-    font-weight: 300;
     cursor: pointer;
     box-shadow: var(--shadow-lg), var(--shadow-glow);
     z-index: 90;
     transition: var(--transition);
+    align-items: center;
+    justify-content: center;
 }
 
-.fab:hover {
-    transform: scale(1.1);
-}
+.fab:hover { transform: scale(1.1); }
+.fab:active { transform: scale(0.95); }
 
-.fab:active {
-    transform: scale(0.95);
-}
-
-/* Toast */
+# /* ==================== TOAST ==================== */
 .toast-container {
     position: fixed;
     top: 24px;
@@ -2694,82 +2225,37 @@ body {
 }
 
 @keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
-.toast.success {
-    border-left: 4px solid var(--success);
-}
+.toast.success { border-left: 4px solid var(--success); }
+.toast.error { border-left: 4px solid var(--danger);}
+.toast.warning { border-left: 4px solid var(--warning); }
+.toast.info { border-left: 4px solid var(--info); }
 
-.toast.error {
-    border-left: 4px solid var(--danger);
-}
+.toast-icon { font-size: 20px; }
+.toast-message { flex: 1; font-size: 14px; font-weight: 500; }
 
-.toast.warning {
-    border-left: 4px solid var(--warning);
-}
-
-.toast-icon {
-    font-size: 20px;
-}
-
-.toast-message {
-    flex: 1;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-/* Empty State */
+/* ==================== УТИЛИТЫ ==================== */
 .empty-state {
     text-align: center;
     padding: 48px 24px;
     color: var(--gray-400);
 }
 
-.empty-state.small {
-    padding: 24px;
-}
+.empty-state.small { padding: 24px; }
+.empty-state-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.5; }
+.empty-state-text { font-size: 16px; font-weight: 500; }
 
-.empty-state-icon {
-    font-size: 64px;
-    margin-bottom: 16px;
-    opacity: 0.5;
-}
-
-.empty-state-text {
-    font-size: 16px;
-    font-weight: 500;
-}
-
-/* Tab Content */
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-    animation: fadeIn 0.3s ease;
-}
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease; }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* Loading */
 .loading {
     display: flex;
     align-items: center;
@@ -2777,868 +2263,6 @@ body {
     padding: 48px;
 }
 
-.spinner {
-    width: 48px;
-    height: 48px;
-    border: 4px solid var(--gray-200);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--gray-300);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--gray-400);
-}
-
-/* Responsive */
-@media (max-width: 1200px) {
-    .dashboard-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .card-wide {
-        grid-column: span 2;
-    }
-    
-    .mortgages-summary-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 1024px) {
-    .sidebar {
-        transform: translateX(-100%);
-    }
-    
-    .sidebar.open {
-        transform: translateX(0);
-    }
-    
-    .sidebar-close {
-        display: block;
-    }
-    
-    .main {
-        margin-left: 0;
-    }
-    
-    .menu-btn {
-        display: flex;
-    }
-    
-    .calculator-content {
-        grid-template-columns: 1fr;
-    }
-    
-    .analytics-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .analytics-card.wide {
-        grid-column: span 1;
-    }
-}
-
-@media (max-width: 768px) {
-    .mobile-nav {
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-    }
-    
-    .fab {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .content {
-        padding: 16px;
-        padding-bottom: calc(var(--mobile-nav-height) + 100px);
-    }
-    
-    .header-actions .btn-text {
-        display: none;
-    }
-    
-    .header-actions .btn-icon-left {
-        margin: 0;
-    }
-    
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .card-wide {
-        grid-column: span 1;
-    }
-    
-    .card-value {
-        font-size: 24px;
-    }
-    
-    .goals-stats {
-        grid-template-columns: 1fr;
-    }
-    
-    .goals-grid,
-    .credits-grid,
-    .mortgages-grid,
-    .credit-cards-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .accounts-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .investments-summary-cards {
-        grid-template-columns: 1fr;
-    }
-    
-    .credits-summary-card {
-        flex-direction: column;
-        gap: 24px;
-    }
-    
-    .mortgages-summary-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-    
-    .taxes-summary-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .filters-row {
-        flex-direction: column;
-    }
-    
-    .filter-group {
-        width: 100%;
-    }
-    
-    .page-title {
-        font-size: 18px;
-    }
-    
-    .icon-picker {
-        grid-template-columns: repeat(6, 1fr);
-    }
-    
-    .modal {
-        max-height: 85vh;
-        margin: auto 16px;
-    }
-    
-    .toast-container {
-        left: 16px;
-        right: 16px;
-    }
-    
-    .toast {
-        min-width: auto;
-    }
-    
-    .trends-chart {
-        overflow-x: auto;
-    }
-    
-    .trend-bar-group {
-        min-width: 60px;
-    }
-}
-
-@media (max-width: 480px) {
-    .categories-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .category-icon {
-        font-size: 28px;
-    }
-    
-    .stores-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-    
-    .product-prices {
-        grid-template-columns: 1fr 1fr;
-    }
-    
-    .achievements-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .calc-comparison-options {
-        grid-template-columns: 1fr;
-    }
-    
-    .credit-card-info {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-    
-    .mortgage-details {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Dark mode support (optional) */
-@media (prefers-color-scheme: dark) {
-    /* Add dark mode styles here if needed */
-}
-
-/* Print styles */
-@media print {
-    .sidebar,
-    .mobile-nav,
-    .fab,
-    .header-actions,
-    .menu-btn {
-        display: none !important;
-    }
-    
-    .main {
-        margin-left: 0;
-    }
-    
-    .content {
-        padding: 0;
-    }
-}
-
-
-
-/* ==================== ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ==================== */
-
-/* Кнопки действий в транзакциях */
-.transaction-actions {
-    display: flex;
-    gap: 4px;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.transaction-item:hover .transaction-actions {
-    opacity: 1;
-}
-
-.btn-icon-sm {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border: none;
-    background: var(--gray-100);
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    font-size: 14px;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-icon-sm:hover {
-    background: var(--gray-200);
-}
-
-.btn-icon-sm.danger:hover {
-    background: var(--danger-light);
-    color: var(--danger);
-}
-
-/* Категории - кнопки редактирования */
-.category-card {
-    position: relative;
-}
-
-.category-edit {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    width: 24px;
-    height: 24px;
-    border-radius: var(--radius-full);
-    background: var(--primary);
-    color: var(--white);
-    border: none;
-    font-size: 12px;
-    cursor: pointer;
-    opacity: 0;
-    transition: var(--transition);
-}
-
-.category-card:hover .category-edit {
-    opacity: 1;
-}
-
-.category-spent {
-    font-size: 12px;
-    color: var(--gray-500);
-    margin-top: 8px;
-}
-
-/* Бонусные карты */
-.bonus-cards-header {
-    text-align: center;
-    margin-bottom: 32px;
-}
-
-.bonus-cards-header h3 {
-    font-size: 24px;
-    font-weight: 800;
-    margin-bottom: 8px;
-}
-
-.bonus-cards-header p {
-    color: var(--gray-500);
-}
-
-.bonus-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 20px;
-    margin-bottom: 24px;
-}
-
-.bonus-card-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.bonus-card-display {
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    color: white;
-    position: relative;
-    overflow: hidden;
-    min-height: 200px;
-}
-
-.bonus-card-display::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
-}
-
-.bonus-card-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 20px;
-    position: relative;
-}
-
-.bonus-card-icon {
-    font-size: 32px;
-}
-
-.bonus-card-info {
-    flex: 1;
-}
-
-.bonus-card-name {
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.bonus-card-store {
-    font-size: 13px;
-    opacity: 0.8;
-}
-
-.bonus-card-barcode {
-    background: white;
-    border-radius: var(--radius);
-    padding: 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.bonus-card-barcode:hover {
-    transform: scale(1.02);
-}
-
-.barcode-placeholder {
-    min-height: 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.barcode-number-display {
-    font-family: 'Courier New', monospace;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--gray-900);
-    letter-spacing: 2px;
-    margin-top: 8px;
-}
-
-.barcode-hint {
-    font-size: 11px;
-    color: var(--gray-400);
-    margin-top: 4px;
-}
-
-.barcode-svg {
-    max-width: 100%;
-    height: auto;
-}
-
-.bonus-card-balance {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(255,255,255,0.2);
-    position: relative;
-}
-
-.bonus-label {
-    font-size: 13px;
-    opacity: 0.8;
-}
-
-.bonus-value {
-    font-size: 20px;
-    font-weight: 700;
-}
-
-.bonus-card-notes {
-    font-size: 12px;
-    opacity: 0.7;
-    margin-top: 12px;
-    position: relative;
-}
-
-.bonus-card-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.bonus-card-actions .btn {
-    flex: 1;
-}
-
-/* Штрихкод в полноэкранном режиме */
-.barcode-fullscreen {
-    text-align: center;
-    padding: 20px;
-}
-
-.barcode-fullscreen-container {
-    background: white;
-    padding: 24px;
-    border-radius: var(--radius);
-    margin-bottom: 16px;
-    min-height: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.barcode-svg-large {
-    max-width: 100%;
-}
-
-.barcode-fullscreen-number {
-    font-family: 'Courier New', monospace;
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: 4px;
-    color: var(--gray-900);
-}
-
-.barcode-number-large {
-    font-family: 'Courier New', monospace;
-    font-size: 32px;
-    font-weight: 700;
-    letter-spacing: 4px;
-}
-
-/* AI Аналитика */
-.analytics-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 16px;
-}
-
-.analytics-filters {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
-
-.ai-analysis-loading {
-    text-align: center;
-    padding: 48px 24px;
-}
-
-.ai-analysis-loading .spinner {
-    margin: 0 auto 16px;
-}
-
-.ai-analysis-result {
-    max-height: 70vh;
-    overflow-y: auto;
-}
-
-.ai-stats-summary {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
-    padding: 20px;
-    background: var(--gray-50);
-    border-radius: var(--radius);
-}
-
-.ai-stat {
-    text-align: center;
-}
-
-.ai-stat-value {
-    font-size: 20px;
-    font-weight: 700;
-}
-
-.ai-stat-label {
-    font-size: 12px;
-    color: var(--gray-500);
-    margin-top: 4px;
-}
-
-.ai-analysis-content {
-    line-height: 1.8;
-    color: var(--gray-700);
-}
-
-.ai-analysis-content p {
-    margin-bottom: 16px;
-}
-
-.ai-analysis-content strong {
-    color: var(--gray-900);
-}
-
-.ai-analysis-error {
-    text-align: center;
-    padding: 48px 24px;
-}
-
-.error-icon {
-    font-size: 64px;
-    margin-bottom: 16px;
-}
-
-/* AI Tips на дашборде */
-.ai-tips-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.ai-tip {
-    animation: slideIn 0.3s ease;
-}
-
-/* Налоговый резерв */
-.tax-reserve-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: var(--warning-light);
-    border-radius: var(--radius);
-    margin-bottom: 12px;
-    border-left: 4px solid var(--warning);
-}
-
-.tax-reserve-info {
-    flex: 1;
-}
-
-.tax-reserve-account {
-    font-weight: 600;
-    font-size: 15px;
-}
-
-.tax-reserve-details {
-    font-size: 13px;
-    color: var(--gray-600);
-    margin-top: 4px;
-}
-
-.tax-reserve-amount {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--warning);
-}
-
-/* Улучшенные графики */
-.chart-container {
-    position: relative;
-}
-
-.chart-container canvas {
-    max-width: 100%;
-}
-
-/* Модальное окно - размеры */
-.modal-large {
-    max-width: 800px;
-}
-
-.modal-fullscreen {
-    max-width: 95vw;
-    max-height: 95vh;
-    width: 95vw;
-}
-
-/* Счета - действия */
-.account-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--gray-200);
-}
-
-/* Продукты - действия в заголовке */
-.product-actions-header {
-    display: flex;
-    gap: 4px;
-    margin-left: auto;
-}
-
-.product-price-item.add-price {
-    cursor: pointer;
-    border: 2px dashed var(--gray-300);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 80px;
-    transition: var(--transition);
-}
-
-.product-price-item.add-price:hover {
-    border-color: var(--primary);
-    background: var(--primary)10;
-}
-
-/* Магазины - действия */
-.store-actions {
-    display: flex;
-    gap: 4px;
-    justify-content: center;
-}
-
-/* Налоговые платежи */
-.tax-payment-actions {
-    display: flex;
-    gap: 8px;
-}
-
-/* Загрузка */
-.loading-text {
-    margin-top: 12px;
-    color: var(--gray-500);
-    font-size: 14px;
-}
-
-/* Toast анимация выхода */
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-}
-
-/* Респонсив для AI статистики */
-@media (max-width: 768px) {
-    .ai-stats-summary {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .bonus-cards-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .analytics-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .analytics-filters {
-        flex-direction: column;
-    }
-    
-    .analytics-filters .filter-select,
-    .analytics-filters .btn {
-        width: 100%;
-    }
-}
-
-@media (max-width: 480px) {
-    .ai-stats-summary {
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-    }
-    
-    .ai-stat-value {
-        font-size: 16px;
-    }
-    
-    .barcode-fullscreen-number {
-        font-size: 18px;
-        letter-spacing: 2px;
-    }
-}
-
-/* QR код контейнер */
-.qr-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.qr-container canvas,
-.qr-container img {
-    max-width: 100%;
-    height: auto;
-}
-
-/* Taxes summary улучшения */
-.taxes-summary {
-    background: var(--gradient-warning);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    color: var(--white);
-    margin-bottom: 24px;
-}
-
-.taxes-summary-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-}
-
-@media (max-width: 768px) {
-    .taxes-summary-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-}
-
-.tax-summary-item {
-    text-align: center;
-}
-
-.tax-summary-value {
-    font-size: 28px;
-    font-weight: 800;
-}
-
-.tax-summary-label {
-    font-size: 13px;
-    opacity: 0.8;
-    margin-top: 4px;
-}
-
-/* Резервы и платежи */
-.taxes-reserves,
-.taxes-payments {
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: var(--shadow);
-}
-
-.taxes-reserves h3,
-.taxes-payments h3 {
-    font-size: 18px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* Инвестиции - кнопка удаления */
-.investments-table td:last-child {
-    white-space: nowrap;
-}
-
-.investments-table .btn {
-    padding: 6px 12px;
-}
-
-/* Кредитные карты - улучшения */
-.credit-card-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 20px;
-    flex-wrap: wrap;
-}
-
-.credit-card-actions .btn {
-    flex: 1;
-    min-width: 80px;
-}
-
-/* Форма - подсказки */
-.form-hint {
-    font-size: 12px;
-    color: var(--gray-500);
-    margin-top: 6px;
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-/* Спиннер улучшенный */
 .spinner {
     width: 40px;
     height: 40px;
@@ -3648,1578 +2272,289 @@ body {
     animation: spin 0.8s linear infinite;
 }
 
-/* Пустое состояние с кнопкой */
-.empty-state .btn {
-    margin-top: 16px;
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
-/* Прогресс бар контейнер */
-.progress-bar-container {
-    position: relative;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
 
-.progress-bar-label {
-    color: var(--gray-600);
-    font-weight: 600;
-    text-shadow: 0 0 2px white;
-}
-
-
-
-/* ==================== ИНВЕСТИЦИИ - УЛУЧШЕННЫЙ БЛОК ==================== */
-
-/* Сводка - 4 карточки */
-.investments-summary-cards {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    margin-bottom: 24px;
-}
-
-.investments-summary-cards .summary-card.dividends {
-    background: var(--gradient-warning);
-    color: var(--white);
-}
-
-.investments-summary-cards .summary-card.dividends .summary-label {
-    color: rgba(255,255,255,0.8);
+/* ==================== АДАПТИВНОСТЬ - ДЕСКТОП ==================== */
+@media (max-width: 1200px) {
+    .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+    .mortgages-summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .investments-summary-cards { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 1024px) {
-    .investments-summary-cards {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-close { display: block; }
+    .main { margin-left: 0; }
+    .menu-btn { display: flex; }
+    
+    .calc-section.active { grid-template-columns: 1fr; }
+    .analytics-grid { grid-template-columns: 1fr; }
+    .analytics-card.wide { grid-column: span 1; }
 }
 
-@media (max-width: 480px) {
-    .investments-summary-cards {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Список инвестиций */
-.investments-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 16px;
-}
-
-.investment-card {
-    background: white;
-    border-radius: var(--radius);
-    border: 1px solid var(--gray-200);
-    overflow: hidden;
-    transition: all 0.2s ease;
-}
-
-.investment-card:hover {
-    border-color: var(--primary);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.investment-card.expanded {
-    border-color: var(--primary);
-}
-
-.investment-card-header {
-    display: flex;
-    align-items: center;
-    padding: 16px;
-    cursor: pointer;
-    gap: 16px;
-}
-
-.investment-main-info {
-    flex: 1;
-}
-
-.investment-ticker-block {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.investment-ticker {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--gray-900);
-}
-
-.investment-type-badge {
-    font-size: 14px;
-}
-
-.investment-name {
-    font-size: 13px;
-    color: var(--gray-600);
-    margin-top: 2px;
-}
-
-.investment-sector {
-    font-size: 11px;
-    color: var(--gray-400);
-    margin-top: 2px;
-}
-
-.investment-numbers {
-    text-align: right;
-}
-
-.investment-value {
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.investment-profit {
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.investment-profit.positive {
-    color: var(--success);
-}
-
-.investment-profit.negative {
-    color: var(--danger);
-}
-
-.investment-expand-icon {
-    color: var(--gray-400);
-    font-size: 12px;
-    transition: transform 0.2s;
-}
-
-.investment-card.expanded .investment-expand-icon {
-    transform: rotate(180deg);
-}
-
-.investment-details {
-    border-top: 1px solid var(--gray-100);
-    padding: 16px;
-    background: var(--gray-50);
-}
-
-.investment-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.investment-stat {
-    text-align: center;
-    padding: 12px;
-    background: white;
-    border-radius: var(--radius-sm);
-}
-
-.investment-stat-label {
-    font-size: 11px;
-    color: var(--gray-500);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.investment-stat-value {
-    font-size: 15px;
-    font-weight: 600;
-    margin-top: 4px;
-}
-
-.investment-actions-row {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-}
-
-.investment-history {
-    border-top: 1px solid var(--gray-200);
-    padding-top: 16px;
-}
-
-.investment-history-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.investment-transactions {
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.investment-trans-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background: white;
-    border-radius: var(--radius-sm);
-    margin-bottom: 8px;
-}
-
-.investment-trans-icon {
-    font-size: 20px;
-}
-
-.investment-trans-info {
-    flex: 1;
-}
-
-.investment-trans-type {
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.investment-trans-date {
-    font-size: 12px;
-    color: var(--gray-500);
-}
-
-.investment-trans-details {
-    text-align: right;
-    font-size: 13px;
-}
-
-/* Адаптив для инвестиций */
+/* ==================== АДАПТИВНОСТЬ - ПЛАНШЕТ И МОБИЛЬНЫЕ ==================== */
 @media (max-width: 768px) {
-    .investment-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .investment-card-header {
-        flex-wrap: wrap;
-    }
-    
-    .investment-numbers {
-        width: 100%;
+    /* Навигация */
+    .mobile-nav {
         display: flex;
-        justify-content: space-between;
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px solid var(--gray-100);
-    }
-}
-
-/* Кнопки для инвестиций */
-.btn-info {
-    background: var(--info);
-    color: white;
-}
-
-.btn-info:hover {
-    background: #0284c7;
-}
-
-.btn-link {
-    background: none;
-    color: var(--primary);
-    padding: 4px 8px;
-}
-
-.btn-link:hover {
-    background: var(--primary-light);
-    color: var(--primary-dark);
-}
-
-
-
-/* ==================== ИСПРАВЛЕНИЯ И УЛУЧШЕНИЯ ==================== */
-
-/* Налоговый резерв на дашборде */
-.tax-reserve-detail {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    background: rgba(245, 158, 11, 0.1);
-    border-radius: var(--radius);
-    margin-top: 16px;
-    border: 1px dashed var(--warning);
-}
-
-.tax-reserve-detail .balance-detail-label {
-    font-size: 13px;
-    color: var(--gray-600);
-    font-weight: 500;
-}
-
-.tax-reserve-detail .balance-detail-value {
-    font-weight: 700;
-    font-size: 16px;
-    color: var(--warning);
-}
-
-/* Ближайшие платежи - улучшенные стили */
-.upcoming-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.upcoming-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    border-radius: var(--radius);
-    background: var(--gray-50);
-    transition: all 0.2s ease;
-    border-left: 3px solid transparent;
-}
-
-.upcoming-item:hover {
-    background: var(--gray-100);
-    transform: translateX(4px);
-}
-
-.upcoming-item.urgent {
-    background: rgba(239, 68, 68, 0.08);
-    border-left-color: var(--danger);
-}
-
-.upcoming-item.warning {
-    background: rgba(245, 158, 11, 0.08);
-    border-left-color: var(--warning);
-}
-
-.upcoming-icon {
-    font-size: 24px;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-    flex-shrink: 0;
-}
-
-.upcoming-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.upcoming-name {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--gray-900);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.upcoming-date {
-    font-size: 12px;
-    color: var(--gray-500);
-    margin-top: 2px;
-}
-
-.upcoming-item.urgent .upcoming-date {
-    color: var(--danger);
-    font-weight: 600;
-}
-
-.upcoming-item.warning .upcoming-date {
-    color: var(--warning);
-    font-weight: 600;
-}
-
-.upcoming-amount {
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--gray-900);
-    text-align: right;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-/* Аналитика - контролы периода */
-.analytics-period-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
-}
-
-.analytics-custom-dates {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: var(--gray-50);
-    border-radius: var(--radius);
-    border: 1px solid var(--gray-200);
-}
-
-.analytics-custom-dates .form-input {
-    width: 150px;
-    padding: 8px 12px;
-    font-size: 14px;
-}
-
-.analytics-custom-dates .date-separator {
-    color: var(--gray-400);
-    font-weight: 500;
-}
-
-@media (max-width: 768px) {
-    .analytics-period-controls {
-        flex-direction: column;
-        align-items: stretch;
+        justify-content: space-around;
+        align-items: center;
     }
     
-    .analytics-custom-dates {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .analytics-custom-dates .form-input {
-        width: 100%;
-    }
-    
-    .analytics-custom-dates .date-separator {
-        display: none;
-    }
-}
-
-/* Кредиты - улучшенная сетка для десктопа */
-@media (min-width: 769px) {
-    #creditsGrid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
-        gap: 24px;
-    }
-    
-    .credit-item {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        padding: 24px;
-    }
-    
-    .credit-header {
-        grid-column: 1 / -1;
-    }
-    
-    .credit-amounts {
-        text-align: left;
-    }
-    
-    .credit-progress {
-        grid-column: 1 / -1;
-    }
-    
-    .credit-details {
-        grid-column: 1 / -1;
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
-    }
-    
-    .credit-actions {
-        grid-column: 1 / -1;
-        justify-content: flex-start;
-        gap: 12px;
-    }
-}
-
-/* Кредитные карты - улучшенная сетка для десктопа */
-@media (min-width: 769px) {
-    #creditCardsGrid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-        gap: 24px;
-    }
-    
-    .credit-card-item {
-        min-height: 300px;
-        padding: 24px;
-    }
-    
-    .credit-card-info {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-        margin-top: 16px;
-    }
-    
-    .credit-card-info-item {
-        text-align: center;
-        padding: 12px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: var(--radius);
-    }
-    
-    .credit-card-actions {
-        margin-top: 20px;
+    .fab {
         display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-}
-
-/* Улучшение читаемости дат платежей */
-.credit-detail-value,
-.mortgage-detail-value {
-    font-size: 15px;
-    font-weight: 600;
-}
-
-.credit-detail-label,
-.mortgage-detail-label {
-    font-size: 12px;
-    color: var(--gray-500);
-    margin-top: 4px;
-}
-
-/* Индикаторы срочности платежа */
-.payment-urgent-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    background: var(--danger);
-    color: white;
-    font-size: 10px;
-    font-weight: 700;
-    border-radius: var(--radius-full);
-    text-transform: uppercase;
-    margin-left: 8px;
-    animation: pulse 2s infinite;
-}
-
-.payment-warning-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    background: var(--warning);
-    color: white;
-    font-size: 10px;
-    font-weight: 700;
-    border-radius: var(--radius-full);
-    text-transform: uppercase;
-    margin-left: 8px;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.6;
-    }
-}
-
-/* Карточка баланса - улучшения */
-.card-balance {
-    position: relative;
-}
-
-.card-balance .card-value {
-    font-size: 32px;
-    margin-bottom: 8px;
-}
-
-.card-balance .card-subtitle {
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--gray-200);
-    margin-bottom: 0;
-}
-
-/* Ипотека - улучшения для десктопа */
-@media (min-width: 769px) {
-    #mortgagesGrid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-        gap: 24px;
     }
     
-    .mortgage-card {
-        padding: 24px;
-    }
-    
-    .mortgage-details {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-    }
-}
-
-/* Фильтры аналитики */
-.analytics-header {
-    margin-bottom: 24px;
-}
-
-.analytics-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    align-items: flex-start;
-    justify-content: space-between;
-}
-
-@media (max-width: 768px) {
-    .analytics-filters {
-        flex-direction: column;
-    }
-    
-    .analytics-filters .btn {
-        width: 100%;
-    }
-}
-
-/* Пустое состояние для ближайших платежей */
-.upcoming-list .empty-state.small {
-    padding: 24px;
-    text-align: center;
-    color: var(--gray-500);
-    font-size: 14px;
-}
-
-/* Улучшение отображения долга на кредитных картах */
-.credit-card-debt {
-    font-size: 28px;
-    font-weight: 800;
-}
-
-.credit-card-limit {
-    font-size: 13px;
-    opacity: 0.8;
-    margin-top: 4px;
-}
-
-/* Прогресс-бар кредитной карты */
-.credit-card-progress {
-    height: 8px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-full);
-    margin: 16px 0;
-    overflow: hidden;
-}
-
-.credit-card-progress-fill {
-    height: 100%;
-    border-radius: var(--radius-full);
-    background: rgba(255, 255, 255, 0.9);
-    transition: width 0.5s ease;
-}
-
-.credit-card-progress-fill.warning {
-    background: var(--warning);
-}
-
-.credit-card-progress-fill.danger {
-    background: var(--danger);
-}
-
-/* Сводка по кредитам */
-.credits-summary-card {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    padding: 24px;
-    background: var(--gradient-primary);
-    border-radius: var(--radius-lg);
-    color: white;
-    margin-bottom: 24px;
-}
-
-.credits-summary-card .summary-item {
-    text-align: center;
-}
-
-.credits-summary-card .summary-label {
-    font-size: 13px;
-    opacity: 0.9;
-    margin-bottom: 8px;
-}
-
-.credits-summary-card .summary-value {
-    font-size: 24px;
-    font-weight: 800;
-}
-
-/* Адаптивность для мобильных */
-@media (max-width: 480px) {
-    .upcoming-item {
-        padding: 10px 12px;
-    }
-    
-    .upcoming-icon {
-        width: 36px;
-        height: 36px;
-        font-size: 18px;
-    }
-    
-    .upcoming-name {
-        font-size: 13px;
-    }
-    
-    .upcoming-amount {
-        font-size: 13px;
-    }
-    
-    .tax-reserve-detail {
-        flex-direction: column;
-        gap: 8px;
-        text-align: center;
-    }
-}
-
-
-/* ==================== КАЛЬКУЛЯТОР КРЕДИТОВ - УЛУЧШЕННЫЕ СТИЛИ ==================== */
-
-/* Табы калькулятора */
-.calculator-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
-    padding: 4px;
-    background: var(--gray-100);
-    border-radius: var(--radius-lg);
-    overflow-x: auto;
-}
-
-.calc-tab {
-    flex: 1;
-    padding: 12px 16px;
-    border: none;
-    background: transparent;
-    border-radius: var(--radius);
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--gray-600);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-.calc-tab:hover {
-    color: var(--gray-900);
-    background: var(--gray-50);
-}
-
-.calc-tab.active {
-    background: white;
-    color: var(--primary);
-    box-shadow: var(--shadow-sm);
-}
-
-/* Контент калькулятора */
-.calculator-content {
-    display: grid;
-    gap: 24px;
-}
-
-.calc-section {
-    display: none;
-    gap: 24px;
-}
-
-.calc-section.active {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-}
-
-@media (max-width: 900px) {
-    .calc-section.active {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Форма калькулятора */
-.calc-form {
-    background: white;
-    padding: 24px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-}
-
-.calc-form .form-group {
-    margin-bottom: 16px;
-}
-
-.calc-form .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-}
-
-.calc-form .form-hint {
-    font-size: 12px;
-    color: var(--gray-500);
-    margin-top: 4px;
-}
-
-/* Результаты калькулятора */
-.calc-result {
-    background: white;
-    padding: 24px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.calc-result:empty {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 300px;
-    color: var(--gray-400);
-}
-
-.calc-result:empty::before {
-    content: '👆 Заполните форму и нажмите "Рассчитать"';
-    font-size: 14px;
-}
-
-.calc-result-header {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid var(--gray-100);
-}
-
-/* Сетка результатов */
-.calc-result-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
-.calc-result-card {
-    background: var(--gray-50);
-    padding: 16px;
-    border-radius: var(--radius);
-    text-align: center;
-}
-
-.calc-result-card.highlight {
-    background: linear-gradient(135deg, var(--primary-light) 0%, #e0e7ff 100%);
-}
-
-/* Блок оплаченных платежей */
-.calc-paid-info {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    padding: 20px;
-    border-radius: var(--radius);
-    margin-bottom: 20px;
-}
-
-.calc-paid-info h4,
-.calc-current-info h4 {
-    margin: 0 0 12px 0;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-/* Блок текущего состояния */
-.calc-current-info {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    padding: 20px;
-    border-radius: var(--radius);
-    margin-bottom: 20px;
-}
-
-/* Сравнение стратегий */
-.calc-comparison {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    padding: 20px;
-    border-radius: var(--radius);
-    margin-top: 20px;
-}
-
-.calc-comparison-title {
-    font-weight: 600;
-    margin-bottom: 16px;
-    font-size: 15px;
-}
-
-.calc-comparison-options {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 12px;
-}
-
-.calc-option {
-    text-align: center;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.6);
-    border-radius: var(--radius);
-}
-
-.calc-option.recommended {
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Таблица графика платежей */
-.calc-schedule-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-    margin-top: 16px;
-}
-
-.calc-schedule-table th {
-    position: sticky;
-    top: 0;
-    background: white;
-    padding: 10px 8px;
-    text-align: left;
-    font-weight: 600;
-    border-bottom: 2px solid var(--gray-200);
-    font-size: 12px;
-    color: var(--gray-600);
-}
-
-.calc-schedule-table td {
-    padding: 10px 8px;
-    border-bottom: 1px solid var(--gray-100);
-}
-
-.calc-schedule-table tr.paid {
-    background: var(--success-light);
-    opacity: 0.8;
-}
-
-.calc-schedule-table tr.paid td:first-child::after {
-    content: ' ✓';
-    color: var(--success);
-}
-
-.calc-schedule-table tr.current {
-    background: var(--warning-light);
-    font-weight: 600;
-}
-
-.calc-schedule-table tr.current td:first-child::after {
-    content: ' ← сейчас';
-    color: var(--warning);
-    font-size: 11px;
-}
-
-/* Скролл для таблицы */
-.calc-schedule-wrapper {
-    max-height: 350px;
-    overflow-y: auto;
-    margin-top: 20px;
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius);
-}
-
-/* ==================== ФОРМА ДОБАВЛЕНИЯ КРЕДИТА ==================== */
-
-/* Предпросмотр расчёта в форме */
-.credit-preview {
-    background: var(--gray-100);
-    padding: 16px;
-    border-radius: var(--radius);
-    margin: 16px 0;
-}
-
-.credit-preview-header {
-    font-weight: 600;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.credit-preview-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-.credit-preview-item {
-    text-align: center;
-}
-
-.credit-preview-item .label {
-    font-size: 12px;
-    color: var(--gray-500);
-    margin-bottom: 4px;
-}
-
-.credit-preview-item .value {
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.credit-preview-item .value.success {
-    color: var(--success);
-}
-
-.credit-preview-item .value.danger {
-    color: var(--danger);
-}
-
-/* ==================== КАРТОЧКИ КРЕДИТОВ - УЛУЧШЕННЫЕ ==================== */
-
-.credit-item {
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    box-shadow: var(--shadow);
-    position: relative;
-    overflow: hidden;
-}
-
-.credit-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
-}
-
-.credit-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 16px;
-}
-
-.credit-name {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--gray-900);
-}
-
-.credit-bank {
-    font-size: 13px;
-    color: var(--gray-500);
-    margin-top: 2px;
-}
-
-.credit-start-date {
-    font-size: 11px;
-    color: var(--gray-400);
-    margin-top: 4px;
-}
-
-.credit-rate {
-    background: var(--primary-light);
-    color: var(--primary);
-    padding: 6px 12px;
-    border-radius: var(--radius-full);
-    font-size: 14px;
-    font-weight: 700;
-}
-
-.credit-amounts {
-    text-align: center;
-    margin-bottom: 16px;
-}
-
-.credit-remaining {
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--gray-900);
-}
-
-.credit-original {
-    font-size: 13px;
-    color: var(--gray-500);
-}
-
-.credit-progress {
-    height: 8px;
-    background: var(--gray-200);
-    border-radius: var(--radius-full);
-    overflow: hidden;
-    margin-bottom: 16px;
-}
-
-.credit-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--success) 0%, var(--primary) 100%);
-    border-radius: var(--radius-full);
-    transition: width 0.5s ease;
-}
-
-.credit-details {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.credit-detail {
-    text-align: center;
-    padding: 10px;
-    background: var(--gray-50);
-    border-radius: var(--radius);
-}
-
-.credit-detail-label {
-    font-size: 11px;
-    color: var(--gray-500);
-    margin-bottom: 4px;
-}
-
-.credit-detail-value {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--gray-900);
-}
-
-.credit-detail-value.danger {
-    color: var(--danger);
-}
-
-.credit-detail-value.success {
-    color: var(--success);
-}
-
-/* Информация о процентах */
-.credit-interest-info {
-    background: var(--danger-light);
-    padding: 12px;
-    border-radius: var(--radius);
-    margin-bottom: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.credit-interest-info .label {
-    font-size: 12px;
-    color: var(--gray-600);
-}
-
-.credit-interest-info .value {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--danger);
-}
-
-/* Досрочные платежи */
-.credit-extra-info {
-    background: var(--success-light);
-    padding: 10px 12px;
-    border-radius: var(--radius);
-    font-size: 12px;
-    color: var(--success);
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.credit-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.credit-actions .btn {
-    flex: 1;
-    min-width: 80px;
-}
-
-/* ==================== СВОДКА ПО КРЕДИТАМ ==================== */
-
-.credits-summary-card {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-    color: white;
-    padding: 24px;
-    border-radius: var(--radius-lg);
-    margin-bottom: 24px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 20px;
-}
-
-.credits-summary-card .summary-item {
-    text-align: center;
-}
-
-.credits-summary-card .summary-label {
-    font-size: 13px;
-    opacity: 0.9;
-    margin-bottom: 4px;
-}
-
-.credits-summary-card .summary-value {
-    font-size: 24px;
-    font-weight: 800;
-}
-
-/* ==================== АДАПТИВНОСТЬ ==================== */
-
-@media (max-width: 768px) {
-    .calculator-tabs {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .calc-tab {
-        padding: 10px 14px;
-        font-size: 13px;
-    }
-    
-    .calc-section.active {
-        grid-template-columns: 1fr;
-    }
-    
-    .calc-form,
-    .calc-result {
-        padding: 16px;
-    }
-    
-    .calc-result-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .credit-details {
-        grid-template-columns: 1fr;
-    }
-    
-    .credit-actions {
-        flex-direction: column;
-    }
-    
-    .credit-actions .btn {
-        width: 100%;
-    }
-    
-    .credits-summary-card {
-        grid-template-columns: 1fr 1fr;
-        padding: 16px;
-    }
-    
-    .credits-summary-card .summary-value {
-        font-size: 18px;
-    }
-}
-
-/* ==================== АНИМАЦИИ ==================== */
-
-@keyframes highlightPulse {
-    0%, 100% { 
-        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
-    }
-    50% { 
-        box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
-    }
-}
-
-.credit-item.highlight-new {
-    animation: highlightPulse 1s ease-in-out 2;
-}
-
-/* Плавное появление результатов */
-.calc-result > * {
-    animation: fadeInUp 0.3s ease forwards;
-    opacity: 0;
-}
-
-.calc-result > *:nth-child(1) { animation-delay: 0.05s; }
-.calc-result > *:nth-child(2) { animation-delay: 0.1s; }
-.calc-result > *:nth-child(3) { animation-delay: 0.15s; }
-.calc-result > *:nth-child(4) { animation-delay: 0.2s; }
-.calc-result > *:nth-child(5) { animation-delay: 0.25s; }
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-
-
-/* ==================== МОБИЛЬНАЯ АДАПТАЦИЯ ==================== */
-
-/* Карточка погашения долгов */
-.card-debt-payments {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-    color: white;
-}
-
-/* Разбивка расходов */
-.expense-breakdown,
-.balance-details {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(255,255,255,0.2);
-    font-size: 13px;
-}
-
-.breakdown-row,
-.balance-detail-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-    opacity: 0.9;
-}
-
-.breakdown-row:last-child,
-.balance-detail-row:last-child {
-    margin-bottom: 0;
-}
-
-/* ==================== iPhone адаптация ==================== */
-@media screen and (max-width: 428px) {
-    /* Основные отступы */
+    /* Контент */
     .content {
-        padding: 12px;
+        padding: 16px;
+        padding-bottom: calc(var(--mobile-nav-height) + 100px);
     }
     
-    /* Сетка дашборда */
+    .header { padding: 12px 16px; }
+    .page-title { font-size: 18px; }
+    
+    .header-actions .btn-text { display: none; }
+    
+    /* Дашборд */
     .dashboard-grid {
         display: flex;
         flex-direction: column;
         gap: 12px;
     }
     
-    /* Карточки */
-    .card {
-        padding: 16px;
-        border-radius: 16px;
-    }
+    .card-wide { grid-column: span 1; }
+    .card { padding: 16px; }
+    .card-value { font-size: 24px; }
     
-    .card-value {
-        font-size: 28px;
-    }
-    
-    .card-header {
-        margin-bottom: 8px;
-    }
-    
-    .card-title {
-        font-size: 14px;
-    }
-    
-    .card-subtitle {
-        font-size: 12px;
-    }
-    
-    /* Разбивка расходов на мобильном */
+    /* Разбивка расходов - видимость */
     .expense-breakdown,
     .balance-details {
-        font-size: 12px;
-        margin-top: 10px;
-        padding-top: 10px;
+        display: block !important;
     }
     
     .breakdown-row,
     .balance-detail-row {
-        margin-bottom: 4px;
+        display: flex !important;
+        font-size: 12px;
     }
     
-    /* Карточка баланса - полная ширина */
-    .card-balance {
-        order: -1;
+    /* Сетки */
+    .goals-stats,
+    .goals-grid,
+    .credits-grid,
+    .mortgages-grid,
+    .credit-cards-grid,
+    .accounts-grid,
+    .investments-summary-cards,
+    .bonus-cards-grid {
+        grid-template-columns: 1fr;
     }
     
-    /* Скрываем широкие карточки на мобильном */
-    .card-wide {
-        width: 100%;
+    .mortgages-summary-grid,
+    .taxes-summary-grid {
+        grid-template-columns: 1fr 1fr;
     }
     
-    /* Графики меньше */
-    .chart-container {
-        height: 180px !important;
-    }
-    
-    /* Фильтры на аналитике */
-    .analytics-header {
-        flex-direction: column;
-        gap: 12px;
-    }
-    
-    .analytics-filters {
-        flex-direction: column;
-        gap: 8px;
-        width: 100%;
-    }
-    
-    .analytics-period-controls {
-        flex-direction: column;
-        gap: 8px;
-        width: 100%;
-    }
-    
-    .analytics-period-controls select,
-    .analytics-period-controls input {
-        width: 100%;
-    }
-    
-    .analytics-custom-dates {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .analytics-custom-dates input {
-        width: 100%;
-    }
-    
-    #analyzeAIBtn {
-        width: 100%;
-    }
-    
-    /* Аналитика - сетка */
-    .analytics-grid {
-        display: flex;
-        flex-direction: column;
+    .credits-summary-card {
+        grid-template-columns: 1fr 1fr;
+        padding: 16px;
         gap: 16px;
     }
     
-    .analytics-card {
-        width: 100%;
+    .credits-summary-card .summary-value { font-size: 18px; }
+    
+    /* Кредитные карты */
+    .credit-card-info {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
     }
     
-    .analytics-card.wide {
-        width: 100%;
+    .credit-card-info-value { font-size: 14px; }
+    .credit-card-info-label { font-size: 10px; }
+    
+    .credit-card-actions,
+    .credit-actions,
+    .mortgage-actions {
+        flex-wrap: wrap;
     }
+    
+    .credit-card-actions .btn,
+    .credit-actions .btn,
+    .mortgage-actions .btn {
+        flex: 1 1 auto;
+        min-width: 80px;
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+    
+    /* Детали кредитов */
+    .credit-details,
+    .mortgage-details {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    
+    .credit-detail-label,
+    .mortgage-detail-label { font-size: 11px; }
+    
+    .credit-detail-value,
+    .mortgage-detail-value {
+        font-size: 14px;
+        word-break: break-word;
+    }
+    
+    /* Инвестиции */
+    .investment-stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .investment-actions-row {
+        flex-wrap: wrap;
+    }
+    
+    .investment-actions-row .btn {
+        flex: 1 1 calc(50% - 4px);
+        font-size: 12px;
+        padding: 8px;
+    }
+    
+    .investment-card-header { flex-wrap: wrap; gap: 8px; }
+    .investment-main-info { flex: 1 1 60%; min-width: 0; }
+    .investment-numbers { flex: 1 1 35%; min-width: 0; }
     
     /* Транзакции */
     .transaction-item {
         padding: 12px;
         gap: 10px;
+        flex-wrap: wrap;
     }
     
-    .transaction-icon {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
-    }
+    .transaction-icon { width: 40px; height: 40px; font-size: 18px; }
+    .transaction-info { flex: 1 1 calc(100% - 120px); min-width: 0; }
+    .transaction-category { font-size: 14px; }
+    .transaction-description { font-size: 12px; }
+    .transaction-meta { font-size: 11px; }
+    .transaction-amount { font-size: 15px; }
     
-    .transaction-amount {
-        font-size: 14px;
-    }
+    .transaction-actions { opacity: 1; }
     
-    .transaction-actions {
-        flex-direction: column;
-        gap: 4px;
-    }
+    /* Фильтры */
+    .filters-bar { padding: 12px; }
+    .filters-row { flex-direction: column; gap: 8px; }
+    .filter-group { width: 100%; }
+    .filter-select, .filter-input { width: 100%; font-size: 14px; }
     
-    /* Фильтры транзакций */
-    .filters-bar {
-        padding: 12px;
-    }
+    /* Аналитика */
+    .analytics-header { flex-direction: column; gap: 12px; }
+    .analytics-filters { flex-direction: column; gap: 12px; width: 100%; }
+    .analytics-period-controls { flex-direction: column; gap: 8px; width: 100%; }
     
-    .filters-row {
-        flex-direction: column;
+    .analytics-custom-dates {
+        flex-direction: row;
+        width: 100%;
         gap: 8px;
     }
     
-    .filter-group {
-        width: 100%;
+    .analytics-custom-dates .form-input,
+    #analyticsStartDate,
+    #analyticsEndDate {
+        flex: 1;
+        min-width: 0;
+        width: auto !important;
+        font-size: 14px;
+        padding: 10px 8px;
+        -webkit-appearance: none;
+        appearance: none;
     }
     
-    .filter-select,
-    .filter-input {
-        width: 100%;
-    }
+    #analyzeAIBtn { width: 100%; }
+    
+    /* Формы */
+    .form-row { grid-template-columns: 1fr; }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn { width: 100%; }
+    
+    .type-tabs { flex-direction: column; gap: 8px; }
+    .type-tab { width: 100%; }
+    
+    .icon-picker { grid-template-columns: repeat(6, 1fr); }
     
     /* Модальные окна */
-    .modal {
-        width: 95%;
-        max-width: none;
-        margin: 10px;
-        max-height: 90vh;
-    }
+    .modal { max-height: 85vh; margin: auto 16px; }
+    .modal-body { padding: 16px; }
     
-    .modal-body {
-        padding: 16px;
-    }
+    /* Toast */
+    .toast-container { left: 16px; right: 16px; }
+    .toast { min-width: auto; }
     
-    .form-row {
-        flex-direction: column;
-        gap: 12px;
-    }
+    /* Графики */
+    .trends-chart { overflow-x: auto; }
+    .trend-bar-group { min-width: 60px; }
     
-    .form-group {
-        width: 100%;
-    }
+    /* Ближайшие платежи */
+    .upcoming-item { padding: 10px 12px; }
+    .upcoming-icon { width: 36px; height: 36px; font-size: 18px; }
+    .upcoming-name { font-size: 13px; }
+    .upcoming-amount { font-size: 13px; }
     
-    /* Кнопки */
-    .form-actions {
-        flex-direction: column;
-        gap: 8px;
-    }
+    /* Счета */
+    .account-card { width: 100% !important; }
+    .account-actions .btn { flex: 1; }
+}
+
+/* ==================== АДАПТИВНОСТЬ - МАЛЕНЬКИЕ ЭКРАНЫ ==================== */
+@media (max-width: 480px) {
+    .categories-grid { grid-template-columns: repeat(2, 1fr); }
+    .category-icon { font-size: 28px; }
     
-    .form-actions .btn {
-        width: 100%;
-    }
+    .achievements-grid { grid-template-columns: 1fr; }
     
-    /* Табы типов операций */
-    .type-tabs {
-        flex-direction: column;
-        gap: 8px;
-    }
+    .credit-card-info { grid-template-columns: 1fr; gap: 12px; }
+    .mortgage-details { grid-template-columns: 1fr; }
     
-    .type-tab {
-        width: 100%;
-        padding: 12px;
-    }
+    .investment-stats-grid { grid-template-columns: 1fr; }
+    .investment-actions-row .btn { flex: 1 1 100%; }
     
-    /* Нижняя навигация */
-    .mobile-nav {
-        padding: 8px 0;
-        padding-bottom: calc(8px + env(safe-area-inset-bottom));
-    }
-    
-    .mobile-nav-item {
-        padding: 8px 4px;
-    }
-    
-    .mobile-nav-item .nav-icon {
-        font-size: 20px;
-    }
-    
-    .mobile-nav-item .nav-text {
-        font-size: 10px;
-    }
-    
-    /* FAB кнопка */
-    .fab {
-        bottom: calc(70px + env(safe-area-inset-bottom));
-        right: 16px;
-        width: 52px;
-        height: 52px;
-    }
-    
-    /* Заголовок */
-    .header {
-        padding: 12px 16px;
-        padding-top: calc(12px + env(safe-area-inset-top));
-    }
-    
-    .page-title {
-        font-size: 18px;
-    }
-    
-    /* Скрываем текст на кнопке добавления */
-    #addBtn .btn-text {
-        display: none;
-    }
-    
-    #addBtn .btn-icon-left {
-        margin-right: 0;
+    .mortgages-summary-grid,
+    .taxes-summary-grid,
+    .credits-summary-card {
+        grid-template-columns: 1fr;
     }
 }
 
-/* iPhone с челкой (notch) */
+/* ==================== АДАПТИВНОСТЬ - ОЧЕНЬ МАЛЕНЬКИЕ ЭКРАНЫ ==================== */
+@media (max-width: 380px) {
+    .content { padding: 12px; }
+    .card { padding: 14px; }
+    .card-value { font-size: 22px; }
+    
+    .credit-details,
+    .mortgage-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .upcoming-item {
+        flex-wrap: wrap;
+    }
+    
+    .upcoming-amount {
+        width: 100%;
+        text-align: left;
+        margin-top: 4px;
+    }
+}
+
+/* ==================== SAFE AREA (iPhone с челкой) ==================== */
 @supports (padding-top: env(safe-area-inset-top)) {
     .header {
         padding-top: calc(12px + env(safe-area-inset-top));
@@ -5230,7 +2565,7 @@ body {
     }
     
     .fab {
-        bottom: calc(70px + env(safe-area-inset-bottom));
+        bottom: calc(var(--mobile-nav-height) + 16px + env(safe-area-inset-bottom));
     }
     
     .sidebar {
@@ -5238,7 +2573,7 @@ body {
     }
 }
 
-/* Ландшафтная ориентация iPhone */
+/* ==================== ЛАНДШАФТНАЯ ОРИЕНТАЦИЯ ==================== */
 @media screen and (max-width: 896px) and (orientation: landscape) {
     .dashboard-grid {
         display: grid;
@@ -5246,613 +2581,21 @@ body {
         gap: 12px;
     }
     
-    .card-wide {
-        grid-column: span 2;
-    }
-    
-    .mobile-nav {
-        display: none;
-    }
-    
-    .fab {
-        bottom: 20px;
-    }
+    .card-wide { grid-column: span 2; }
+    .mobile-nav { display: none; }
+    .fab { bottom: 20px; }
 }
 
-/* Планшеты */
-@media screen and (min-width: 429px) and (max-width: 768px) {
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
+/* ==================== ПЕЧАТЬ ==================== */
+@media print {
+    .sidebar,
+    .mobile-nav,
+    .fab,
+    .header-actions,
+    .menu-btn {
+        display: none !important;
     }
     
-    .card-wide {
-        grid-column: span 2;
-    }
-    
-    .analytics-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-    }
+    .main { margin-left: 0; }
+    .content { padding: 0; }
 }
-
-
-/* ==================== МОБИЛЬНАЯ АДАПТАЦИЯ - ИСПРАВЛЕНИЯ ==================== */
-
-/* Исправление для дашборда - карточки баланса */
-@media (max-width: 768px) {
-    /* Карточки на дашборде - полная ширина */
-    .dashboard-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        padding: 0 4px;
-    }
-    
-    .dashboard-grid .card {
-        width: 100%;
-        min-width: 0;
-        margin: 0;
-    }
-    
-    .dashboard-grid .card-wide {
-        width: 100%;
-    }
-    
-    /* Детали баланса - видимость */
-    .balance-details,
-    .expense-breakdown {
-        display: block !important;
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(255,255,255,0.1);
-    }
-    
-    .balance-detail-row,
-    .breakdown-row {
-        display: flex !important;
-        justify-content: space-between;
-        align-items: center;
-        padding: 6px 0;
-        font-size: 13px;
-    }
-    
-    .balance-detail-row span:last-child,
-    .breakdown-row span:last-child {
-        font-weight: 600;
-    }
-    
-    /* Карточка погашения долгов */
-    .card-debt-payments .card-value {
-        font-size: 24px;
-    }
-    
-    .card-debt-payments .expense-breakdown {
-        display: block !important;
-    }
-    
-    /* Карточка расходов */
-    .card-expense .expense-breakdown {
-        display: block !important;
-    }
-    
-    /* Долги - сводка */
-    .debts-summary {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .debt-item {
-        display: flex !important;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px solid var(--gray-100);
-        font-size: 14px;
-    }
-    
-    .debt-item.total {
-        border-top: 2px solid var(--gray-200);
-        border-bottom: none;
-        padding-top: 12px;
-        margin-top: 4px;
-        font-weight: 700;
-    }
-    
-    /* Инвестиции мини */
-    .investments-mini .investment-summary {
-        display: block !important;
-    }
-    
-    .investment-value,
-    .investment-profit {
-        display: block !important;
-    }
-    
-    /* ========== КРЕДИТЫ И ИПОТЕКА - ГОРИЗОНТАЛЬНАЯ ПРОКРУТКА ========== */
-    
-    /* Сетка кредитов */
-    .credits-grid,
-    .mortgages-grid,
-    .credit-cards-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        overflow-x: visible !important;
-        overflow-y: visible !important;
-    }
-    
-    /* Карточка кредита */
-    .credit-item,
-    .mortgage-card,
-    .credit-card-item {
-        width: 100% !important;
-        min-width: 0 !important;
-        max-width: 100% !important;
-        flex-shrink: 0;
-        overflow: hidden;
-    }
-    
-    /* Детали кредита - вертикальное расположение */
-    .credit-details,
-    .mortgage-details {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 12px !important;
-    }
-    
-    .credit-detail,
-    .mortgage-detail {
-        min-width: 0;
-    }
-    
-    .credit-detail-label,
-    .mortgage-detail-label {
-        font-size: 11px;
-        color: var(--gray-500);
-        margin-bottom: 2px;
-    }
-    
-    .credit-detail-value,
-    .mortgage-detail-value {
-        font-size: 14px;
-        font-weight: 600;
-        word-break: break-word;
-    }
-    
-    /* Кнопки действий - перенос */
-    .credit-actions,
-    .mortgage-actions,
-    .credit-card-actions {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 8px !important;
-        margin-top: 12px;
-    }
-    
-    .credit-actions .btn,
-    .mortgage-actions .btn,
-    .credit-card-actions .btn {
-        flex: 1 1 auto;
-        min-width: 80px;
-        font-size: 12px;
-        padding: 8px 12px;
-    }
-    
-    /* Кредитные карты - инфо блоки */
-    .credit-card-info {
-        display: grid !important;
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 8px !important;
-    }
-    
-    .credit-card-info-item {
-        text-align: center;
-        min-width: 0;
-    }
-    
-    .credit-card-info-value {
-        font-size: 14px;
-        font-weight: 700;
-        word-break: break-word;
-    }
-    
-    .credit-card-info-label {
-        font-size: 10px;
-        color: var(--gray-500);
-    }
-    
-    /* ========== ИНВЕСТИЦИИ ========== */
-    
-    .investments-summary-cards {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 12px !important;
-        overflow-x: visible !important;
-    }
-    
-    .summary-card {
-        min-width: 0 !important;
-        padding: 12px !important;
-    }
-    
-    .summary-card .summary-value {
-        font-size: 16px !important;
-        word-break: break-word;
-    }
-    
-    .summary-card .summary-label {
-        font-size: 11px;
-    }
-    
-    /* Инвестиционные аккаунты */
-    .investments-accounts {
-        overflow-x: visible !important;
-    }
-    
-    .investment-account {
-        width: 100% !important;
-        min-width: 0 !important;
-    }
-    
-    .investment-card {
-        width: 100% !important;
-    }
-    
-    .investment-card-header {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-    
-    .investment-main-info {
-        flex: 1 1 60%;
-        min-width: 0;
-    }
-    
-    .investment-numbers {
-        flex: 1 1 35%;
-        min-width: 0;
-        text-align: right;
-    }
-    
-    .investment-stats-grid {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 12px !important;
-    }
-    
-    .investment-actions-row {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 8px !important;
-    }
-    
-    .investment-actions-row .btn {
-        flex: 1 1 calc(50% - 4px);
-        min-width: 0;
-        font-size: 12px;
-        padding: 8px;
-    }
-    
-    /* ========== ОПЕРАЦИИ/ТРАНЗАКЦИИ ========== */
-    
-    .transactions-list {
-        overflow-x: visible !important;
-    }
-    
-    .transaction-item {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 8px !important;
-        padding: 12px !important;
-        width: 100% !important;
-        min-width: 0 !important;
-    }
-    
-    .transaction-icon {
-        flex-shrink: 0;
-        width: 40px;
-        height: 40px;
-    }
-    
-    .transaction-info {
-        flex: 1 1 calc(100% - 120px);
-        min-width: 0;
-        overflow: hidden;
-    }
-    
-    .transaction-category {
-        font-size: 14px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    .transaction-description {
-        font-size: 12px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    .transaction-meta {
-        font-size: 11px;
-    }
-    
-    .transaction-amount {
-        font-size: 15px;
-        font-weight: 700;
-        white-space: nowrap;
-    }
-    
-    .transaction-actions {
-        display: flex;
-        gap: 4px;
-    }
-    
-    /* ========== АНАЛИТИКА/СТАТИСТИКА - ДАТЫ ========== */
-    
-    .analytics-header {
-        flex-direction: column;
-        gap: 12px;
-    }
-    
-    .analytics-filters {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        width: 100%;
-    }
-    
-    .analytics-period-controls {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        width: 100%;
-    }
-    
-    .analytics-period-controls .filter-select {
-        width: 100%;
-    }
-    
-    /* Кастомные даты - ИСПРАВЛЕНИЕ */
-    .analytics-custom-dates,
-    #analyticsCustomDates {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center;
-        gap: 8px;
-        width: 100%;
-        flex-wrap: nowrap;
-    }
-    
-    .analytics-custom-dates .form-input,
-    #analyticsCustomDates .form-input,
-    #analyticsStartDate,
-    #analyticsEndDate {
-        flex: 1;
-        min-width: 0;
-        width: auto !important;
-        font-size: 14px;
-        padding: 10px 8px;
-        /* Убираем проблемы с iOS */
-        -webkit-appearance: none;
-        appearance: none;
-        border-radius: var(--radius);
-        border: 1px solid var(--gray-200);
-        background: white;
-    }
-    
-    .date-separator {
-        flex-shrink: 0;
-        color: var(--gray-400);
-        font-size: 14px;
-    }
-    
-    /* Кнопка AI-анализа */
-    #analyzeAIBtn {
-        width: 100%;
-    }
-    
-    /* Графики аналитики */
-    .analytics-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-    
-    .analytics-card {
-        width: 100% !important;
-        min-width: 0 !important;
-    }
-    
-    .analytics-card.wide {
-        width: 100% !important;
-    }
-    
-    .chart-container {
-        width: 100% !important;
-        min-width: 0 !important;
-        overflow: hidden;
-    }
-    
-    /* ========== ФИЛЬТРЫ ТРАНЗАКЦИЙ ========== */
-    
-    .filters-bar {
-        padding: 12px;
-    }
-    
-    .filters-row {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        width: 100%;
-    }
-    
-    .filter-group {
-        width: 100%;
-    }
-    
-    .filter-select,
-    .filter-input {
-        width: 100%;
-        font-size: 14px;
-        padding: 10px 12px;
-    }
-    
-    .filter-separator {
-        display: none;
-    }
-    
-    /* ========== БЛИЖАЙШИЕ ПЛАТЕЖИ ========== */
-    
-    .upcoming-list {
-        overflow-x: visible !important;
-    }
-    
-    .upcoming-item {
-        display: flex !important;
-        align-items: center;
-        gap: 12px;
-        padding: 12px;
-        width: 100% !important;
-        min-width: 0 !important;
-    }
-    
-    .upcoming-icon {
-        flex-shrink: 0;
-        font-size: 20px;
-    }
-    
-    .upcoming-info {
-        flex: 1;
-        min-width: 0;
-        overflow: hidden;
-    }
-    
-    .upcoming-name {
-        font-size: 14px;
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    .upcoming-date {
-        font-size: 12px;
-        color: var(--gray-500);
-    }
-    
-    .upcoming-amount {
-        font-size: 14px;
-        font-weight: 700;
-        white-space: nowrap;
-        text-align: right;
-    }
-    
-    /* ========== ИПОТЕКА СВОДКА ========== */
-    
-    .mortgages-summary-grid {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 12px !important;
-    }
-    
-    .mortgage-summary-item {
-        text-align: center;
-        padding: 12px;
-        background: var(--gray-50);
-        border-radius: var(--radius);
-    }
-    
-    .mortgage-summary-value {
-        font-size: 16px;
-        font-weight: 700;
-        word-break: break-word;
-    }
-    
-    .mortgage-summary-label {
-        font-size: 11px;
-        color: var(--gray-500);
-    }
-    
-    /* ========== КРЕДИТЫ СВОДКА ========== */
-    
-    .credits-summary-card {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 16px !important;
-        padding: 16px !important;
-    }
-    
-    .credits-summary-card .summary-item {
-        text-align: center;
-    }
-    
-    .credits-summary-card .summary-value {
-        font-size: 18px;
-        word-break: break-word;
-    }
-    
-    /* ========== СЧЕТА ========== */
-    
-    .accounts-grid {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 12px !important;
-        overflow-x: visible !important;
-    }
-    
-    .account-card {
-        width: 100% !important;
-        min-width: 0 !important;
-    }
-    
-    .account-details {
-        display: block !important;
-    }
-    
-    .account-detail {
-        display: flex;
-        justify-content: space-between;
-        padding: 6px 0;
-        font-size: 13px;
-    }
-    
-    .account-actions {
-        display: flex;
-        gap: 8px;
-        margin-top: 12px;
-    }
-    
-    .account-actions .btn {
-        flex: 1;
-    }
-}
-
-/* Дополнительные исправления для очень маленьких экранов */
-@media (max-width: 380px) {
-    .investment-stats-grid,
-    .credit-details,
-    .mortgage-details {
-        grid-template-columns: 1fr !important;
-    }
-    
-    .investments-summary-cards,
-    .mortgages-summary-grid,
-    .credits-summary-card {
-        grid-template-columns: 1fr !important;
-    }
-    
-    .credit-card-info {
-        grid-template-columns: 1fr !important;
-    }
-    
-    .investment-actions-row .btn {
-        flex: 1 1 100%;
-    }
-}
-
-
