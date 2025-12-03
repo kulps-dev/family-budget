@@ -829,7 +829,20 @@ def create_transaction():
     elif data['type'] == 'transfer' and data.get('to_account_id'):
         account.balance -= data['amount']
         to_account = Account.query.get(data['to_account_id'])
-        to_account.balance += data['amount']
+        
+        # ✅ ИСПРАВЛЕНИЕ: Если переводим С кредитной карты - увеличиваем долг
+        if account.account_type == 'credit_card':
+            card = CreditCard.query.filter_by(account_id=account.id).first()
+            if card:
+                card.current_debt += data['amount']
+        
+        # ✅ ИСПРАВЛЕНИЕ: Если переводим НА кредитную карту - уменьшаем долг (погашение)
+        if to_account.account_type == 'credit_card':
+            to_card = CreditCard.query.filter_by(account_id=to_account.id).first()
+            if to_card:
+                to_card.current_debt = max(0, to_card.current_debt - data['amount'])
+        else:
+            to_account.balance += data['amount']
         
         if data.get('is_tax_transfer'):
             TaxReserve.query.filter_by(
@@ -849,23 +862,37 @@ def update_transaction(id):
     transaction = Transaction.query.get_or_404(id)
     data = request.json
     
-    # Откатываем старую транзакцию
+    # ========== ОТКАТЫВАЕМ СТАРУЮ ТРАНЗАКЦИЮ ==========
     old_account = Account.query.get(transaction.account_id)
+    
     if transaction.type == 'income':
         old_account.balance -= transaction.amount
+        
     elif transaction.type == 'expense':
         old_account.balance += transaction.amount
         if old_account.account_type == 'credit_card':
             card = CreditCard.query.filter_by(account_id=old_account.id).first()
             if card:
-                card.current_debt -= transaction.amount
+                card.current_debt = max(0, card.current_debt - transaction.amount)
+                
     elif transaction.type == 'transfer' and transaction.to_account_id:
         old_account.balance += transaction.amount
+        # Если переводили С кредитки
+        if old_account.account_type == 'credit_card':
+            card = CreditCard.query.filter_by(account_id=old_account.id).first()
+            if card:
+                card.current_debt = max(0, card.current_debt - transaction.amount)
+        
         old_to_account = Account.query.get(transaction.to_account_id)
         if old_to_account:
-            old_to_account.balance -= transaction.amount
+            if old_to_account.account_type == 'credit_card':
+                to_card = CreditCard.query.filter_by(account_id=old_to_account.id).first()
+                if to_card:
+                    to_card.current_debt += transaction.amount
+            else:
+                old_to_account.balance -= transaction.amount
     
-    # Обновляем данные
+    # ========== ОБНОВЛЯЕМ ДАННЫЕ ТРАНЗАКЦИИ ==========
     transaction.amount = data.get('amount', transaction.amount)
     transaction.type = data.get('type', transaction.type)
     transaction.description = data.get('description', transaction.description)
@@ -876,21 +903,35 @@ def update_transaction(id):
     transaction.to_account_id = data.get('to_account_id', transaction.to_account_id)
     transaction.store_id = data.get('store_id', transaction.store_id)
     
-    # Применяем новую транзакцию
+    # ========== ПРИМЕНЯЕМ НОВУЮ ТРАНЗАКЦИЮ ==========
     new_account = Account.query.get(transaction.account_id)
+    
     if transaction.type == 'income':
         new_account.balance += transaction.amount
+        
     elif transaction.type == 'expense':
         new_account.balance -= transaction.amount
         if new_account.account_type == 'credit_card':
             card = CreditCard.query.filter_by(account_id=new_account.id).first()
             if card:
                 card.current_debt += transaction.amount
+                
     elif transaction.type == 'transfer' and transaction.to_account_id:
         new_account.balance -= transaction.amount
+        # Если переводим С кредитки
+        if new_account.account_type == 'credit_card':
+            card = CreditCard.query.filter_by(account_id=new_account.id).first()
+            if card:
+                card.current_debt += transaction.amount
+        
         new_to_account = Account.query.get(transaction.to_account_id)
         if new_to_account:
-            new_to_account.balance += transaction.amount
+            if new_to_account.account_type == 'credit_card':
+                to_card = CreditCard.query.filter_by(account_id=new_to_account.id).first()
+                if to_card:
+                    to_card.current_debt = max(0, to_card.current_debt - transaction.amount)
+            else:
+                new_to_account.balance += transaction.amount
     
     db.session.commit()
     return jsonify({'message': 'Транзакция обновлена'})
@@ -900,19 +941,40 @@ def delete_transaction(id):
     transaction = Transaction.query.get_or_404(id)
     
     account = Account.query.get(transaction.account_id)
+    
     if transaction.type == 'income':
+        # Откатываем доход - уменьшаем баланс
         account.balance -= transaction.amount
+        
     elif transaction.type == 'expense':
+        # Откатываем расход - увеличиваем баланс
         account.balance += transaction.amount
+        # ✅ ИСПРАВЛЕНИЕ: Для кредитки уменьшаем долг
         if account.account_type == 'credit_card':
             card = CreditCard.query.filter_by(account_id=account.id).first()
             if card:
-                card.current_debt -= transaction.amount
+                card.current_debt = max(0, card.current_debt - transaction.amount)
+                
     elif transaction.type == 'transfer' and transaction.to_account_id:
+        # Откатываем перевод
+        # Возвращаем деньги на исходный счёт
         account.balance += transaction.amount
+        
+        # ✅ ИСПРАВЛЕНИЕ: Если переводили С кредитки - уменьшаем долг обратно
+        if account.account_type == 'credit_card':
+            card = CreditCard.query.filter_by(account_id=account.id).first()
+            if card:
+                card.current_debt = max(0, card.current_debt - transaction.amount)
+        
         to_account = Account.query.get(transaction.to_account_id)
         if to_account:
-            to_account.balance -= transaction.amount
+            # ✅ ИСПРАВЛЕНИЕ: Если переводили НА кредитку - увеличиваем долг обратно
+            if to_account.account_type == 'credit_card':
+                to_card = CreditCard.query.filter_by(account_id=to_account.id).first()
+                if to_card:
+                    to_card.current_debt += transaction.amount
+            else:
+                to_account.balance -= transaction.amount
     
     db.session.delete(transaction)
     db.session.commit()
