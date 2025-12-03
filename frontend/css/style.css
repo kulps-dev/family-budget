@@ -328,8 +328,7 @@ body {
 }
 
 .btn-secondary {
-    background: var(--white);
-    color: var(--primary);
+    background: var(--primary);
     border: 2px solid var(--primary);
 }
 
