@@ -3678,6 +3678,15 @@ body {
     text-overflow: ellipsis;
 }
 
+.credit-card-name-credit {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .credit-card-bank {
     font-size: 13px;
     color: var(--gray-500);

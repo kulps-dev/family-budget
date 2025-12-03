@@ -1180,7 +1180,7 @@ function renderCredits() {
                 <!-- Шапка -->
                 <div class="credit-card-header">
                     <div class="credit-card-title">
-                        <div class="credit-card-name">${c.name}</div>
+                        <div class="credit-card-name-credit">${c.name}</div>
                         <div class="credit-card-bank">${c.bank_name || 'Банк не указан'}</div>
                     </div>
                     <div class="credit-card-rate">${rateDisplay}</div>
