@@ -457,7 +457,7 @@ body {
 
 .card-subtitle {
     font-size: 14px;
-    color: var(--white);
+    color: var(--black);
 }
 
 .card-change {
