@@ -3672,7 +3672,7 @@ body {
 .credit-card-name {
     font-size: 18px;
     font-weight: 700;
-    color: var(--gray-900);
+    color: var(--white);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
