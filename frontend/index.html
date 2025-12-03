@@ -180,6 +180,7 @@
                             </div>
                         </div>
                         
+                        <!-- Найдите card-expense и замените весь блок -->
                         <div class="card card-expense">
                             <div class="card-header">
                                 <span class="card-icon">📉</span>
@@ -189,6 +190,21 @@
                             <div class="card-change negative" id="expenseChange">
                                 <span>↑ 0%</span>
                                 <span>vs прошлый месяц</span>
+                            </div>
+                            <!-- ✅ НОВОЕ: Разбивка расходов -->
+                            <div class="expense-breakdown" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2);">
+                                <div class="expense-row" style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                                    <span>👨‍👩‍👧 Семейные:</span>
+                                    <span id="expensePersonal">0 ₽</span>
+                                </div>
+                                <div class="expense-row" style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                                    <span>🏢 Бизнес:</span>
+                                    <span id="expenseBusiness">0 ₽</span>
+                                </div>
+                                <div class="expense-row" style="display: flex; justify-content: space-between; font-size: 13px; opacity: 0.8;">
+                                    <span>💳 С кредиток:</span>
+                                    <span id="expenseCreditCards">0 ₽</span>
+                                </div>
                             </div>
                         </div>
                         

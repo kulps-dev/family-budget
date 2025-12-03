@@ -430,6 +430,20 @@ function renderDashboard() {
     // Месячные показатели
     document.getElementById('monthlyIncome').textContent = formatMoney(d.monthly.income);
     document.getElementById('monthlyExpense').textContent = formatMoney(d.monthly.expense);
+    // ✅ Разбивка расходов
+    const expensePersonalEl = document.getElementById('expensePersonal');
+    const expenseBusinessEl = document.getElementById('expenseBusiness');
+    const expenseCreditCardsEl = document.getElementById('expenseCreditCards');
+
+    if (expensePersonalEl) {
+        expensePersonalEl.textContent = formatMoney(d.monthly.expense_personal || 0);
+    }
+    if (expenseBusinessEl) {
+        expenseBusinessEl.textContent = formatMoney(d.monthly.expense_business || 0);
+    }
+    if (expenseCreditCardsEl) {
+        expenseCreditCardsEl.textContent = formatMoney(d.monthly.credit_card_spending || 0);
+    }
     document.getElementById('monthlySavings').textContent = formatMoney(d.monthly.savings);
     document.getElementById('savingsRate').textContent = `${d.monthly.savings_rate}%`;
     
@@ -980,6 +994,7 @@ function renderTransactions() {
                     ${t.type === 'transfer' 
                         ? `${t.account_name} → ${t.to_account_name}` 
                         : (t.category_name || 'Без категории')}
+                    ${t.is_business_expense ? '<span style="background: #9C27B0; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 6px;">🏢 Бизнес</span>' : ''}
                 </div>
                 ${t.description ? `<div class="transaction-description">${t.description}</div>` : ''}
                 <div class="transaction-meta">
@@ -2134,6 +2149,15 @@ function showTransactionModal(editId = null) {
                 </select>
             </div>
             
+            <!-- ✅ НОВОЕ: Чекбокс бизнес-расхода -->
+            <div class="form-group" id="businessExpenseGroup" style="${transaction?.type === 'expense' ? '' : 'display:none'}">
+                <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" name="is_business_expense" ${transaction?.is_business_expense ? 'checked' : ''}> 
+                    🏢 Это бизнес-расход
+                </label>
+                <div class="form-hint">Отметьте, если это расход для бизнеса/ИП</div>
+            </div>
+            
             <div class="form-group">
                 <label class="form-label">Описание</label>
                 <input type="text" class="form-input" name="description" 
@@ -2164,16 +2188,19 @@ function showTransactionModal(editId = null) {
             const categoryGroup = document.getElementById('categoryGroup');
             const toAccountGroup = document.getElementById('toAccountGroup');
             const storeGroup = document.getElementById('storeGroup');
+            const businessExpenseGroup = document.getElementById('businessExpenseGroup');  // ✅ НОВОЕ
             const categorySelect = document.querySelector('select[name="category_id"]');
             
             if (type === 'transfer') {
                 categoryGroup.style.display = 'none';
                 toAccountGroup.style.display = 'block';
                 storeGroup.style.display = 'none';
+                businessExpenseGroup.style.display = 'none';  // ✅ НОВОЕ
             } else {
                 categoryGroup.style.display = 'block';
                 toAccountGroup.style.display = 'none';
                 storeGroup.style.display = type === 'expense' ? 'block' : 'none';
+                businessExpenseGroup.style.display = type === 'expense' ? 'block' : 'none';  // ✅ НОВОЕ
                 
                 categorySelect.innerHTML = '<option value="">Без категории</option>' +
                     state.categories
@@ -2195,6 +2222,7 @@ function showTransactionModal(editId = null) {
         
         data.amount = parseFloat(data.amount);
         data.account_id = parseInt(data.account_id);
+        data.is_business_expense = formData.has('is_business_expense');  // ✅ НОВОЕ
         
         if (data.category_id) data.category_id = parseInt(data.category_id);
         else delete data.category_id;

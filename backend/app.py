@@ -69,6 +69,7 @@ class Transaction(db.Model):
     to_account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=True)
     store_id = db.Column(db.Integer, db.ForeignKey('store.id'), nullable=True)
     is_tax_transfer = db.Column(db.Boolean, default=False)
+    is_business_expense = db.Column(db.Boolean, default=False)  # ✅ НОВОЕ ПОЛЕ
     tags = db.Column(db.String(255), default='')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -756,6 +757,7 @@ def get_transactions():
             'store_id': t.store_id,
             'store_name': t.store.name if t.store else None,
             'is_tax_transfer': t.is_tax_transfer,
+            'is_business_expense': t.is_business_expense,  # ✅ НОВОЕ
             'tags': t.tags.split(',') if t.tags else []
         } for t in transactions.items],
         'total': transactions.total,
@@ -777,6 +779,7 @@ def create_transaction():
         to_account_id=data.get('to_account_id'),
         store_id=data.get('store_id'),
         is_tax_transfer=data.get('is_tax_transfer', False),
+        is_business_expense=data.get('is_business_expense', False),  # ✅ НОВОЕ
         tags=','.join(data.get('tags', []))
     )
     
@@ -788,7 +791,6 @@ def create_transaction():
         if account.is_business and account.tax_rate > 0 and account.linked_tax_account_id:
             tax_amount = data['amount'] * account.tax_rate / 100
             
-            # Создаём запись резерва
             reserve = TaxReserve(
                 business_account_id=account.id,
                 tax_account_id=account.linked_tax_account_id,
@@ -796,17 +798,15 @@ def create_transaction():
                 tax_amount=tax_amount,
                 tax_rate=account.tax_rate,
                 date=transaction.date,
-                is_transferred=True  # Сразу помечаем как переведённый
+                is_transferred=True
             )
             db.session.add(reserve)
             
-            # ✅ Автоматически переводим налог на резервный счёт
             tax_account = Account.query.get(account.linked_tax_account_id)
             if tax_account:
-                account.balance -= tax_amount  # Списываем с ИП счёта
-                tax_account.balance += tax_amount  # Зачисляем на резервный
+                account.balance -= tax_amount
+                tax_account.balance += tax_amount
                 
-                # Создаём транзакцию перевода для истории
                 tax_transfer = Transaction(
                     amount=tax_amount,
                     type='transfer',
@@ -830,13 +830,13 @@ def create_transaction():
         account.balance -= data['amount']
         to_account = Account.query.get(data['to_account_id'])
         
-        # ✅ ИСПРАВЛЕНИЕ: Если переводим С кредитной карты - увеличиваем долг
+        # Если переводим С кредитной карты - увеличиваем долг
         if account.account_type == 'credit_card':
             card = CreditCard.query.filter_by(account_id=account.id).first()
             if card:
                 card.current_debt += data['amount']
         
-        # ✅ ИСПРАВЛЕНИЕ: Если переводим НА кредитную карту - уменьшаем долг (погашение)
+        # Если переводим НА кредитную карту - уменьшаем долг (погашение)
         if to_account.account_type == 'credit_card':
             to_card = CreditCard.query.filter_by(account_id=to_account.id).first()
             if to_card:
@@ -2710,28 +2710,79 @@ def get_dashboard():
             if card:
                 total_credit_debt += card.current_debt
     
+    # ✅ ИСПРАВЛЕНИЕ: Считаем расходы включая переводы с кредиток
+    # Обычные расходы (личные)
+    monthly_expense_personal = db.session.query(db.func.sum(Transaction.amount)).filter(
+        Transaction.type == 'expense',
+        Transaction.date >= first_day_month,
+        Transaction.is_business_expense == False
+    ).scalar() or 0
+    
+    # Бизнес расходы
+    monthly_expense_business = db.session.query(db.func.sum(Transaction.amount)).filter(
+        Transaction.type == 'expense',
+        Transaction.date >= first_day_month,
+        Transaction.is_business_expense == True
+    ).scalar() or 0
+    
+    # ✅ Переводы с кредитных карт на обычные счета = тоже расход
+    credit_card_ids = [a.id for a in accounts if a.account_type == 'credit_card']
+    non_credit_card_ids = [a.id for a in accounts if a.account_type != 'credit_card']
+    
+    credit_card_spending = 0
+    if credit_card_ids and non_credit_card_ids:
+        credit_card_spending = db.session.query(db.func.sum(Transaction.amount)).filter(
+            Transaction.type == 'transfer',
+            Transaction.date >= first_day_month,
+            Transaction.account_id.in_(credit_card_ids),
+            Transaction.to_account_id.in_(non_credit_card_ids),
+            Transaction.is_tax_transfer == False
+        ).scalar() or 0
+    
+    # Общие расходы
+    monthly_expense = monthly_expense_personal + monthly_expense_business + credit_card_spending
+    
+    # Доходы
     monthly_income = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'income',
         Transaction.date >= first_day_month
     ).scalar() or 0
     
-    monthly_expense = db.session.query(db.func.sum(Transaction.amount)).filter(
-        Transaction.type == 'expense',
-        Transaction.date >= first_day_month
-    ).scalar() or 0
-    
+    # Прошлый месяц для сравнения
     last_month_income = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'income',
         Transaction.date >= last_month_start,
         Transaction.date <= last_month_end
     ).scalar() or 0
     
-    last_month_expense = db.session.query(db.func.sum(Transaction.amount)).filter(
+    last_month_expense_personal = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'expense',
         Transaction.date >= last_month_start,
-        Transaction.date <= last_month_end
+        Transaction.date <= last_month_end,
+        Transaction.is_business_expense == False
     ).scalar() or 0
     
+    last_month_expense_business = db.session.query(db.func.sum(Transaction.amount)).filter(
+        Transaction.type == 'expense',
+        Transaction.date >= last_month_start,
+        Transaction.date <= last_month_end,
+        Transaction.is_business_expense == True
+    ).scalar() or 0
+    
+    last_month_credit_spending = 0
+    if credit_card_ids and non_credit_card_ids:
+        last_month_credit_spending = db.session.query(db.func.sum(Transaction.amount)).filter(
+            Transaction.type == 'transfer',
+            Transaction.date >= last_month_start,
+            Transaction.date <= last_month_end,
+            Transaction.account_id.in_(credit_card_ids),
+            Transaction.to_account_id.in_(non_credit_card_ids),
+            Transaction.is_tax_transfer == False
+        ).scalar() or 0
+    
+    last_month_expense = last_month_expense_personal + last_month_expense_business + last_month_credit_spending
+    
+    # Годовые показатели
     yearly_income = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'income',
         Transaction.date >= first_day_year
@@ -2742,6 +2793,7 @@ def get_dashboard():
         Transaction.date >= first_day_year
     ).scalar() or 0
     
+    # Цели
     goals = Goal.query.filter_by(is_completed=False).all()
     goals_total_target = sum(g.target_amount for g in goals)
     goals_total_current = sum(g.current_amount for g in goals)
@@ -2750,6 +2802,7 @@ def get_dashboard():
         Goal.completed_at >= first_day_month
     ).count()
     
+    # Кредиты и ипотека
     credits = Credit.query.all()
     mortgages = Mortgage.query.all()
     total_credit_remaining = sum(c.remaining_amount for c in credits)
@@ -2757,26 +2810,27 @@ def get_dashboard():
     monthly_credit_payments = sum(c.monthly_payment for c in credits)
     monthly_mortgage_payments = sum(m.monthly_payment for m in mortgages)
     
+    # Инвестиции
     investments = Investment.query.all()
     total_invested = sum(i.quantity * i.avg_buy_price for i in investments)
     total_investment_value = sum(i.quantity * i.current_price for i in investments)
     
+    # Налоги
     pending_taxes = db.session.query(db.func.sum(TaxReserve.tax_amount)).filter(
         TaxReserve.is_transferred == False
     ).scalar() or 0
     
-    # Баланс налоговых резервных счетов
     tax_reserve_balance = db.session.query(db.func.sum(Account.balance)).filter(
         Account.is_tax_reserve == True
     ).scalar() or 0
     
+    # Ближайшие платежи
     upcoming_payments = []
     
-    # Кредиты - показываем на 14 дней вперёд
     for c in credits:
         if c.next_payment_date:
             days_left = (c.next_payment_date - today).days
-            if days_left <= 14 and days_left >= 0:
+            if 0 <= days_left <= 14:
                 upcoming_payments.append({
                     'type': 'credit',
                     'name': c.name,
@@ -2785,7 +2839,6 @@ def get_dashboard():
                     'days_left': days_left
                 })
         elif c.payment_day:
-            # Если next_payment_date не установлен, вычисляем по payment_day
             payment_date = today.replace(day=min(c.payment_day, 28))
             if payment_date < today:
                 payment_date = payment_date + relativedelta(months=1)
@@ -2799,11 +2852,10 @@ def get_dashboard():
                     'days_left': days_left
                 })
     
-    # Ипотека - показываем на 14 дней вперёд
     for m in mortgages:
         if m.next_payment_date:
             days_left = (m.next_payment_date - today).days
-            if days_left <= 14 and days_left >= 0:
+            if 0 <= days_left <= 14:
                 upcoming_payments.append({
                     'type': 'mortgage',
                     'name': m.name,
@@ -2825,15 +2877,13 @@ def get_dashboard():
                     'days_left': days_left
                 })
     
-    # Кредитные карты - показываем на 14 дней вперёд
     cards = CreditCard.query.all()
     for card in cards:
         payment_date = today.replace(day=min(card.payment_due_day, 28))
         if payment_date < today:
             payment_date = payment_date + relativedelta(months=1)
         days_left = (payment_date - today).days
-        # Показываем карту если есть долг ИЛИ если платёж скоро (для напоминания)
-        if days_left <= 14 and days_left >= 0:
+        if 0 <= days_left <= 14:
             min_payment = round(card.current_debt * card.min_payment_percent / 100, 2) if card.current_debt > 0 else 0
             upcoming_payments.append({
                 'type': 'credit_card',
@@ -2846,6 +2896,7 @@ def get_dashboard():
     
     upcoming_payments.sort(key=lambda x: x['days_left'])
     
+    # Превышение бюджета
     over_budget_categories = []
     categories = Category.query.filter(Category.budget_limit > 0, Category.type == 'expense').all()
     for cat in categories:
@@ -2864,6 +2915,7 @@ def get_dashboard():
                 'over': spent - cat.budget_limit
             })
     
+    # Тренды
     trends = []
     for i in range(5, -1, -1):
         month_start = (today - relativedelta(months=i)).replace(day=1)
@@ -2889,7 +2941,7 @@ def get_dashboard():
             'savings': income - expense
         })
     
-    # Считаем баланс без налоговых резервов
+    # Баланс без налоговых резервов
     total_balance_without_tax = sum(
         a.balance for a in accounts 
         if a.account_type not in ['credit_card'] and not a.is_tax_reserve and a.account_type != 'tax_reserve'
@@ -2906,6 +2958,9 @@ def get_dashboard():
         'monthly': {
             'income': monthly_income,
             'expense': monthly_expense,
+            'expense_personal': monthly_expense_personal + credit_card_spending,  # ✅ Личные + траты с кредиток
+            'expense_business': monthly_expense_business,  # ✅ Бизнес расходы
+            'credit_card_spending': credit_card_spending,  # ✅ Отдельно траты с кредиток
             'savings': monthly_income - monthly_expense,
             'savings_rate': round((monthly_income - monthly_expense) / monthly_income * 100, 1) if monthly_income > 0 else 0,
             'income_change': round((monthly_income - last_month_income) / last_month_income * 100, 1) if last_month_income > 0 else 0,
