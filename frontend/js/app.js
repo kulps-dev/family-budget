@@ -317,8 +317,38 @@ async function loadAnalytics() {
     const today = new Date();
     endDate = today.toISOString().split('T')[0];
     
-    // Если выбран кастомный период и заданы даты
-    if (period === 'custom' && customStartDate && customEndDate) {
+    // Показываем/скрываем поля кастомных дат
+    const customDatesContainer = document.getElementById('analyticsCustomDates');
+    if (customDatesContainer) {
+        if (period === 'custom') {
+            customDatesContainer.style.display = 'flex';
+        } else {
+            customDatesContainer.style.display = 'none';
+        }
+    }
+    
+    // Если выбран кастомный период
+    if (period === 'custom') {
+        // Проверяем что обе даты заполнены
+        if (!customStartDate || !customEndDate) {
+            // Не загружаем данные пока даты не выбраны
+            return;
+        }
+        
+        // Валидация дат
+        const start = new Date(customStartDate);
+        const end = new Date(customEndDate);
+        
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            showToast('Неверный формат даты', 'error');
+            return;
+        }
+        
+        if (start > end) {
+            showToast('Дата начала должна быть раньше даты окончания', 'error');
+            return;
+        }
+        
         startDate = customStartDate;
         endDate = customEndDate;
     } else {
@@ -340,12 +370,6 @@ async function loadAnalytics() {
         }
     }
     
-    // Показываем/скрываем поля кастомных дат
-    const customDatesContainer = document.getElementById('analyticsCustomDates');
-    if (customDatesContainer) {
-        customDatesContainer.style.display = period === 'custom' ? 'flex' : 'none';
-    }
-    
     try {
         const [expenseStats, incomeStats, storeStats, trends] = await Promise.all([
             API.stats.byCategory({ type: 'expense', start_date: startDate, end_date: endDate }),
@@ -356,6 +380,7 @@ async function loadAnalytics() {
         
         renderAnalyticsCharts(expenseStats, incomeStats, storeStats, trends);
     } catch (error) {
+        console.error('Analytics error:', error);
         showToast('Ошибка загрузки аналитики', 'error');
     }
 }
