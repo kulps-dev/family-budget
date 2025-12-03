@@ -2710,22 +2710,20 @@ def get_dashboard():
             if card:
                 total_credit_debt += card.current_debt
     
-    # ✅ ИСПРАВЛЕНИЕ: Считаем расходы включая переводы с кредиток
-    # Обычные расходы (личные)
+    # ✅ РАСХОДЫ: обычные траты
     monthly_expense_personal = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'expense',
         Transaction.date >= first_day_month,
         Transaction.is_business_expense == False
     ).scalar() or 0
     
-    # Бизнес расходы
     monthly_expense_business = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'expense',
         Transaction.date >= first_day_month,
         Transaction.is_business_expense == True
     ).scalar() or 0
     
-    # ✅ Переводы с кредитных карт на обычные счета = тоже расход
+    # ✅ Переводы с кредитных карт на обычные счета = тоже расход (трата кредитных денег)
     credit_card_ids = [a.id for a in accounts if a.account_type == 'credit_card']
     non_credit_card_ids = [a.id for a in accounts if a.account_type != 'credit_card']
     
@@ -2739,8 +2737,22 @@ def get_dashboard():
             Transaction.is_tax_transfer == False
         ).scalar() or 0
     
-    # Общие расходы
+    # ✅ НОВОЕ: Погашение кредиток (отток с дебетовых счетов на кредитки)
+    credit_card_payments = 0
+    if credit_card_ids and non_credit_card_ids:
+        credit_card_payments = db.session.query(db.func.sum(Transaction.amount)).filter(
+            Transaction.type == 'transfer',
+            Transaction.date >= first_day_month,
+            Transaction.account_id.in_(non_credit_card_ids),  # С дебетовых
+            Transaction.to_account_id.in_(credit_card_ids),   # На кредитки
+            Transaction.is_tax_transfer == False
+        ).scalar() or 0
+    
+    # Общие расходы (траты)
     monthly_expense = monthly_expense_personal + monthly_expense_business + credit_card_spending
+    
+    # ✅ НОВОЕ: Общий отток денег (расходы + погашение долгов)
+    monthly_outflow = monthly_expense + credit_card_payments
     
     # Доходы
     monthly_income = db.session.query(db.func.sum(Transaction.amount)).filter(
@@ -2946,6 +2958,18 @@ def get_dashboard():
         a.balance for a in accounts 
         if a.account_type not in ['credit_card'] and not a.is_tax_reserve and a.account_type != 'tax_reserve'
     )
+
+    # Ищем транзакции с описанием погашения кредитов
+    credit_payments_month = db.session.query(db.func.sum(Transaction.amount)).filter(
+        Transaction.type == 'transfer',
+        Transaction.date >= first_day_month,
+        Transaction.description.like('%кредит%')
+    ).scalar() or 0
+    
+    # Или считаем по платежам ипотеки
+    mortgage_payments_month = db.session.query(db.func.sum(MortgagePayment.amount)).filter(
+        MortgagePayment.date >= first_day_month
+    ).scalar() or 0
     
     return jsonify({
         'balance': {
@@ -2957,11 +2981,14 @@ def get_dashboard():
         },
         'monthly': {
             'income': monthly_income,
-            'expense': monthly_expense,
-            'expense_personal': monthly_expense_personal + credit_card_spending,  # ✅ Личные + траты с кредиток
-            'expense_business': monthly_expense_business,  # ✅ Бизнес расходы
-            'credit_card_spending': credit_card_spending,  # ✅ Отдельно траты с кредиток
+            'expense': monthly_expense,  # Только реальные траты
+            'expense_personal': monthly_expense_personal + credit_card_spending,
+            'expense_business': monthly_expense_business,
+            'credit_card_spending': credit_card_spending,  # Траты с кредиток
+            'credit_card_payments': credit_card_payments,  # ✅ НОВОЕ: Погашение кредиток
+            'outflow': monthly_outflow,  # ✅ НОВОЕ: Весь отток денег
             'savings': monthly_income - monthly_expense,
+            'real_savings': monthly_income - monthly_outflow,  # ✅ НОВОЕ: Реальный остаток
             'savings_rate': round((monthly_income - monthly_expense) / monthly_income * 100, 1) if monthly_income > 0 else 0,
             'income_change': round((monthly_income - last_month_income) / last_month_income * 100, 1) if last_month_income > 0 else 0,
             'expense_change': round((monthly_expense - last_month_expense) / last_month_expense * 100, 1) if last_month_expense > 0 else 0

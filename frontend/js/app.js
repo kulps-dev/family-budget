@@ -430,11 +430,11 @@ function renderDashboard() {
     // Месячные показатели
     document.getElementById('monthlyIncome').textContent = formatMoney(d.monthly.income);
     document.getElementById('monthlyExpense').textContent = formatMoney(d.monthly.expense);
-    // ✅ Разбивка расходов
+    // Разбивка расходов
     const expensePersonalEl = document.getElementById('expensePersonal');
     const expenseBusinessEl = document.getElementById('expenseBusiness');
     const expenseCreditCardsEl = document.getElementById('expenseCreditCards');
-
+    
     if (expensePersonalEl) {
         expensePersonalEl.textContent = formatMoney(d.monthly.expense_personal || 0);
     }
@@ -443,6 +443,26 @@ function renderDashboard() {
     }
     if (expenseCreditCardsEl) {
         expenseCreditCardsEl.textContent = formatMoney(d.monthly.credit_card_spending || 0);
+    }
+    
+    // ✅ НОВОЕ: Погашение долгов
+    const monthlyDebtPaymentsEl = document.getElementById('monthlyDebtPayments');
+    const monthlyOutflowEl = document.getElementById('monthlyOutflow');
+    const creditCardPaymentsEl = document.getElementById('creditCardPayments');
+    const creditPaymentsEl = document.getElementById('creditPayments');
+    
+    if (monthlyDebtPaymentsEl) {
+        const totalDebtPayments = (d.monthly.credit_card_payments || 0) + (d.debts.monthly_payments || 0);
+        monthlyDebtPaymentsEl.textContent = formatMoney(totalDebtPayments);
+    }
+    if (monthlyOutflowEl) {
+        monthlyOutflowEl.textContent = formatMoney(d.monthly.outflow || 0);
+    }
+    if (creditCardPaymentsEl) {
+        creditCardPaymentsEl.textContent = formatMoney(d.monthly.credit_card_payments || 0);
+    }
+    if (creditPaymentsEl) {
+        creditPaymentsEl.textContent = formatMoney(d.debts.monthly_payments || 0);
     }
     document.getElementById('monthlySavings').textContent = formatMoney(d.monthly.savings);
     document.getElementById('savingsRate').textContent = `${d.monthly.savings_rate}%`;

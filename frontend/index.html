@@ -191,19 +191,42 @@
                                 <span>↑ 0%</span>
                                 <span>vs прошлый месяц</span>
                             </div>
-                            <!-- ✅ НОВОЕ: Разбивка расходов -->
-                            <div class="expense-breakdown" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2);">
-                                <div class="expense-row" style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                            <!-- Разбивка расходов -->
+                            <div class="expense-breakdown" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 13px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                     <span>👨‍👩‍👧 Семейные:</span>
                                     <span id="expensePersonal">0 ₽</span>
                                 </div>
-                                <div class="expense-row" style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                     <span>🏢 Бизнес:</span>
                                     <span id="expenseBusiness">0 ₽</span>
                                 </div>
-                                <div class="expense-row" style="display: flex; justify-content: space-between; font-size: 13px; opacity: 0.8;">
-                                    <span>💳 С кредиток:</span>
+                                <div style="display: flex; justify-content: space-between; opacity: 0.8;">
+                                    <span>💳 Траты с кредиток:</span>
                                     <span id="expenseCreditCards">0 ₽</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ✅ НОВАЯ КАРТОЧКА: Погашение долгов -->
+                        <div class="card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white;">
+                            <div class="card-header">
+                                <span class="card-icon">💸</span>
+                                <span class="card-title">Погашение долгов</span>
+                            </div>
+                            <div class="card-value" id="monthlyDebtPayments">0 ₽</div>
+                            <div class="card-subtitle" style="opacity: 0.9;">
+                                <span>Отток с ваших счетов: </span>
+                                <span id="monthlyOutflow">0 ₽</span>
+                            </div>
+                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 13px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span>💳 На кредитные карты:</span>
+                                    <span id="creditCardPayments">0 ₽</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>📋 На кредиты:</span>
+                                    <span id="creditPayments">0 ₽</span>
                                 </div>
                             </div>
                         </div>
