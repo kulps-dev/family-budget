@@ -150,7 +150,7 @@
                     <div class="ai-tips-container" id="aiTipsContainer" style="display: none; margin-bottom: 20px;"></div>
                     
                     <div class="dashboard-grid">
-                        <!-- Summary Cards -->
+                        <!-- Баланс -->
                         <div class="card card-balance">
                             <div class="card-header">
                                 <span class="card-icon">💰</span>
@@ -161,13 +161,15 @@
                                 <span>Чистый капитал: </span>
                                 <span id="netWorth">0 ₽</span>
                             </div>
-                            <!-- Налоговый резерв отдельно -->
-                            <div class="tax-reserve-detail">
-                                <span class="balance-detail-label">🧾 Резерв на налоги:</span>
-                                <span class="balance-detail-value" id="taxReserveBalance">0 ₽</span>
+                            <div class="balance-details">
+                                <div class="balance-detail-row">
+                                    <span>🧾 Резерв на налоги:</span>
+                                    <span id="taxReserveBalance">0 ₽</span>
+                                </div>
                             </div>
                         </div>
                         
+                        <!-- Доходы -->
                         <div class="card card-income">
                             <div class="card-header">
                                 <span class="card-icon">📈</span>
@@ -180,7 +182,7 @@
                             </div>
                         </div>
                         
-                        <!-- Найдите card-expense и замените весь блок -->
+                        <!-- Расходы -->
                         <div class="card card-expense">
                             <div class="card-header">
                                 <span class="card-icon">📉</span>
@@ -191,46 +193,23 @@
                                 <span>↑ 0%</span>
                                 <span>vs прошлый месяц</span>
                             </div>
-                            <!-- Разбивка расходов -->
-                            <div class="expense-breakdown" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 13px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <div class="expense-breakdown">
+                                <div class="breakdown-row">
                                     <span>👨‍👩‍👧 Семейные:</span>
                                     <span id="expensePersonal">0 ₽</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <div class="breakdown-row">
                                     <span>🏢 Бизнес:</span>
                                     <span id="expenseBusiness">0 ₽</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; opacity: 0.8;">
-                                    <span>💳 Траты с кредиток:</span>
+                                <div class="breakdown-row">
+                                    <span>💳 С кредиток:</span>
                                     <span id="expenseCreditCards">0 ₽</span>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- ✅ НОВАЯ КАРТОЧКА: Погашение долгов -->
-                        <div class="card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white;">
-                            <div class="card-header">
-                                <span class="card-icon">💸</span>
-                                <span class="card-title">Погашение долгов</span>
-                            </div>
-                            <div class="card-value" id="monthlyDebtPayments">0 ₽</div>
-                            <div class="card-subtitle" style="opacity: 0.9;">
-                                <span>Отток с ваших счетов: </span>
-                                <span id="monthlyOutflow">0 ₽</span>
-                            </div>
-                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 13px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                    <span>💳 На кредитные карты:</span>
-                                    <span id="creditCardPayments">0 ₽</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>📋 На кредиты:</span>
-                                    <span id="creditPayments">0 ₽</span>
-                                </div>
-                            </div>
-                        </div>
                         
+                        <!-- Накоплено -->
                         <div class="card card-savings">
                             <div class="card-header">
                                 <span class="card-icon">🐷</span>
@@ -243,18 +222,41 @@
                             </div>
                         </div>
                         
-                        <!-- Upcoming Payments -->
+                        <!-- Погашение долгов -->
+                        <div class="card card-debt-payments">
+                            <div class="card-header">
+                                <span class="card-icon">💸</span>
+                                <span class="card-title">Погашение долгов</span>
+                            </div>
+                            <div class="card-value" id="monthlyDebtPayments">0 ₽</div>
+                            <div class="card-subtitle">
+                                <span>Отток: </span>
+                                <span id="monthlyOutflow">0 ₽</span>
+                            </div>
+                            <div class="expense-breakdown">
+                                <div class="breakdown-row">
+                                    <span>💳 Кредитные карты:</span>
+                                    <span id="creditCardPayments">0 ₽</span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span>🏠 Ипотека:</span>
+                                    <span id="mortgagePaymentsMonth">0 ₽</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Ближайшие платежи -->
                         <div class="card card-wide">
                             <div class="card-header">
                                 <span class="card-icon">⏰</span>
-                                <span class="card-title">Ближайшие платежи (14 дней)</span>
+                                <span class="card-title">Ближайшие платежи</span>
                             </div>
                             <div class="upcoming-list" id="upcomingPayments">
                                 <div class="empty-state small">Нет предстоящих платежей</div>
                             </div>
                         </div>
                         
-                        <!-- Over Budget -->
+                        <!-- Превышение бюджета -->
                         <div class="card">
                             <div class="card-header">
                                 <span class="card-icon">⚠️</span>
@@ -265,16 +267,16 @@
                             </div>
                         </div>
                         
-                        <!-- Trends Chart -->
+                        <!-- Тренды -->
                         <div class="card card-wide">
                             <div class="card-header">
                                 <span class="card-icon">📊</span>
                                 <span class="card-title">Тренды за 6 месяцев</span>
                             </div>
-                            <div class="chart-container" id="trendsChart" style="height: 250px;"></div>
+                            <div class="chart-container" id="trendsChart" style="height: 200px;"></div>
                         </div>
                         
-                        <!-- Goals Progress -->
+                        <!-- Цели -->
                         <div class="card">
                             <div class="card-header">
                                 <span class="card-icon">🎯</span>
@@ -284,7 +286,7 @@
                             <div class="goals-mini" id="goalsMini"></div>
                         </div>
                         
-                        <!-- Debts Summary -->
+                        <!-- Долги -->
                         <div class="card">
                             <div class="card-header">
                                 <span class="card-icon">📋</span>
@@ -310,7 +312,7 @@
                             </div>
                         </div>
                         
-                        <!-- Investments -->
+                        <!-- Инвестиции -->
                         <div class="card">
                             <div class="card-header">
                                 <span class="card-icon">📈</span>
@@ -325,7 +327,7 @@
                             </div>
                         </div>
                         
-                        <!-- Recent Transactions -->
+                        <!-- Последние операции -->
                         <div class="card card-wide">
                             <div class="card-header">
                                 <span class="card-icon">💳</span>

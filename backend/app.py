@@ -2691,7 +2691,7 @@ def ai_tips():
     return jsonify(tips)
 
 # --- Статистика и дашборд ---
-@app.route('/api/dashboard', methods=['GET'])
+
 def get_dashboard():
     today = date.today()
     first_day_month = today.replace(day=1)
@@ -2710,23 +2710,47 @@ def get_dashboard():
             if card:
                 total_credit_debt += card.current_debt
     
-    # ✅ РАСХОДЫ: обычные траты
-    monthly_expense_personal = db.session.query(db.func.sum(Transaction.amount)).filter(
-        Transaction.type == 'expense',
-        Transaction.date >= first_day_month,
-        Transaction.is_business_expense == False
-    ).scalar() or 0
-    
-    monthly_expense_business = db.session.query(db.func.sum(Transaction.amount)).filter(
-        Transaction.type == 'expense',
-        Transaction.date >= first_day_month,
-        Transaction.is_business_expense == True
-    ).scalar() or 0
-    
-    # ✅ Переводы с кредитных карт на обычные счета = тоже расход (трата кредитных денег)
+    # ID счетов по типам
     credit_card_ids = [a.id for a in accounts if a.account_type == 'credit_card']
     non_credit_card_ids = [a.id for a in accounts if a.account_type != 'credit_card']
     
+    # ========== ДОХОДЫ ==========
+    monthly_income = db.session.query(db.func.sum(Transaction.amount)).filter(
+        Transaction.type == 'income',
+        Transaction.date >= first_day_month
+    ).scalar() or 0
+    
+    # ========== РАСХОДЫ ==========
+    # Проверяем есть ли колонка is_business_expense
+    has_business_column = True
+    try:
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        columns = [c['name'] for c in inspector.get_columns('transaction')]
+        has_business_column = 'is_business_expense' in columns
+    except:
+        has_business_column = False
+    
+    if has_business_column:
+        monthly_expense_personal = db.session.query(db.func.sum(Transaction.amount)).filter(
+            Transaction.type == 'expense',
+            Transaction.date >= first_day_month,
+            Transaction.is_business_expense == False
+        ).scalar() or 0
+        
+        monthly_expense_business = db.session.query(db.func.sum(Transaction.amount)).filter(
+            Transaction.type == 'expense',
+            Transaction.date >= first_day_month,
+            Transaction.is_business_expense == True
+        ).scalar() or 0
+    else:
+        monthly_expense_personal = db.session.query(db.func.sum(Transaction.amount)).filter(
+            Transaction.type == 'expense',
+            Transaction.date >= first_day_month
+        ).scalar() or 0
+        monthly_expense_business = 0
+    
+    # Переводы с кредитных карт на обычные счета = тоже расход
     credit_card_spending = 0
     if credit_card_ids and non_credit_card_ids:
         credit_card_spending = db.session.query(db.func.sum(Transaction.amount)).filter(
@@ -2737,64 +2761,55 @@ def get_dashboard():
             Transaction.is_tax_transfer == False
         ).scalar() or 0
     
-    # ✅ НОВОЕ: Погашение кредиток (отток с дебетовых счетов на кредитки)
+    # ========== ПОГАШЕНИЕ КРЕДИТОК (реальные переводы) ==========
     credit_card_payments = 0
     if credit_card_ids and non_credit_card_ids:
         credit_card_payments = db.session.query(db.func.sum(Transaction.amount)).filter(
             Transaction.type == 'transfer',
             Transaction.date >= first_day_month,
-            Transaction.account_id.in_(non_credit_card_ids),  # С дебетовых
-            Transaction.to_account_id.in_(credit_card_ids),   # На кредитки
+            Transaction.account_id.in_(non_credit_card_ids),
+            Transaction.to_account_id.in_(credit_card_ids),
             Transaction.is_tax_transfer == False
         ).scalar() or 0
     
-    # Общие расходы (траты)
-    monthly_expense = monthly_expense_personal + monthly_expense_business + credit_card_spending
-    
-    # ✅ НОВОЕ: Общий отток денег (расходы + погашение долгов)
-    monthly_outflow = monthly_expense + credit_card_payments
-    
-    # Доходы
-    monthly_income = db.session.query(db.func.sum(Transaction.amount)).filter(
-        Transaction.type == 'income',
-        Transaction.date >= first_day_month
+    # ========== ПЛАТЕЖИ ПО КРЕДИТАМ (реальные транзакции) ==========
+    # Ищем транзакции-переводы с описанием про кредит или ипотеку
+    credit_loan_payments = db.session.query(db.func.sum(Transaction.amount)).filter(
+        Transaction.type == 'transfer',
+        Transaction.date >= first_day_month,
+        db.or_(
+            Transaction.description.ilike('%кредит%'),
+            Transaction.description.ilike('%ипотек%'),
+            Transaction.description.ilike('%погашение%')
+        )
     ).scalar() or 0
     
-    # Прошлый месяц для сравнения
+    # Платежи по ипотеке из таблицы MortgagePayment
+    mortgage_payments_month = db.session.query(db.func.sum(MortgagePayment.amount)).filter(
+        MortgagePayment.date >= first_day_month
+    ).scalar() or 0
+    
+    # Общие расходы
+    monthly_expense = monthly_expense_personal + monthly_expense_business + credit_card_spending
+    
+    # Общий отток
+    total_debt_payments = credit_card_payments + mortgage_payments_month
+    monthly_outflow = monthly_expense + total_debt_payments
+    
+    # ========== ПРОШЛЫЙ МЕСЯЦ ==========
     last_month_income = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'income',
         Transaction.date >= last_month_start,
         Transaction.date <= last_month_end
     ).scalar() or 0
     
-    last_month_expense_personal = db.session.query(db.func.sum(Transaction.amount)).filter(
+    last_month_expense = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'expense',
         Transaction.date >= last_month_start,
-        Transaction.date <= last_month_end,
-        Transaction.is_business_expense == False
+        Transaction.date <= last_month_end
     ).scalar() or 0
     
-    last_month_expense_business = db.session.query(db.func.sum(Transaction.amount)).filter(
-        Transaction.type == 'expense',
-        Transaction.date >= last_month_start,
-        Transaction.date <= last_month_end,
-        Transaction.is_business_expense == True
-    ).scalar() or 0
-    
-    last_month_credit_spending = 0
-    if credit_card_ids and non_credit_card_ids:
-        last_month_credit_spending = db.session.query(db.func.sum(Transaction.amount)).filter(
-            Transaction.type == 'transfer',
-            Transaction.date >= last_month_start,
-            Transaction.date <= last_month_end,
-            Transaction.account_id.in_(credit_card_ids),
-            Transaction.to_account_id.in_(non_credit_card_ids),
-            Transaction.is_tax_transfer == False
-        ).scalar() or 0
-    
-    last_month_expense = last_month_expense_personal + last_month_expense_business + last_month_credit_spending
-    
-    # Годовые показатели
+    # ========== ГОДОВЫЕ ==========
     yearly_income = db.session.query(db.func.sum(Transaction.amount)).filter(
         Transaction.type == 'income',
         Transaction.date >= first_day_year
@@ -2805,7 +2820,7 @@ def get_dashboard():
         Transaction.date >= first_day_year
     ).scalar() or 0
     
-    # Цели
+    # ========== ЦЕЛИ ==========
     goals = Goal.query.filter_by(is_completed=False).all()
     goals_total_target = sum(g.target_amount for g in goals)
     goals_total_current = sum(g.current_amount for g in goals)
@@ -2814,7 +2829,7 @@ def get_dashboard():
         Goal.completed_at >= first_day_month
     ).count()
     
-    # Кредиты и ипотека
+    # ========== КРЕДИТЫ И ИПОТЕКА ==========
     credits = Credit.query.all()
     mortgages = Mortgage.query.all()
     total_credit_remaining = sum(c.remaining_amount for c in credits)
@@ -2822,12 +2837,12 @@ def get_dashboard():
     monthly_credit_payments = sum(c.monthly_payment for c in credits)
     monthly_mortgage_payments = sum(m.monthly_payment for m in mortgages)
     
-    # Инвестиции
+    # ========== ИНВЕСТИЦИИ ==========
     investments = Investment.query.all()
     total_invested = sum(i.quantity * i.avg_buy_price for i in investments)
     total_investment_value = sum(i.quantity * i.current_price for i in investments)
     
-    # Налоги
+    # ========== НАЛОГИ ==========
     pending_taxes = db.session.query(db.func.sum(TaxReserve.tax_amount)).filter(
         TaxReserve.is_transferred == False
     ).scalar() or 0
@@ -2836,7 +2851,7 @@ def get_dashboard():
         Account.is_tax_reserve == True
     ).scalar() or 0
     
-    # Ближайшие платежи
+    # ========== БЛИЖАЙШИЕ ПЛАТЕЖИ ==========
     upcoming_payments = []
     
     for c in credits:
@@ -2850,19 +2865,6 @@ def get_dashboard():
                     'date': c.next_payment_date.isoformat(),
                     'days_left': days_left
                 })
-        elif c.payment_day:
-            payment_date = today.replace(day=min(c.payment_day, 28))
-            if payment_date < today:
-                payment_date = payment_date + relativedelta(months=1)
-            days_left = (payment_date - today).days
-            if days_left <= 14:
-                upcoming_payments.append({
-                    'type': 'credit',
-                    'name': c.name,
-                    'amount': c.monthly_payment,
-                    'date': payment_date.isoformat(),
-                    'days_left': days_left
-                })
     
     for m in mortgages:
         if m.next_payment_date:
@@ -2873,19 +2875,6 @@ def get_dashboard():
                     'name': m.name,
                     'amount': m.monthly_payment,
                     'date': m.next_payment_date.isoformat(),
-                    'days_left': days_left
-                })
-        elif m.payment_day:
-            payment_date = today.replace(day=min(m.payment_day, 28))
-            if payment_date < today:
-                payment_date = payment_date + relativedelta(months=1)
-            days_left = (payment_date - today).days
-            if days_left <= 14:
-                upcoming_payments.append({
-                    'type': 'mortgage',
-                    'name': m.name,
-                    'amount': m.monthly_payment,
-                    'date': payment_date.isoformat(),
                     'days_left': days_left
                 })
     
@@ -2908,7 +2897,7 @@ def get_dashboard():
     
     upcoming_payments.sort(key=lambda x: x['days_left'])
     
-    # Превышение бюджета
+    # ========== ПРЕВЫШЕНИЕ БЮДЖЕТА ==========
     over_budget_categories = []
     categories = Category.query.filter(Category.budget_limit > 0, Category.type == 'expense').all()
     for cat in categories:
@@ -2927,7 +2916,7 @@ def get_dashboard():
                 'over': spent - cat.budget_limit
             })
     
-    # Тренды
+    # ========== ТРЕНДЫ ==========
     trends = []
     for i in range(5, -1, -1):
         month_start = (today - relativedelta(months=i)).replace(day=1)
@@ -2958,18 +2947,6 @@ def get_dashboard():
         a.balance for a in accounts 
         if a.account_type not in ['credit_card'] and not a.is_tax_reserve and a.account_type != 'tax_reserve'
     )
-
-    # Ищем транзакции с описанием погашения кредитов
-    credit_payments_month = db.session.query(db.func.sum(Transaction.amount)).filter(
-        Transaction.type == 'transfer',
-        Transaction.date >= first_day_month,
-        Transaction.description.like('%кредит%')
-    ).scalar() or 0
-    
-    # Или считаем по платежам ипотеки
-    mortgage_payments_month = db.session.query(db.func.sum(MortgagePayment.amount)).filter(
-        MortgagePayment.date >= first_day_month
-    ).scalar() or 0
     
     return jsonify({
         'balance': {
@@ -2981,14 +2958,16 @@ def get_dashboard():
         },
         'monthly': {
             'income': monthly_income,
-            'expense': monthly_expense,  # Только реальные траты
+            'expense': monthly_expense,
             'expense_personal': monthly_expense_personal + credit_card_spending,
             'expense_business': monthly_expense_business,
-            'credit_card_spending': credit_card_spending,  # Траты с кредиток
-            'credit_card_payments': credit_card_payments,  # ✅ НОВОЕ: Погашение кредиток
-            'outflow': monthly_outflow,  # ✅ НОВОЕ: Весь отток денег
+            'credit_card_spending': credit_card_spending,
+            'credit_card_payments': credit_card_payments,
+            'mortgage_payments': mortgage_payments_month,
+            'total_debt_payments': total_debt_payments,
+            'outflow': monthly_outflow,
             'savings': monthly_income - monthly_expense,
-            'real_savings': monthly_income - monthly_outflow,  # ✅ НОВОЕ: Реальный остаток
+            'real_savings': monthly_income - monthly_outflow,
             'savings_rate': round((monthly_income - monthly_expense) / monthly_income * 100, 1) if monthly_income > 0 else 0,
             'income_change': round((monthly_income - last_month_income) / last_month_income * 100, 1) if last_month_income > 0 else 0,
             'expense_change': round((monthly_expense - last_month_expense) / last_month_expense * 100, 1) if last_month_expense > 0 else 0

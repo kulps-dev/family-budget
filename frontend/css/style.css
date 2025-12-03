@@ -4943,3 +4943,337 @@ body {
         transform: translateY(0);
     }
 }
+
+
+
+/* ==================== МОБИЛЬНАЯ АДАПТАЦИЯ ==================== */
+
+/* Карточка погашения долгов */
+.card-debt-payments {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+}
+
+/* Разбивка расходов */
+.expense-breakdown,
+.balance-details {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    font-size: 13px;
+}
+
+.breakdown-row,
+.balance-detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    opacity: 0.9;
+}
+
+.breakdown-row:last-child,
+.balance-detail-row:last-child {
+    margin-bottom: 0;
+}
+
+/* ==================== iPhone адаптация ==================== */
+@media screen and (max-width: 428px) {
+    /* Основные отступы */
+    .content {
+        padding: 12px;
+    }
+    
+    /* Сетка дашборда */
+    .dashboard-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    /* Карточки */
+    .card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+    
+    .card-value {
+        font-size: 28px;
+    }
+    
+    .card-header {
+        margin-bottom: 8px;
+    }
+    
+    .card-title {
+        font-size: 14px;
+    }
+    
+    .card-subtitle {
+        font-size: 12px;
+    }
+    
+    /* Разбивка расходов на мобильном */
+    .expense-breakdown,
+    .balance-details {
+        font-size: 12px;
+        margin-top: 10px;
+        padding-top: 10px;
+    }
+    
+    .breakdown-row,
+    .balance-detail-row {
+        margin-bottom: 4px;
+    }
+    
+    /* Карточка баланса - полная ширина */
+    .card-balance {
+        order: -1;
+    }
+    
+    /* Скрываем широкие карточки на мобильном */
+    .card-wide {
+        width: 100%;
+    }
+    
+    /* Графики меньше */
+    .chart-container {
+        height: 180px !important;
+    }
+    
+    /* Фильтры на аналитике */
+    .analytics-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .analytics-filters {
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+    
+    .analytics-period-controls {
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+    
+    .analytics-period-controls select,
+    .analytics-period-controls input {
+        width: 100%;
+    }
+    
+    .analytics-custom-dates {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .analytics-custom-dates input {
+        width: 100%;
+    }
+    
+    #analyzeAIBtn {
+        width: 100%;
+    }
+    
+    /* Аналитика - сетка */
+    .analytics-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .analytics-card {
+        width: 100%;
+    }
+    
+    .analytics-card.wide {
+        width: 100%;
+    }
+    
+    /* Транзакции */
+    .transaction-item {
+        padding: 12px;
+        gap: 10px;
+    }
+    
+    .transaction-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+    
+    .transaction-amount {
+        font-size: 14px;
+    }
+    
+    .transaction-actions {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    /* Фильтры транзакций */
+    .filters-bar {
+        padding: 12px;
+    }
+    
+    .filters-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .filter-group {
+        width: 100%;
+    }
+    
+    .filter-select,
+    .filter-input {
+        width: 100%;
+    }
+    
+    /* Модальные окна */
+    .modal {
+        width: 95%;
+        max-width: none;
+        margin: 10px;
+        max-height: 90vh;
+    }
+    
+    .modal-body {
+        padding: 16px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .form-group {
+        width: 100%;
+    }
+    
+    /* Кнопки */
+    .form-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
+    
+    /* Табы типов операций */
+    .type-tabs {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .type-tab {
+        width: 100%;
+        padding: 12px;
+    }
+    
+    /* Нижняя навигация */
+    .mobile-nav {
+        padding: 8px 0;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    }
+    
+    .mobile-nav-item {
+        padding: 8px 4px;
+    }
+    
+    .mobile-nav-item .nav-icon {
+        font-size: 20px;
+    }
+    
+    .mobile-nav-item .nav-text {
+        font-size: 10px;
+    }
+    
+    /* FAB кнопка */
+    .fab {
+        bottom: calc(70px + env(safe-area-inset-bottom));
+        right: 16px;
+        width: 52px;
+        height: 52px;
+    }
+    
+    /* Заголовок */
+    .header {
+        padding: 12px 16px;
+        padding-top: calc(12px + env(safe-area-inset-top));
+    }
+    
+    .page-title {
+        font-size: 18px;
+    }
+    
+    /* Скрываем текст на кнопке добавления */
+    #addBtn .btn-text {
+        display: none;
+    }
+    
+    #addBtn .btn-icon-left {
+        margin-right: 0;
+    }
+}
+
+/* iPhone с челкой (notch) */
+@supports (padding-top: env(safe-area-inset-top)) {
+    .header {
+        padding-top: calc(12px + env(safe-area-inset-top));
+    }
+    
+    .mobile-nav {
+        padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    }
+    
+    .fab {
+        bottom: calc(70px + env(safe-area-inset-bottom));
+    }
+    
+    .sidebar {
+        padding-top: env(safe-area-inset-top);
+    }
+}
+
+/* Ландшафтная ориентация iPhone */
+@media screen and (max-width: 896px) and (orientation: landscape) {
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .card-wide {
+        grid-column: span 2;
+    }
+    
+    .mobile-nav {
+        display: none;
+    }
+    
+    .fab {
+        bottom: 20px;
+    }
+}
+
+/* Планшеты */
+@media screen and (min-width: 429px) and (max-width: 768px) {
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    
+    .card-wide {
+        grid-column: span 2;
+    }
+    
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+}

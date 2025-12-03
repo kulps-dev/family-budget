@@ -417,11 +417,11 @@ function renderDashboard() {
     const d = state.dashboard;
     if (!d) return;
     
-    // Баланс (без налогового резерва)
+    // Баланс
     document.getElementById('totalBalance').textContent = formatMoney(d.balance.total);
     document.getElementById('netWorth').textContent = formatMoney(d.balance.net_worth);
     
-    // Налоговый резерв отдельно
+    // Налоговый резерв
     const taxReserveEl = document.getElementById('taxReserveBalance');
     if (taxReserveEl) {
         taxReserveEl.textContent = formatMoney(d.balance.tax_reserve || 0);
@@ -430,6 +430,9 @@ function renderDashboard() {
     // Месячные показатели
     document.getElementById('monthlyIncome').textContent = formatMoney(d.monthly.income);
     document.getElementById('monthlyExpense').textContent = formatMoney(d.monthly.expense);
+    document.getElementById('monthlySavings').textContent = formatMoney(d.monthly.savings);
+    document.getElementById('savingsRate').textContent = `${d.monthly.savings_rate}%`;
+    
     // Разбивка расходов
     const expensePersonalEl = document.getElementById('expensePersonal');
     const expenseBusinessEl = document.getElementById('expenseBusiness');
@@ -445,15 +448,14 @@ function renderDashboard() {
         expenseCreditCardsEl.textContent = formatMoney(d.monthly.credit_card_spending || 0);
     }
     
-    // ✅ НОВОЕ: Погашение долгов
+    // Погашение долгов
     const monthlyDebtPaymentsEl = document.getElementById('monthlyDebtPayments');
     const monthlyOutflowEl = document.getElementById('monthlyOutflow');
     const creditCardPaymentsEl = document.getElementById('creditCardPayments');
-    const creditPaymentsEl = document.getElementById('creditPayments');
+    const mortgagePaymentsMonthEl = document.getElementById('mortgagePaymentsMonth');
     
     if (monthlyDebtPaymentsEl) {
-        const totalDebtPayments = (d.monthly.credit_card_payments || 0) + (d.debts.monthly_payments || 0);
-        monthlyDebtPaymentsEl.textContent = formatMoney(totalDebtPayments);
+        monthlyDebtPaymentsEl.textContent = formatMoney(d.monthly.total_debt_payments || 0);
     }
     if (monthlyOutflowEl) {
         monthlyOutflowEl.textContent = formatMoney(d.monthly.outflow || 0);
@@ -461,11 +463,9 @@ function renderDashboard() {
     if (creditCardPaymentsEl) {
         creditCardPaymentsEl.textContent = formatMoney(d.monthly.credit_card_payments || 0);
     }
-    if (creditPaymentsEl) {
-        creditPaymentsEl.textContent = formatMoney(d.debts.monthly_payments || 0);
+    if (mortgagePaymentsMonthEl) {
+        mortgagePaymentsMonthEl.textContent = formatMoney(d.monthly.mortgage_payments || 0);
     }
-    document.getElementById('monthlySavings').textContent = formatMoney(d.monthly.savings);
-    document.getElementById('savingsRate').textContent = `${d.monthly.savings_rate}%`;
     
     // Изменения
     renderChange('incomeChange', d.monthly.income_change, true);
