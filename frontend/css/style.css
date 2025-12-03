@@ -437,7 +437,7 @@ body {
 .card-title {
     font-size: 14px;
     font-weight: 600;
-    color: var(--gray-500);
+    color: var(--white);
     flex: 1;
 }
 
@@ -457,7 +457,7 @@ body {
 
 .card-subtitle {
     font-size: 14px;
-    color: var(--gray-500);
+    color: var(--white);
 }
 
 .card-change {
