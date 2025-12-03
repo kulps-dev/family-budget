@@ -147,17 +147,17 @@ class CreditPayment(db.Model):
     credit_id = db.Column(db.Integer, db.ForeignKey('credit.id'))
     date = db.Column(db.Date, nullable=False)
     amount = db.Column(db.Float, nullable=False)
-    principal = db.Column(db.Float, default=0)  # Основной долг
-    interest = db.Column(db.Float, default=0)   # Проценты
-    is_regular = db.Column(db.Boolean, default=True)  # Обязательный платёж
-    is_extra = db.Column(db.Boolean, default=False)   # Досрочный
-    payment_number = db.Column(db.Integer, default=0)  # Номер платежа
-    remaining_after = db.Column(db.Float, default=0)   # Остаток после платежа
-    months_reduced = db.Column(db.Integer, default=0)  # На сколько сократился срок
+    principal = db.Column(db.Float, default=0)
+    interest = db.Column(db.Float, default=0)
+    is_regular = db.Column(db.Boolean, default=True)
+    is_extra = db.Column(db.Boolean, default=False)
+    payment_number = db.Column(db.Integer, default=0)
+    remaining_after = db.Column(db.Float, nullable=True)
     notes = db.Column(db.String(255), default='')
+    is_manual = db.Column(db.Boolean, default=False)  # Ручной ввод
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    credit = db.relationship('Credit', backref='payments')
+    credit = db.relationship('Credit', backref='payment_records')
 
 class Mortgage(db.Model):
     """Ипотека"""
@@ -1120,37 +1120,14 @@ def get_credits():
     result = []
     for c in credits:
         # Получаем историю платежей
-        payments = CreditPayment.query.filter_by(credit_id=c.id).order_by(CreditPayment.date).all()
-        regular_payments = [p for p in payments if p.is_regular and not p.is_extra]
-        extra_payments = [p for p in payments if p.is_extra]
+        payments = CreditPayment.query.filter_by(credit_id=c.id).order_by(CreditPayment.date.desc()).all()
         
-        # Считаем статистику
-        total_paid = sum(p.amount for p in payments)
-        total_principal_paid = sum(p.principal for p in payments)
-        total_interest_paid = sum(p.interest for p in payments)
-        total_extra_paid = sum(p.amount for p in extra_payments)
-        
-        # Дней до платежа
         days_until_payment = (c.next_payment_date - today).days if c.next_payment_date else None
         
         # Прогресс
         progress = round((c.original_amount - c.remaining_amount) / c.original_amount * 100, 1) if c.original_amount > 0 else 0
         
-        # Рассчитываем общую переплату
-        rate = c.interest_rate / 100 / 12
-        if rate > 0 and c.remaining_months > 0:
-            remaining_interest = 0
-            temp_remaining = c.remaining_amount
-            for _ in range(c.remaining_months):
-                interest = temp_remaining * rate
-                principal = c.monthly_payment - interest
-                remaining_interest += interest
-                temp_remaining = max(0, temp_remaining - principal)
-            total_overpayment = total_interest_paid + remaining_interest
-        else:
-            total_overpayment = total_interest_paid
-        
-        # Формируем историю платежей для отображения
+        # Формируем историю платежей
         payments_history = [{
             'id': p.id,
             'date': p.date.isoformat(),
@@ -1161,9 +1138,9 @@ def get_credits():
             'is_extra': p.is_extra,
             'payment_number': p.payment_number,
             'remaining_after': p.remaining_after,
-            'months_reduced': p.months_reduced,
-            'notes': p.notes
-        } for p in payments[-12:]]  # Последние 12 платежей
+            'notes': p.notes,
+            'is_manual': p.is_manual
+        } for p in payments]
         
         result.append({
             'id': c.id,
@@ -1179,24 +1156,11 @@ def get_credits():
             'start_date': c.start_date.isoformat() if c.start_date else None,
             'next_payment_date': c.next_payment_date.isoformat() if c.next_payment_date else None,
             'payment_day': c.payment_day,
-            
-            # Статистика платежей
-            'payments_made': len(regular_payments),
-            'extra_payments_count': len(extra_payments),
-            'total_paid': round(total_paid, 2),
-            'total_principal_paid': round(total_principal_paid, 2),
-            'total_interest_paid': round(total_interest_paid, 2),
-            'total_extra_paid': round(total_extra_paid, 2),
-            'total_overpayment': round(total_overpayment, 2),
-            
-            # Прогресс и сроки
-            'progress': progress,
             'days_until_payment': days_until_payment,
-            'is_payment_soon': days_until_payment is not None and days_until_payment <= 5,
-            
-            # История
+            'progress': progress,
+            'extra_payments_total': c.extra_payments_total,
             'payments_history': payments_history,
-            'has_more_payments': len(payments) > 12
+            'is_payment_soon': days_until_payment is not None and days_until_payment <= 5
         })
     
     return jsonify(result)
@@ -1517,6 +1481,63 @@ def delete_credit_payment(id, payment_id):
     db.session.commit()
     
     return jsonify({'message': 'Платёж удалён', 'remaining_amount': credit.remaining_amount})
+
+
+@app.route('/api/credits/<int:id>/payments', methods=['POST'])
+def add_credit_payment(id):
+    """Добавить платёж в историю (ручной ввод)"""
+    credit = Credit.query.get_or_404(id)
+    data = request.json
+    
+    payment = CreditPayment(
+        credit_id=id,
+        date=datetime.strptime(data['date'], '%Y-%m-%d').date(),
+        amount=data['amount'],
+        principal=data.get('principal', 0),
+        interest=data.get('interest', 0),
+        is_regular=data.get('is_regular', True),
+        is_extra=data.get('is_extra', False),
+        payment_number=data.get('payment_number', 0),
+        remaining_after=data.get('remaining_after'),
+        notes=data.get('notes', ''),
+        is_manual=data.get('is_manual', True)
+    )
+    db.session.add(payment)
+    db.session.commit()
+    
+    return jsonify({
+        'id': payment.id,
+        'message': 'Платёж добавлен в историю'
+    }), 201
+
+
+@app.route('/api/credits/<int:id>/payments', methods=['GET'])
+def get_credit_payments(id):
+    """Получить все платежи по кредиту"""
+    payments = CreditPayment.query.filter_by(credit_id=id).order_by(CreditPayment.date.desc()).all()
+    
+    return jsonify([{
+        'id': p.id,
+        'date': p.date.isoformat(),
+        'amount': p.amount,
+        'principal': p.principal,
+        'interest': p.interest,
+        'is_regular': p.is_regular,
+        'is_extra': p.is_extra,
+        'payment_number': p.payment_number,
+        'remaining_after': p.remaining_after,
+        'notes': p.notes,
+        'is_manual': p.is_manual
+    } for p in payments])
+
+
+@app.route('/api/credits/<int:id>/payments/<int:payment_id>', methods=['DELETE'])
+def delete_credit_payment(id, payment_id):
+    """Удалить платёж из истории"""
+    payment = CreditPayment.query.get_or_404(payment_id)
+    db.session.delete(payment)
+    db.session.commit()
+    return jsonify({'message': 'Платёж удалён'})
 
 # --- Ипотека ---
 @app.route('/api/mortgages', methods=['GET'])

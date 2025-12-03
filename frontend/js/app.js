@@ -1145,7 +1145,6 @@ function renderCredits() {
     // Сводка
     const totalDebt = state.credits.reduce((sum, c) => sum + c.remaining_amount, 0);
     const monthlyPayment = state.credits.reduce((sum, c) => sum + c.monthly_payment, 0);
-    const totalPaidInterest = state.credits.reduce((sum, c) => sum + (c.total_interest_paid || 0), 0);
     
     const totalCreditsDebtEl = document.getElementById('totalCreditsDebt');
     const monthlyCreditsPaymentEl = document.getElementById('monthlyCreditsPayment');
@@ -1164,142 +1163,140 @@ function renderCredits() {
     }
     
     container.innerHTML = state.credits.map(c => {
-        // Форматируем ставку (поддержка дробных)
+        // Форматируем ставку (поддержка дробных типа 43,22%)
         const rateDisplay = c.interest_rate % 1 === 0 
             ? c.interest_rate + '%' 
             : c.interest_rate.toFixed(2).replace('.', ',') + '%';
         
+        // Считаем статистику из истории платежей
+        const regularPayments = (c.payments_history || []).filter(p => !p.is_extra);
+        const extraPayments = (c.payments_history || []).filter(p => p.is_extra);
+        const totalPaid = (c.payments_history || []).reduce((sum, p) => sum + p.amount, 0);
+        const totalInterestPaid = (c.payments_history || []).reduce((sum, p) => sum + (p.interest || 0), 0);
+        const totalExtraPaid = extraPayments.reduce((sum, p) => sum + p.amount, 0);
+        
         return `
-            <div class="credit-item" data-id="${c.id}">
-                <div class="credit-header">
-                    <div>
-                        <div class="credit-name">${c.name}</div>
-                        <div class="credit-bank">${c.bank_name || ''}</div>
+            <div class="credit-card-new" data-id="${c.id}">
+                <!-- Шапка -->
+                <div class="credit-card-header">
+                    <div class="credit-card-title">
+                        <div class="credit-card-name">${c.name}</div>
+                        <div class="credit-card-bank">${c.bank_name || 'Банк не указан'}</div>
                     </div>
-                    <div class="credit-rate">${rateDisplay}</div>
+                    <div class="credit-card-rate">${rateDisplay}</div>
                 </div>
                 
-                <!-- Основная информация -->
-                <div class="credit-main-info">
-                    <div class="credit-amounts">
-                        <div class="credit-remaining">${formatMoney(c.remaining_amount)}</div>
-                        <div class="credit-original">из ${formatMoney(c.original_amount)}</div>
+                <!-- Основные суммы -->
+                <div class="credit-card-amounts">
+                    <div class="credit-amount-remaining">
+                        <span class="amount-label">Остаток</span>
+                        <span class="amount-value">${formatMoney(c.remaining_amount)}</span>
                     </div>
-                    
-                    <div class="credit-progress">
-                        <div class="credit-progress-fill" style="width: ${c.progress}%"></div>
-                    </div>
-                    <div class="credit-progress-label">${c.progress}% погашено</div>
-                </div>
-                
-                <!-- Статистика платежей - НОВЫЙ БЛОК -->
-                <div class="credit-stats-grid">
-                    <div class="credit-stat-card">
-                        <div class="credit-stat-icon">📅</div>
-                        <div class="credit-stat-info">
-                            <div class="credit-stat-value">${c.start_date ? formatDate(c.start_date) : '—'}</div>
-                            <div class="credit-stat-label">Дата взятия</div>
-                        </div>
-                    </div>
-                    
-                    <div class="credit-stat-card">
-                        <div class="credit-stat-icon">✅</div>
-                        <div class="credit-stat-info">
-                            <div class="credit-stat-value">${c.payments_made} из ${c.term_months}</div>
-                            <div class="credit-stat-label">Платежей внесено</div>
-                        </div>
-                    </div>
-                    
-                    <div class="credit-stat-card">
-                        <div class="credit-stat-icon">💰</div>
-                        <div class="credit-stat-info">
-                            <div class="credit-stat-value">${formatMoney(c.monthly_payment)}</div>
-                            <div class="credit-stat-label">Ежемесячный платёж</div>
-                        </div>
-                    </div>
-                    
-                    <div class="credit-stat-card">
-                        <div class="credit-stat-icon">⏳</div>
-                        <div class="credit-stat-info">
-                            <div class="credit-stat-value">${c.remaining_months} мес.</div>
-                            <div class="credit-stat-label">Осталось</div>
-                        </div>
+                    <div class="credit-amount-original">
+                        <span class="amount-label">Сумма кредита</span>
+                        <span class="amount-value">${formatMoney(c.original_amount)}</span>
                     </div>
                 </div>
                 
-                <!-- Детали платежей -->
-                <div class="credit-payment-details">
-                    <div class="credit-detail-row">
-                        <span>📆 Следующий платёж</span>
-                        <span class="${c.is_payment_soon ? 'text-warning' : ''}">${c.next_payment_date ? formatDate(c.next_payment_date) : '—'}</span>
+                <!-- Прогресс -->
+                <div class="credit-card-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${c.progress || 0}%"></div>
                     </div>
-                    <div class="credit-detail-row">
-                        <span>💵 Уплачено основного долга</span>
-                        <span class="text-success">${formatMoney(c.total_principal_paid || 0)}</span>
+                    <div class="progress-text">${c.progress || 0}% погашено</div>
+                </div>
+                
+                <!-- Информационные плашки -->
+                <div class="credit-info-cards">
+                    <div class="info-card">
+                        <span class="info-icon">📅</span>
+                        <span class="info-label">Взят</span>
+                        <span class="info-value">${c.start_date ? formatDate(c.start_date) : '—'}</span>
                     </div>
-                    <div class="credit-detail-row">
-                        <span>📊 Уплачено процентов</span>
-                        <span class="text-danger">${formatMoney(c.total_interest_paid || 0)}</span>
+                    <div class="info-card">
+                        <span class="info-icon">💰</span>
+                        <span class="info-label">Платёж</span>
+                        <span class="info-value">${formatMoney(c.monthly_payment)}</span>
                     </div>
-                    <div class="credit-detail-row">
-                        <span>💸 Общая переплата</span>
-                        <span class="text-danger">${formatMoney(c.total_overpayment || 0)}</span>
+                    <div class="info-card">
+                        <span class="info-icon">✅</span>
+                        <span class="info-label">Внесено</span>
+                        <span class="info-value">${regularPayments.length} из ${c.term_months}</span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-icon">⏳</span>
+                        <span class="info-label">Осталось</span>
+                        <span class="info-value">${c.remaining_months} мес.</span>
+                    </div>
+                </div>
+                
+                <!-- Детали -->
+                <div class="credit-details-list">
+                    <div class="detail-row">
+                        <span>Следующий платёж</span>
+                        <span class="${c.days_until_payment <= 5 ? 'text-warning' : ''}">${c.next_payment_date ? formatDate(c.next_payment_date) : '—'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Всего уплачено</span>
+                        <span class="text-success">${formatMoney(totalPaid)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Из них проценты</span>
+                        <span class="text-danger">${formatMoney(totalInterestPaid)}</span>
                     </div>
                 </div>
                 
                 <!-- Досрочные платежи -->
-                ${c.extra_payments_count > 0 ? `
-                    <div class="credit-extra-info">
-                        <div class="credit-extra-badge">
-                            🚀 Досрочных платежей: ${c.extra_payments_count}
-                        </div>
-                        <div class="credit-extra-amount">
-                            Погашено досрочно: ${formatMoney(c.total_extra_paid)}
-                        </div>
+                ${extraPayments.length > 0 ? `
+                    <div class="credit-extra-badge">
+                        <span>🚀 Досрочно: ${extraPayments.length} платежей на ${formatMoney(totalExtraPaid)}</span>
                     </div>
                 ` : ''}
                 
-                <!-- История платежей (последние) -->
-                ${c.payments_history && c.payments_history.length > 0 ? `
-                    <div class="credit-payments-preview">
-                        <div class="credit-payments-header" onclick="toggleCreditPayments(${c.id})">
-                            <span>📋 История платежей</span>
-                            <span class="toggle-icon" id="toggle-icon-${c.id}">▼</span>
-                        </div>
-                        <div class="credit-payments-list" id="credit-payments-${c.id}" style="display: none;">
-                            ${c.payments_history.slice().reverse().map(p => `
-                                <div class="credit-payment-item ${p.is_extra ? 'extra' : ''}">
-                                    <div class="payment-date">
-                                        ${p.is_extra ? '🚀' : '📅'} ${formatDate(p.date)}
-                                        ${p.payment_number > 0 ? `<span class="payment-number">#${p.payment_number}</span>` : ''}
+                <!-- История платежей -->
+                <div class="credit-history-section">
+                    <div class="history-header" onclick="toggleCreditHistory(${c.id})">
+                        <span>📋 История платежей (${(c.payments_history || []).length})</span>
+                        <span class="history-toggle" id="history-toggle-${c.id}">▼</span>
+                    </div>
+                    <div class="history-content" id="history-content-${c.id}" style="display: none;">
+                        ${(c.payments_history || []).length > 0 ? `
+                            <div class="history-list">
+                                ${(c.payments_history || []).slice().reverse().slice(0, 10).map(p => `
+                                    <div class="history-item ${p.is_extra ? 'extra' : ''}">
+                                        <div class="history-item-left">
+                                            <span class="history-icon">${p.is_extra ? '🚀' : '📅'}</span>
+                                            <span class="history-date">${formatDate(p.date)}</span>
+                                            ${p.payment_number ? `<span class="history-num">#${p.payment_number}</span>` : ''}
+                                        </div>
+                                        <div class="history-item-right">
+                                            <span class="history-amount">${formatMoney(p.amount)}</span>
+                                            ${!p.is_extra && p.principal ? `
+                                                <span class="history-breakdown">${formatMoney(p.principal)} + ${formatMoney(p.interest)} %</span>
+                                            ` : ''}
+                                        </div>
+                                        <button class="btn-icon-tiny" onclick="deleteCreditPayment(${c.id}, ${p.id})" title="Удалить">×</button>
                                     </div>
-                                    <div class="payment-breakdown">
-                                        <span class="payment-amount">${formatMoney(p.amount)}</span>
-                                        ${!p.is_extra ? `
-                                            <span class="payment-details">
-                                                (${formatMoney(p.principal)} + ${formatMoney(p.interest)} %)
-                                            </span>
-                                        ` : `
-                                            <span class="payment-details extra">досрочно</span>
-                                        `}
-                                    </div>
-                                    <div class="payment-remaining">
-                                        Остаток: ${formatMoney(p.remaining_after)}
-                                        ${p.months_reduced > 0 ? `<span class="months-saved">-${p.months_reduced} мес.</span>` : ''}
-                                    </div>
-                                </div>
-                            `).join('')}
-                            ${c.has_more_payments ? `
+                                `).join('')}
+                            </div>
+                            ${(c.payments_history || []).length > 10 ? `
                                 <button class="btn btn-sm btn-link" onclick="showAllCreditPayments(${c.id})">
-                                    Показать все платежи →
+                                    Показать все ${(c.payments_history || []).length} платежей →
                                 </button>
                             ` : ''}
-                        </div>
+                        ` : `
+                            <div class="history-empty">Нет записей о платежах</div>
+                        `}
+                        
+                        <!-- Кнопка добавления платежа в историю -->
+                        <button class="btn btn-sm btn-secondary btn-block" onclick="showAddHistoryPaymentModal(${c.id})" style="margin-top: 12px;">
+                            + Добавить платёж в историю
+                        </button>
                     </div>
-                ` : ''}
+                </div>
                 
                 <!-- Кнопки действий -->
-                <div class="credit-actions">
+                <div class="credit-card-actions">
                     <button class="btn btn-sm btn-primary" onclick="showPayCreditModal(${c.id})">💳 Платёж</button>
                     <button class="btn btn-sm btn-success" onclick="showPayCreditModal(${c.id}, true)">🚀 Досрочно</button>
                     <button class="btn btn-sm btn-secondary" onclick="showEditCreditModal(${c.id})">✏️</button>
@@ -1310,87 +1307,236 @@ function renderCredits() {
     }).join('');
 }
 
-// Добавляем функцию переключения истории
-function toggleCreditPayments(creditId) {
-    const list = document.getElementById(`credit-payments-${creditId}`);
-    const icon = document.getElementById(`toggle-icon-${creditId}`);
-    if (list) {
-        const isHidden = list.style.display === 'none';
-        list.style.display = isHidden ? 'block' : 'none';
-        if (icon) icon.textContent = isHidden ? '▲' : '▼';
+// Переключение истории платежей
+function toggleCreditHistory(creditId) {
+    const content = document.getElementById(`history-content-${creditId}`);
+    const toggle = document.getElementById(`history-toggle-${creditId}`);
+    if (content) {
+        const isHidden = content.style.display === 'none';
+        content.style.display = isHidden ? 'block' : 'none';
+        if (toggle) toggle.textContent = isHidden ? '▲' : '▼';
     }
 }
 
-// Показать все платежи в модальном окне
+// Модальное окно добавления платежа в историю (без привязки к счетам)
+function showAddHistoryPaymentModal(creditId) {
+    const credit = state.credits.find(c => c.id === creditId);
+    if (!credit) return;
+    
+    const today = getCurrentDate();
+    
+    // Рассчитываем примерную разбивку платежа
+    const rate = credit.interest_rate / 100 / 12;
+    const estimatedInterest = credit.remaining_amount * rate;
+    const estimatedPrincipal = credit.monthly_payment - estimatedInterest;
+    
+    openModal('📝 Добавить платёж в историю', `
+        <form id="addHistoryPaymentForm">
+            <div class="form-hint-box">
+                <p>💡 Здесь можно занести старые платежи, которые вы уже вносили ранее. Это не влияет на ваши счета — просто запись для истории.</p>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Тип платежа</label>
+                <div class="payment-type-selector">
+                    <label class="payment-type-option active">
+                        <input type="radio" name="payment_type" value="regular" checked>
+                        <span class="option-icon">📅</span>
+                        <span class="option-text">Обязательный</span>
+                    </label>
+                    <label class="payment-type-option">
+                        <input type="radio" name="payment_type" value="extra">
+                        <span class="option-icon">🚀</span>
+                        <span class="option-text">Досрочный</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Дата платежа *</label>
+                <input type="date" class="form-input" name="date" value="${today}" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Сумма платежа *</label>
+                <input type="number" class="form-input" name="amount" step="0.01" required 
+                       value="${credit.monthly_payment}" id="historyAmount">
+            </div>
+            
+            <div id="regularPaymentFields">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Основной долг</label>
+                        <input type="number" class="form-input" name="principal" step="0.01" 
+                               value="${Math.round(estimatedPrincipal * 100) / 100}" id="historyPrincipal">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Проценты</label>
+                        <input type="number" class="form-input" name="interest" step="0.01" 
+                               value="${Math.round(estimatedInterest * 100) / 100}" id="historyInterest">
+                    </div>
+                </div>
+                <div class="form-hint">Если не знаете точную разбивку — оставьте как есть или введите 0</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Номер платежа</label>
+                <input type="number" class="form-input" name="payment_number" min="1" 
+                       placeholder="Например: 5" id="historyPaymentNumber">
+                <div class="form-hint">Какой это платёж по счёту (1, 2, 3...)</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Остаток после платежа</label>
+                <input type="number" class="form-input" name="remaining_after" step="0.01" 
+                       placeholder="Если знаете">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Комментарий</label>
+                <input type="text" class="form-input" name="notes" placeholder="Необязательно">
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+                <button type="submit" class="btn btn-primary">Добавить в историю</button>
+            </div>
+        </form>
+    `);
+    
+    // Переключение типа платежа
+    document.querySelectorAll('.payment-type-option').forEach(option => {
+        option.addEventListener('click', () => {
+            document.querySelectorAll('.payment-type-option').forEach(o => o.classList.remove('active'));
+            option.classList.add('active');
+            option.querySelector('input').checked = true;
+            
+            const isExtra = option.querySelector('input').value === 'extra';
+            document.getElementById('regularPaymentFields').style.display = isExtra ? 'none' : 'block';
+        });
+    });
+    
+    document.getElementById('addHistoryPaymentForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const isExtra = formData.get('payment_type') === 'extra';
+        
+        const data = {
+            date: formData.get('date'),
+            amount: parseFloat(formData.get('amount')),
+            principal: isExtra ? parseFloat(formData.get('amount')) : (parseFloat(formData.get('principal')) || 0),
+            interest: isExtra ? 0 : (parseFloat(formData.get('interest')) || 0),
+            is_extra: isExtra,
+            is_regular: !isExtra,
+            payment_number: parseInt(formData.get('payment_number')) || 0,
+            remaining_after: parseFloat(formData.get('remaining_after')) || null,
+            notes: formData.get('notes') || '',
+            is_manual: true  // Флаг что это ручной ввод
+        };
+        
+        try {
+            await API.credits.addPayment(creditId, data);
+            closeModal();
+            showToast('Платёж добавлен в историю', 'success');
+            loadAllData();
+        } catch (error) {
+            showToast('Ошибка добавления', 'error');
+        }
+    });
+}
+
+// Показать все платежи
 async function showAllCreditPayments(creditId) {
     const credit = state.credits.find(c => c.id === creditId);
     if (!credit) return;
     
     try {
-        const payments = await api(`/credits/${creditId}/payments`);
+        const payments = await API.credits.getPayments(creditId);
         
-        openModal(`📋 История платежей: ${credit.name}`, `
-            <div class="payments-full-history">
-                <div class="payments-summary">
-                    <div class="summary-item">
-                        <span>Всего платежей:</span>
-                        <strong>${payments.length}</strong>
+        openModal(`📋 Все платежи: ${credit.name}`, `
+            <div class="payments-modal">
+                <div class="payments-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Всего платежей</span>
+                        <span class="stat-value">${payments.length}</span>
                     </div>
-                    <div class="summary-item">
-                        <span>Обязательных:</span>
-                        <strong>${payments.filter(p => p.is_regular).length}</strong>
+                    <div class="stat-item">
+                        <span class="stat-label">Обязательных</span>
+                        <span class="stat-value">${payments.filter(p => !p.is_extra).length}</span>
                     </div>
-                    <div class="summary-item">
-                        <span>Досрочных:</span>
-                        <strong>${payments.filter(p => p.is_extra).length}</strong>
+                    <div class="stat-item">
+                        <span class="stat-label">Досрочных</span>
+                        <span class="stat-value">${payments.filter(p => p.is_extra).length}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Всего уплачено</span>
+                        <span class="stat-value">${formatMoney(payments.reduce((s, p) => s + p.amount, 0))}</span>
                     </div>
                 </div>
                 
-                <div class="payments-table-wrapper">
-                    <table class="payments-table">
-                        <thead>
-                            <tr>
-                                <th>Дата</th>
-                                <th>Тип</th>
-                                <th>Сумма</th>
-                                <th>Основной</th>
-                                <th>Проценты</th>
-                                <th>Остаток</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${payments.map(p => `
-                                <tr class="${p.is_extra ? 'extra-row' : ''}">
-                                    <td>${formatDate(p.date)}</td>
-                                    <td>${p.is_extra ? '🚀 Досрочный' : `📅 #${p.payment_number}`}</td>
-                                    <td><strong>${formatMoney(p.amount)}</strong></td>
-                                    <td>${formatMoney(p.principal)}</td>
-                                    <td class="text-danger">${formatMoney(p.interest)}</td>
-                                    <td>${formatMoney(p.remaining_after)}</td>
-                                    <td>
-                                        <button class="btn-icon-sm danger" onclick="deleteCreditPayment(${creditId}, ${p.id})" title="Удалить">🗑️</button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                <div class="payments-list-full">
+                    ${payments.length > 0 ? payments.map(p => `
+                        <div class="payment-row ${p.is_extra ? 'extra' : ''}">
+                            <div class="payment-col date">
+                                <span class="payment-icon">${p.is_extra ? '🚀' : '📅'}</span>
+                                <span>${formatDate(p.date)}</span>
+                                ${p.payment_number ? `<span class="payment-num">#${p.payment_number}</span>` : ''}
+                            </div>
+                            <div class="payment-col amount">
+                                <strong>${formatMoney(p.amount)}</strong>
+                            </div>
+                            <div class="payment-col breakdown">
+                                ${!p.is_extra ? `
+                                    <span class="principal">${formatMoney(p.principal)}</span>
+                                    <span class="separator">+</span>
+                                    <span class="interest">${formatMoney(p.interest)}</span>
+                                ` : '<span class="extra-label">досрочно</span>'}
+                            </div>
+                            <div class="payment-col remaining">
+                                ${p.remaining_after !== null ? `Остаток: ${formatMoney(p.remaining_after)}` : ''}
+                            </div>
+                            <div class="payment-col actions">
+                                <button class="btn-icon-sm danger" onclick="deleteCreditPaymentFromModal(${creditId}, ${p.id})" title="Удалить">🗑️</button>
+                            </div>
+                        </div>
+                    `).join('') : '<div class="empty-state small">Нет платежей</div>'}
+                </div>
+                
+                <div class="modal-footer-actions">
+                    <button class="btn btn-secondary" onclick="showAddHistoryPaymentModal(${creditId})">
+                        + Добавить платёж
+                    </button>
                 </div>
             </div>
         `, 'large');
     } catch (error) {
-        showToast('Ошибка загрузки истории', 'error');
+        showToast('Ошибка загрузки', 'error');
     }
 }
 
-// Удаление платежа
-async function deleteCreditPayment(creditId, paymentId) {
-    if (!confirm('Удалить этот платёж? Остаток по кредиту будет пересчитан.')) return;
+// Удаление платежа из модального окна
+async function deleteCreditPaymentFromModal(creditId, paymentId) {
+    if (!confirm('Удалить этот платёж из истории?')) return;
     
     try {
-        await api(`/credits/${creditId}/payments/${paymentId}`, 'DELETE');
+        await API.credits.deletePayment(creditId, paymentId);
         showToast('Платёж удалён', 'success');
-        closeModal();
+        // Перезагружаем модальное окно
+        showAllCreditPayments(creditId);
+        loadAllData();
+    } catch (error) {
+        showToast('Ошибка удаления', 'error');
+    }
+}
+
+// Удаление платежа из карточки
+async function deleteCreditPayment(creditId, paymentId) {
+    if (!confirm('Удалить этот платёж из истории?')) return;
+    
+    try {
+        await API.credits.deletePayment(creditId, paymentId);
+        showToast('Платёж удалён', 'success');
         loadAllData();
     } catch (error) {
         showToast('Ошибка удаления', 'error');

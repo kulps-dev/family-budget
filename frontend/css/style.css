@@ -3622,3 +3622,552 @@ body {
 .payments-table .extra-row td {
     border-bottom-color: #d1fae5;
 }
+
+
+/* frontend/css/style.css - ДОБАВИТЬ в конец файла */
+
+/* ==================== КРЕДИТЫ - НОВЫЙ ДИЗАЙН ==================== */
+
+/* Сетка кредитов - 2 в ряд */
+#creditsGrid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 20px;
+}
+
+@media (min-width: 900px) {
+    #creditsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1400px) {
+    #creditsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Карточка кредита */
+.credit-card-new {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Шапка */
+.credit-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.credit-card-title {
+    flex: 1;
+    min-width: 0;
+}
+
+.credit-card-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.credit-card-bank {
+    font-size: 13px;
+    color: var(--gray-500);
+    margin-top: 2px;
+}
+
+.credit-card-rate {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Суммы */
+.credit-card-amounts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 16px;
+    background: var(--gray-50);
+    border-radius: 12px;
+}
+
+.credit-amount-remaining,
+.credit-amount-original {
+    text-align: center;
+}
+
+.amount-label {
+    display: block;
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-bottom: 4px;
+}
+
+.amount-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.credit-amount-remaining .amount-value {
+    color: var(--danger);
+}
+
+/* Прогресс */
+.credit-card-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.progress-bar {
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 12px;
+    color: var(--gray-500);
+    text-align: right;
+}
+
+/* Информационные плашки */
+.credit-info-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+@media (min-width: 500px) {
+    .credit-info-cards {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.info-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    background: var(--gray-50);
+    border-radius: 10px;
+    text-align: center;
+    gap: 4px;
+}
+
+.info-icon {
+    font-size: 20px;
+}
+
+.info-label {
+    font-size: 10px;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+/* Детали */
+.credit-details-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--gray-50);
+    border-radius: 10px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+.detail-row span:first-child {
+    color: var(--gray-600);
+}
+
+.detail-row span:last-child {
+    font-weight: 500;
+}
+
+/* Досрочные платежи */
+.credit-extra-badge {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* История платежей */
+.credit-history-section {
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--gray-50);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.history-header:hover {
+    background: var(--gray-100);
+}
+
+.history-toggle {
+    color: var(--gray-400);
+    transition: transform 0.2s;
+}
+
+.history-content {
+    padding: 12px;
+    background: white;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--gray-50);
+    border-radius: 8px;
+    font-size: 13px;
+    gap: 8px;
+}
+
+.history-item.extra {
+    background: #f0fdf4;
+}
+
+.history-item-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.history-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.history-date {
+    color: var(--gray-700);
+}
+
+.history-num {
+    background: var(--gray-200);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--gray-600);
+}
+
+.history-item-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.history-amount {
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.history-breakdown {
+    font-size: 11px;
+    color: var(--gray-500);
+}
+
+.btn-icon-tiny {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: var(--gray-400);
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.btn-icon-tiny:hover {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+.history-empty {
+    text-align: center;
+    padding: 20px;
+    color: var(--gray-500);
+    font-size: 13px;
+}
+
+/* Кнопки действий */
+.credit-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--gray-200);
+}
+
+.credit-card-actions .btn {
+    flex: 1;
+    min-width: 80px;
+}
+
+/* ==================== МОДАЛЬНОЕ ОКНО ДОБАВЛЕНИЯ ПЛАТЕЖА ==================== */
+
+.form-hint-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+}
+
+.form-hint-box p {
+    margin: 0;
+    font-size: 13px;
+    color: #1e40af;
+    line-height: 1.5;
+}
+
+.payment-type-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.payment-type-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.payment-type-option input {
+    display: none;
+}
+
+.payment-type-option:hover {
+    border-color: var(--primary-light);
+}
+
+.payment-type-option.active {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.option-icon {
+    font-size: 24px;
+}
+
+.option-text {
+    font-weight: 500;
+}
+
+/* ==================== МОДАЛЬНОЕ ОКНО ВСЕХ ПЛАТЕЖЕЙ ==================== */
+
+.payments-modal {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.payments-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 16px;
+    background: var(--gray-50);
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 600px) {
+    .payments-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.payments-list-full {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.payment-row {
+    display: grid;
+    grid-template-columns: 140px 100px 120px 1fr 40px;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--gray-50);
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+@media (max-width: 700px) {
+    .payment-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .payment-col.breakdown,
+    .payment-col.remaining {
+        display: none;
+    }
+}
+
+.payment-row.extra {
+    background: #f0fdf4;
+}
+
+.payment-col {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.payment-col.date {
+    flex-wrap: wrap;
+}
+
+.payment-icon {
+    font-size: 16px;
+}
+
+.payment-num {
+    background: var(--gray-200);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+}
+
+.payment-col.amount {
+    font-weight: 600;
+}
+
+.payment-col.breakdown {
+    font-size: 12px;
+}
+
+.payment-col.breakdown .principal {
+    color: var(--success);
+}
+
+.payment-col.breakdown .interest {
+    color: var(--danger);
+}
+
+.payment-col.breakdown .separator {
+    color: var(--gray-400);
+}
+
+.extra-label {
+    color: var(--success);
+    font-weight: 500;
+}
+
+.payment-col.remaining {
+    font-size: 12px;
+    color: var(--gray-500);
+}
+
+.payment-col.actions {
+    justify-content: flex-end;
+}
+
+.modal-footer-actions {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: center;
+}
+
+/* ==================== УТИЛИТЫ ==================== */
+
+.text-success { color: var(--success) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-warning { color: var(--warning) !important; }
+
+.btn-block {
+    width: 100%;
+}
