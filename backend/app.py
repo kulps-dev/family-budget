@@ -153,8 +153,9 @@ class CreditPayment(db.Model):
     is_extra = db.Column(db.Boolean, default=False)
     payment_number = db.Column(db.Integer, default=0)
     remaining_after = db.Column(db.Float, nullable=True)
+    months_reduced = db.Column(db.Integer, default=0)  # ✅ ДОБАВИТЬ ЭТУ СТРОКУ
     notes = db.Column(db.String(255), default='')
-    is_manual = db.Column(db.Boolean, default=False)  # Ручной ввод
+    is_manual = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     credit = db.relationship('Credit', backref='payment_records')
@@ -1434,53 +1435,6 @@ def delete_credit(id):
     db.session.delete(credit)
     db.session.commit()
     return jsonify({'message': 'Кредит удалён'})
-
-@app.route('/api/credits/<int:id>/payments', methods=['GET'])
-def get_credit_payments(id):
-    """Получить полную историю платежей по кредиту"""
-    payments = CreditPayment.query.filter_by(credit_id=id).order_by(CreditPayment.date.desc()).all()
-    
-    return jsonify([{
-        'id': p.id,
-        'date': p.date.isoformat(),
-        'amount': p.amount,
-        'principal': p.principal,
-        'interest': p.interest,
-        'is_regular': p.is_regular,
-        'is_extra': p.is_extra,
-        'payment_number': p.payment_number,
-        'remaining_after': p.remaining_after,
-        'months_reduced': p.months_reduced,
-        'notes': p.notes
-    } for p in payments])
-
-
-@app.route('/api/credits/<int:id>/payments/<int:payment_id>', methods=['DELETE'])
-def delete_credit_payment(id, payment_id):
-    """Удалить платёж (и пересчитать кредит)"""
-    payment = CreditPayment.query.get_or_404(payment_id)
-    credit = Credit.query.get_or_404(id)
-    
-    # Возвращаем сумму в остаток
-    credit.remaining_amount += payment.principal
-    
-    if payment.is_extra:
-        credit.extra_payments_total -= payment.amount
-    else:
-        credit.remaining_months += 1
-    
-    # Пересчитываем номера последующих платежей
-    if payment.is_regular:
-        CreditPayment.query.filter(
-            CreditPayment.credit_id == id,
-            CreditPayment.payment_number > payment.payment_number,
-            CreditPayment.is_regular == True
-        ).update({CreditPayment.payment_number: CreditPayment.payment_number - 1})
-    
-    db.session.delete(payment)
-    db.session.commit()
-    
-    return jsonify({'message': 'Платёж удалён', 'remaining_amount': credit.remaining_amount})
 
 
 @app.route('/api/credits/<int:id>/payments', methods=['POST'])
@@ -3496,7 +3450,9 @@ def auto_migrate():
         'investment': [
             ('dividends_received', 'FLOAT', '0'),
         ],
-        'credit_payment': [],
+        'credit_payment': [
+            ('months_reduced', 'INTEGER', '0'),
+        ],
     }
     
     migrations_done = 0
