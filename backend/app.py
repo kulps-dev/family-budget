@@ -3282,5 +3282,34 @@ with app.app_context():
     db.session.commit()
     print("База данных инициализирована")
 
+# ============ МИГРАЦИЯ БАЗЫ ДАННЫХ ============
+def migrate_database():
+    """Безопасное добавление новых полей без потери данных"""
+    with app.app_context():
+        from sqlalchemy import inspect, text
+        
+        inspector = inspect(db.engine)
+        
+        # Проверяем существующие колонки в таблице transaction
+        if 'transaction' in inspector.get_table_names():
+            columns = [col['name'] for col in inspector.get_columns('transaction')]
+            
+            # Добавляем is_business_expense если его нет
+            if 'is_business_expense' not in columns:
+                print("🔄 Добавляю поле is_business_expense в таблицу transaction...")
+                with db.engine.connect() as conn:
+                    conn.execute(text(
+                        'ALTER TABLE transaction ADD COLUMN is_business_expense BOOLEAN DEFAULT 0'
+                    ))
+                    conn.commit()
+                print("✅ Поле is_business_expense добавлено!")
+            else:
+                print("✅ Поле is_business_expense уже существует")
+        
+        print("✅ Миграция завершена!")
+
+# Вызываем миграцию при старте
+migrate_database()
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
