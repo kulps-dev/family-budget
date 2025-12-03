@@ -1051,7 +1051,6 @@ body {
 .credit-card-actions .btn {
     flex: 1;
     min-width: 80px;
-    background: rgba(255,255,255,0.2);
     border: 1px solid rgba(255,255,255,0.3);
 }
 
