@@ -3227,9 +3227,36 @@ def init_database():
         db.session.commit()
         print("База данных инициализирована")
 
+# ============ БЕЗОПАСНАЯ МИГРАЦИЯ ============
+def safe_migrate():
+    """Добавляет новые поля без удаления существующих данных"""
+    from sqlalchemy import inspect, text
+    
+    try:
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        
+        # Список миграций: (таблица, поле, тип)
+        new_columns = [
+            ('transaction', 'is_business_expense', 'BOOLEAN DEFAULT 0'),
+        ]
+        
+        for table, column, col_type in new_columns:
+            if table in tables:
+                existing_columns = [c['name'] for c in inspector.get_columns(table)]
+                if column not in existing_columns:
+                    print(f"🔄 Добавляю поле {table}.{column}...")
+                    with db.engine.connect() as conn:
+                        conn.execute(text(f'ALTER TABLE {table} ADD COLUMN {column} {col_type}'))
+                        conn.commit()
+                    print(f"✅ Поле {table}.{column} добавлено!")
+    except Exception as e:
+        print(f"⚠️ Ошибка миграции: {e}")
+
 # Инициализация базы данных при импорте модуля
 with app.app_context():
     db.create_all()
+    safe_migrate()
     
     # Создаём категории по умолчанию
     if Category.query.count() == 0:
@@ -3280,36 +3307,7 @@ with app.app_context():
             db.session.add(Achievement(code=code, name=name, description=desc, icon=icon, points=points))
     
     db.session.commit()
-    print("База данных инициализирована")
-
-# ============ МИГРАЦИЯ БАЗЫ ДАННЫХ ============
-def migrate_database():
-    """Безопасное добавление новых полей без потери данных"""
-    with app.app_context():
-        from sqlalchemy import inspect, text
-        
-        inspector = inspect(db.engine)
-        
-        # Проверяем существующие колонки в таблице transaction
-        if 'transaction' in inspector.get_table_names():
-            columns = [col['name'] for col in inspector.get_columns('transaction')]
-            
-            # Добавляем is_business_expense если его нет
-            if 'is_business_expense' not in columns:
-                print("🔄 Добавляю поле is_business_expense в таблицу transaction...")
-                with db.engine.connect() as conn:
-                    conn.execute(text(
-                        'ALTER TABLE transaction ADD COLUMN is_business_expense BOOLEAN DEFAULT 0'
-                    ))
-                    conn.commit()
-                print("✅ Поле is_business_expense добавлено!")
-            else:
-                print("✅ Поле is_business_expense уже существует")
-        
-        print("✅ Миграция завершена!")
-
-# Вызываем миграцию при старте
-migrate_database()
+    print("✅ База данных инициализирована")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
