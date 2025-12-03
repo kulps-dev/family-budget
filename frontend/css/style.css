@@ -2599,3 +2599,427 @@ body {
     .main { margin-left: 0; }
     .content { padding: 0; }
 }
+
+
+/* ==================== ИСПРАВЛЕНИЯ ДЛЯ МОБИЛЬНОЙ АДАПТИВНОСТИ ==================== */
+
+/* Инвестиции - компактный вид */
+@media (max-width: 768px) {
+    /* Сводка инвестиций - 2 колонки вместо 4 */
+    .investments-summary-cards {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    
+    .investments-summary-cards .summary-card {
+        padding: 16px;
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+    }
+    
+    .investments-summary-cards .summary-icon {
+        font-size: 24px;
+    }
+    
+    .investments-summary-cards .summary-value {
+        font-size: 18px;
+        word-break: break-word;
+    }
+    
+    .investments-summary-cards .summary-label {
+        font-size: 11px;
+    }
+    
+    /* Карточки инвестиций */
+    .investment-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .investment-main-info {
+        width: 100%;
+    }
+    
+    .investment-ticker-block {
+        flex-wrap: wrap;
+    }
+    
+    .investment-ticker {
+        font-size: 16px;
+    }
+    
+    .investment-name {
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    
+    .investment-numbers {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+    }
+    
+    .investment-value {
+        font-size: 16px;
+    }
+    
+    .investment-profit {
+        font-size: 12px;
+    }
+    
+    /* Статистика инвестиций - 2 колонки */
+    .investment-stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .investment-stat {
+        padding: 8px;
+    }
+    
+    .investment-stat-label {
+        font-size: 10px;
+    }
+    
+    .investment-stat-value {
+        font-size: 13px;
+        word-break: break-word;
+    }
+    
+    /* Кнопки инвестиций */
+    .investment-actions-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+    
+    .investment-actions-row .btn {
+        font-size: 11px;
+        padding: 8px 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Заголовок инвестиционного счёта */
+    .investment-account-header {
+        flex-direction: column;
+        gap: 8px;
+        padding: 16px;
+    }
+    
+    .investment-account-name {
+        font-size: 16px;
+    }
+    
+    .investment-account-value {
+        font-size: 20px;
+    }
+    
+    /* ==================== КРЕДИТЫ ==================== */
+    
+    /* Сводка кредитов */
+    .credits-summary-card {
+        grid-template-columns: 1fr;
+        padding: 16px;
+        gap: 12px;
+    }
+    
+    .credits-summary-card .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+    }
+    
+    .credits-summary-card .summary-value {
+        font-size: 16px;
+    }
+    
+    .credits-summary-card .summary-label {
+        font-size: 12px;
+    }
+    
+    /* Карточки кредитов */
+    .credit-item {
+        padding: 16px;
+    }
+    
+    .credit-header {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+    }
+    
+    .credit-name {
+        font-size: 16px;
+    }
+    
+    .credit-rate {
+        font-size: 12px;
+        padding: 4px 10px;
+    }
+    
+    .credit-remaining {
+        font-size: 22px;
+    }
+    
+    .credit-original {
+        font-size: 13px;
+    }
+    
+    /* Детали кредита - 2 колонки */
+    .credit-details {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 12px;
+    }
+    
+    .credit-detail {
+        padding: 4px 0;
+    }
+    
+    .credit-detail-label {
+        font-size: 10px;
+    }
+    
+    .credit-detail-value {
+        font-size: 12px;
+    }
+    
+    /* Кнопки кредитов */
+    .credit-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .credit-actions .btn {
+        font-size: 12px;
+        padding: 10px 8px;
+    }
+    
+    /* ==================== КРЕДИТНЫЕ КАРТЫ ==================== */
+    
+    .credit-card-item {
+        padding: 20px;
+    }
+    
+    .credit-card-debt {
+        font-size: 24px;
+    }
+    
+    .credit-card-limit {
+        font-size: 13px;
+    }
+    
+    /* Инфо кредитной карты - вертикально */
+    .credit-card-info {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding-top: 12px;
+    }
+    
+    .credit-card-info-item {
+        display: flex;
+        justify-content: space-between;
+        text-align: left;
+    }
+    
+    .credit-card-info-value {
+        font-size: 14px;
+    }
+    
+    .credit-card-info-label {
+        font-size: 11px;
+    }
+    
+    /* Кнопки кредитных карт */
+    .credit-card-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .credit-card-actions .btn {
+        font-size: 11px;
+        padding: 10px 8px;
+        min-width: 0;
+    }
+    
+    /* ==================== ТРАНЗАКЦИИ ==================== */
+    
+    .transaction-item {
+        padding: 12px;
+        gap: 12px;
+    }
+    
+    .transaction-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+    
+    .transaction-info {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+    }
+    
+    .transaction-category {
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .transaction-description {
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .transaction-meta {
+        font-size: 11px;
+    }
+    
+    .transaction-amount {
+        font-size: 14px;
+        flex-shrink: 0;
+        text-align: right;
+    }
+    
+    .transaction-actions {
+        opacity: 1;
+        flex-shrink: 0;
+    }
+    
+    .transaction-actions .btn-icon-sm {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+    
+    /* ==================== ИПОТЕКА ==================== */
+    
+    .mortgages-summary {
+        padding: 20px;
+    }
+    
+    .mortgages-summary-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    
+    .mortgage-summary-value {
+        font-size: 18px;
+        word-break: break-word;
+    }
+    
+    .mortgage-summary-label {
+        font-size: 11px;
+    }
+    
+    .mortgage-card {
+        width: 100%;
+    }
+    
+    .mortgage-header {
+        padding: 16px;
+    }
+    
+    .mortgage-name {
+        font-size: 16px;
+    }
+    
+    .mortgage-body {
+        padding: 16px;
+    }
+    
+    .mortgage-amounts {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .mortgage-remaining {
+        font-size: 22px;
+    }
+    
+    .mortgage-equity {
+        text-align: left;
+    }
+    
+    .mortgage-details {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 12px;
+    }
+    
+    .mortgage-detail-value {
+        font-size: 13px;
+    }
+    
+    .mortgage-detail-label {
+        font-size: 10px;
+    }
+    
+    .mortgage-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .mortgage-actions .btn {
+        font-size: 12px;
+        padding: 10px 8px;
+    }
+}
+
+/* ==================== ОЧЕНЬ МАЛЕНЬКИЕ ЭКРАНЫ ==================== */
+@media (max-width: 380px) {
+    .investments-summary-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .investments-summary-cards .summary-card {
+        flex-direction: row;
+        text-align: left;
+    }
+    
+    .investment-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .investment-actions-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .credit-details,
+    .mortgage-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .credit-actions,
+    .mortgage-actions,
+    .credit-card-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .mortgages-summary-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .credit-card-info-item {
+        flex-direction: column;
+        gap: 2px;
+    }
+}
