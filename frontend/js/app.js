@@ -458,7 +458,30 @@ function renderDashboard() {
     document.getElementById('monthlySavings').textContent = formatMoney(d.monthly.savings);
     document.getElementById('savingsRate').textContent = `${d.monthly.savings_rate}%`;
     
-    // Разбивка расходов
+    // Детализация расходов
+    const expenseDirectEl = document.getElementById('expenseDirect');
+    const debtPaymentsEl = document.getElementById('debtPayments');
+    const creditCardPaymentsEl = document.getElementById('creditCardPayments');
+    const creditPaymentsEl = document.getElementById('creditPayments');
+    const mortgagePaymentsEl = document.getElementById('mortgagePayments');
+    
+    if (expenseDirectEl) {
+        expenseDirectEl.textContent = formatMoney(d.monthly.expense_direct || 0);
+    }
+    if (debtPaymentsEl) {
+        debtPaymentsEl.textContent = formatMoney(d.monthly.total_debt_payments || 0);
+    }
+    if (creditCardPaymentsEl) {
+        creditCardPaymentsEl.textContent = formatMoney(d.monthly.credit_card_payments || 0);
+    }
+    if (creditPaymentsEl) {
+        creditPaymentsEl.textContent = formatMoney(d.monthly.credit_payments || 0);
+    }
+    if (mortgagePaymentsEl) {
+        mortgagePaymentsEl.textContent = formatMoney(d.monthly.mortgage_payments || 0);
+    }
+    
+    // Разбивка расходов (старые элементы для совместимости)
     const expensePersonalEl = document.getElementById('expensePersonal');
     const expenseBusinessEl = document.getElementById('expenseBusiness');
     const expenseCreditCardsEl = document.getElementById('expenseCreditCards');
@@ -471,25 +494,6 @@ function renderDashboard() {
     }
     if (expenseCreditCardsEl) {
         expenseCreditCardsEl.textContent = formatMoney(d.monthly.credit_card_spending || 0);
-    }
-    
-    // Погашение долгов
-    const monthlyDebtPaymentsEl = document.getElementById('monthlyDebtPayments');
-    const monthlyOutflowEl = document.getElementById('monthlyOutflow');
-    const creditCardPaymentsEl = document.getElementById('creditCardPayments');
-    const mortgagePaymentsMonthEl = document.getElementById('mortgagePaymentsMonth');
-    
-    if (monthlyDebtPaymentsEl) {
-        monthlyDebtPaymentsEl.textContent = formatMoney(d.monthly.total_debt_payments || 0);
-    }
-    if (monthlyOutflowEl) {
-        monthlyOutflowEl.textContent = formatMoney(d.monthly.outflow || 0);
-    }
-    if (creditCardPaymentsEl) {
-        creditCardPaymentsEl.textContent = formatMoney(d.monthly.credit_card_payments || 0);
-    }
-    if (mortgagePaymentsMonthEl) {
-        mortgagePaymentsMonthEl.textContent = formatMoney(d.monthly.mortgage_payments || 0);
     }
     
     // Изменения
@@ -618,7 +622,8 @@ function renderTrendsChart(trends) {
         return;
     }
     
-    // Проверяем есть ли бизнес-расходы вообще
+    // Проверяем есть ли погашение долгов
+    const hasDebtPayments = trends.some(t => t.debt_payments > 0);
     const hasBusiness = trends.some(t => t.expense_business > 0);
     
     // Если Chart.js доступен, используем его
@@ -638,29 +643,31 @@ function renderTrendsChart(trends) {
                 data: trends.map(t => t.income),
                 backgroundColor: 'rgba(16, 185, 129, 0.8)',
                 borderRadius: 4
+            },
+            {
+                label: 'Прямые расходы',
+                data: trends.map(t => t.expense_direct || 0),
+                backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                borderRadius: 4
             }
         ];
         
-        if (hasBusiness) {
-            // Если есть бизнес-расходы - показываем раздельно
+        // Добавляем погашение долгов если есть
+        if (hasDebtPayments) {
             datasets.push({
-                label: 'Семейные расходы',
-                data: trends.map(t => t.expense_personal || 0),
-                backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                label: 'Погашение долгов',
+                data: trends.map(t => t.debt_payments || 0),
+                backgroundColor: 'rgba(249, 115, 22, 0.8)',
                 borderRadius: 4
             });
+        }
+        
+        // Добавляем бизнес-расходы если есть
+        if (hasBusiness) {
             datasets.push({
                 label: 'Бизнес расходы',
                 data: trends.map(t => t.expense_business || 0),
                 backgroundColor: 'rgba(156, 39, 176, 0.8)',
-                borderRadius: 4
-            });
-        } else {
-            // Если нет бизнес-расходов - просто "Расходы"
-            datasets.push({
-                label: 'Расходы',
-                data: trends.map(t => t.expense),
-                backgroundColor: 'rgba(239, 68, 68, 0.8)',
                 borderRadius: 4
             });
         }
@@ -689,11 +696,19 @@ function renderTrendsChart(trends) {
                     },
                     tooltip: {
                         callbacks: {
-                            label: (context) => `${context.dataset.label}: ${formatMoney(context.raw)}`
+                            label: (context) => `${context.dataset.label}: ${formatMoney(context.raw)}`,
+                            afterBody: (tooltipItems) => {
+                                const index = tooltipItems[0].dataIndex;
+                                const trend = trends[index];
+                                return `\nВсего расходов: ${formatMoney(trend.expense)}\nНакоплено: ${formatMoney(trend.savings)}`;
+                            }
                         }
                     }
                 },
                 scales: {
+                    x: {
+                        stacked: false
+                    },
                     y: {
                         beginAtZero: true,
                         ticks: {
@@ -734,7 +749,7 @@ function renderTrendsChart(trends) {
             </span>
             <span style="display: flex; align-items: center; gap: 6px;">
                 <span style="width: 12px; height: 12px; background: var(--danger); border-radius: 2px;"></span>
-                Расходы
+                Расходы (вкл. долги)
             </span>
         </div>
     `;
