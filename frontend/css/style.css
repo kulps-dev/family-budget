@@ -48,6 +48,9 @@
     /* Градиенты */
     --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     --gradient-dark: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    --gradient-success: linear-gradient(135deg, #059669 0%, #047857 100%);
+    --gradient-danger: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    --gradient-warning: linear-gradient(135deg, #d97706 0%, #b45309 100%);
     --gradient-subtle: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     
     /* Тени */
@@ -59,6 +62,7 @@
     --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
     --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
     --shadow-primary: 0 4px 14px 0 rgb(37 99 235 / 0.25);
+    --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.15);
     
     /* Радиусы */
     --radius-sm: 6px;
@@ -123,7 +127,7 @@ body {
 }
 
 .sidebar-header {
-    padding: 24px 20px;
+    padding: 20px;
     border-bottom: 1px solid var(--gray-100);
     display: flex;
     align-items: center;
@@ -137,38 +141,36 @@ body {
 }
 
 .logo-icon {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     background: var(--gradient-primary);
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--white);
-    font-weight: 700;
-    font-size: 18px;
+    font-size: 20px;
     box-shadow: var(--shadow-primary);
 }
 
 .logo-text {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
 }
 
 .logo-title {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
     color: var(--gray-900);
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
 }
 
 .logo-subtitle {
-    font-size: 11px;
-    font-weight: 500;
+    font-size: 10px;
+    font-weight: 600;
     color: var(--gray-400);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
 }
 
 .sidebar-close {
@@ -178,10 +180,12 @@ body {
     background: var(--gray-100);
     border: none;
     border-radius: var(--radius);
-    font-size: 16px;
+    font-size: 18px;
     color: var(--gray-500);
     cursor: pointer;
     transition: all var(--transition);
+    align-items: center;
+    justify-content: center;
 }
 
 .sidebar-close:hover {
@@ -212,7 +216,7 @@ body {
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     padding: 10px 12px;
     border-radius: var(--radius);
     text-decoration: none;
@@ -233,16 +237,15 @@ body {
     color: var(--primary);
 }
 
-.nav-item.active .nav-icon {
-    color: var(--primary);
-}
-
 .nav-icon {
     font-size: 18px;
-    width: 20px;
+    width: 22px;
     text-align: center;
-    color: var(--gray-400);
-    transition: color var(--transition);
+    opacity: 0.85;
+}
+
+.nav-item.active .nav-icon {
+    opacity: 1;
 }
 
 .nav-text {
@@ -272,8 +275,7 @@ body {
     align-items: center;
     justify-content: center;
     color: var(--white);
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 16px;
 }
 
 .user-name {
@@ -341,7 +343,7 @@ body {
     font-weight: 600;
     color: var(--gray-900);
     flex: 1;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
 }
 
 .header-actions {
@@ -424,9 +426,17 @@ body {
     color: var(--white);
 }
 
+.btn-warning:hover {
+    background: #b45309;
+}
+
 .btn-info {
     background: var(--info);
     color: var(--white);
+}
+
+.btn-info:hover {
+    background: #0369a1;
 }
 
 .btn-ghost {
@@ -500,6 +510,11 @@ body {
     text-decoration: underline;
 }
 
+.btn-icon-left {
+    font-size: 18px;
+    font-weight: 300;
+}
+
 /* ==================== КАРТОЧКИ ==================== */
 .card {
     background: var(--white);
@@ -511,6 +526,7 @@ body {
 
 .card:hover {
     box-shadow: var(--shadow);
+    border-color: var(--gray-300);
 }
 
 .card-header {
@@ -521,22 +537,19 @@ body {
 }
 
 .card-icon {
-    width: 40px;
-    height: 40px;
-    background: var(--gray-100);
-    border-radius: var(--radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    color: var(--gray-600);
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+    color: var(--gray-500);
 }
 
 .card-title {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    color: var(--gray-700);
+    color: var(--gray-500);
     flex: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
 .card-link {
@@ -556,7 +569,7 @@ body {
     font-weight: 700;
     color: var(--gray-900);
     margin-bottom: 4px;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
 }
 
 .card-subtitle {
@@ -592,11 +605,13 @@ body {
 }
 
 .card-balance .card-icon {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--white);
+    color: rgba(255, 255, 255, 0.7);
 }
 
-.card-balance .card-title,
+.card-balance .card-title {
+    color: rgba(255, 255, 255, 0.7);
+}
+
 .card-balance .card-subtitle {
     color: rgba(255, 255, 255, 0.7);
 }
@@ -610,7 +625,6 @@ body {
 }
 
 .card-income .card-icon {
-    background: var(--success-50);
     color: var(--success);
 }
 
@@ -619,7 +633,6 @@ body {
 }
 
 .card-expense .card-icon {
-    background: var(--danger-50);
     color: var(--danger);
 }
 
@@ -628,7 +641,6 @@ body {
 }
 
 .card-savings .card-icon {
-    background: var(--warning-50);
     color: var(--warning);
 }
 
@@ -637,7 +649,12 @@ body {
 .balance-details {
     margin-top: 16px;
     padding-top: 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--gray-100);
+}
+
+.card-balance .expense-breakdown,
+.card-balance .balance-details {
+    border-top-color: rgba(255, 255, 255, 0.1);
 }
 
 .breakdown-row,
@@ -645,18 +662,13 @@ body {
     display: flex;
     justify-content: space-between;
     font-size: 13px;
-    padding: 6px 0;
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.card-income .expense-breakdown,
-.card-expense .expense-breakdown {
-    border-top-color: var(--gray-200);
-}
-
-.card-income .breakdown-row,
-.card-expense .breakdown-row {
+    padding: 4px 0;
     color: var(--gray-600);
+}
+
+.card-balance .breakdown-row,
+.card-balance .balance-detail-row {
+    color: rgba(255, 255, 255, 0.8);
 }
 
 /* ==================== ДАШБОРД ==================== */
@@ -798,6 +810,7 @@ body {
     padding: 10px 0;
     border-bottom: 1px solid var(--gray-100);
     font-size: 14px;
+    color: var(--gray-700);
 }
 
 .debt-item:last-child {
@@ -1199,7 +1212,7 @@ body {
 }
 
 .section-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     margin-bottom: 16px;
     color: var(--gray-900);
@@ -1314,7 +1327,7 @@ body {
     right: -30%;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
     pointer-events: none;
 }
 
@@ -1363,7 +1376,7 @@ body {
 }
 
 .credit-card-label {
-    font-size: 12px;
+    font-size: 11px;
     opacity: 0.7;
     margin-bottom: 4px;
     text-transform: uppercase;
@@ -1401,7 +1414,7 @@ body {
 }
 
 .credit-card-progress-fill.danger {
-    background: var(--danger);
+    background: #ef4444;
 }
 
 .credit-card-info {
@@ -1601,7 +1614,7 @@ body {
     font-size: 32px;
     font-weight: 700;
     color: var(--primary);
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
 }
 
 .stat-label {
@@ -1774,6 +1787,121 @@ body {
     gap: 20px;
 }
 
+.credits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.credit-item {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    border: 1px solid var(--gray-200);
+    position: relative;
+    overflow: hidden;
+}
+
+.credit-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-primary);
+}
+
+.credit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 20px;
+}
+
+.credit-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.credit-bank {
+    font-size: 13px;
+    color: var(--gray-500);
+    margin-top: 4px;
+}
+
+.credit-rate {
+    background: var(--gray-100);
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.credit-amounts {
+    margin-bottom: 16px;
+}
+
+.credit-remaining {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--danger);
+}
+
+.credit-original {
+    font-size: 14px;
+    color: var(--gray-500);
+}
+
+.credit-progress {
+    height: 8px;
+    background: var(--gray-100);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.credit-progress-fill {
+    height: 100%;
+    background: var(--gradient-success);
+    border-radius: var(--radius-full);
+    transition: width 0.5s ease;
+}
+
+.credit-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 16px;
+    background: var(--gray-50);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+}
+
+.credit-detail {
+    text-align: center;
+}
+
+.credit-detail-label {
+    font-size: 12px;
+    color: var(--gray-500);
+}
+
+.credit-detail-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.credit-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Новый дизайн кредитов */
 .credit-card-new {
     background: var(--white);
     border-radius: var(--radius-lg);
@@ -1885,7 +2013,7 @@ body {
 
 .info-icon {
     font-size: 18px;
-    color: var(--gray-600);
+    color: var(--gray-500);
 }
 
 .info-label {
@@ -2270,6 +2398,24 @@ body {
     padding-bottom: 12px;
     border-bottom: 1px solid var(--gray-200);
     color: var(--gray-900);
+}
+
+.calc-result-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.calc-result-card {
+    background: var(--gray-50);
+    padding: 16px;
+    border-radius: var(--radius);
+    text-align: center;
+}
+
+.calc-result-card.highlight {
+    background: var(--primary-50);
 }
 
 /* ==================== ИНВЕСТИЦИИ ==================== */
@@ -3360,7 +3506,7 @@ body {
     border-radius: var(--radius-full);
     background: var(--gray-100);
     border: none;
-    font-size: 16px;
+    font-size: 18px;
     cursor: pointer;
     transition: all var(--transition);
     display: flex;
@@ -4574,4 +4720,23 @@ body {
     font-size: 14px;
     color: var(--gray-700);
     line-height: 1.5;
+}
+
+/* Debt payments card */
+.card-debt-payments {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: white;
+    border: none;
+}
+
+.card-debt-payments .card-icon {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.card-debt-payments .card-title {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.card-debt-payments .card-value {
+    color: white;
 }
