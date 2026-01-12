@@ -1108,7 +1108,7 @@ function renderGoals() {
     if (state.goals.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state-icon">🎯</div>
+                <div class="empty-state-icon">${svgIcon('target')}</div>
                 <div class="empty-state-text">Добавьте первую цель</div>
             </div>
         `;
@@ -1185,8 +1185,8 @@ function renderCredits() {
     if (state.credits.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state-icon">📋</div>
-                <div class="empty-state-text">Нет кредитов — отлично! 🎉</div>
+                <div class="empty-state-icon">${svgIcon('clipboard')}</div>
+                <div class="empty-state-text">Нет кредитов — отлично! ${svgIcon('party')}</div>
             </div>
         `;
         return;
@@ -1239,22 +1239,22 @@ function renderCredits() {
                 <!-- Информационные плашки -->
                 <div class="credit-info-cards">
                     <div class="info-card">
-                        <span class="info-icon">📅</span>
+                        <span class="info-icon">${svgIcon('calendar','icon-sm')}</span>
                         <span class="info-label">Взят</span>
                         <span class="info-value">${c.start_date ? formatDate(c.start_date) : '—'}</span>
                     </div>
                     <div class="info-card">
-                        <span class="info-icon">💰</span>
+                        <span class="info-icon">${svgIcon('money','icon-sm')}</span>
                         <span class="info-label">Платёж</span>
                         <span class="info-value">${formatMoney(c.monthly_payment)}</span>
                     </div>
                     <div class="info-card">
-                        <span class="info-icon">✅</span>
+                        <span class="info-icon">${svgIcon('check-circle','icon-sm')}</span>
                         <span class="info-label">Внесено</span>
                         <span class="info-value">${regularPayments.length} из ${c.term_months}</span>
                     </div>
                     <div class="info-card">
-                        <span class="info-icon">⏳</span>
+                        <span class="info-icon">${svgIcon('clock','icon-sm')}</span>
                         <span class="info-label">Осталось</span>
                         <span class="info-value">${c.remaining_months} мес.</span>
                     </div>
@@ -1279,15 +1279,15 @@ function renderCredits() {
                 <!-- Досрочные платежи -->
                 ${extraPayments.length > 0 ? `
                     <div class="credit-extra-badge">
-                        <span>🚀 Досрочно: ${extraPayments.length} платежей на ${formatMoney(totalExtraPaid)}</span>
+                        <span>${svgIcon('rocket','icon-sm')} Досрочно: ${extraPayments.length} платежей на ${formatMoney(totalExtraPaid)}</span>
                     </div>
                 ` : ''}
                 
                 <!-- История платежей -->
                 <div class="credit-history-section">
                     <div class="history-header" onclick="toggleCreditHistory(${c.id})">
-                        <span>📋 История платежей (${(c.payments_history || []).length})</span>
-                        <span class="history-toggle" id="history-toggle-${c.id}">▼</span>
+                        <span>${svgIcon('clipboard','icon-sm')} История платежей (${(c.payments_history || []).length})</span>
+                        <span class="history-toggle" id="history-toggle-${c.id}">${svgIcon('chevron-down','icon-sm')}</span>
                     </div>
                     <div class="history-content" id="history-content-${c.id}" style="display: none;">
                         ${(c.payments_history || []).length > 0 ? `
@@ -1295,7 +1295,7 @@ function renderCredits() {
                                 ${(c.payments_history || []).slice().reverse().slice(0, 10).map(p => `
                                     <div class="history-item ${p.is_extra ? 'extra' : ''}">
                                         <div class="history-item-left">
-                                            <span class="history-icon">${p.is_extra ? '🚀' : '📅'}</span>
+                                            <span class="history-icon">${p.is_extra ? svgIcon('rocket','icon-sm') : svgIcon('calendar','icon-sm')}</span>
                                             <span class="history-date">${formatDate(p.date)}</span>
                                             ${p.payment_number ? `<span class="history-num">#${p.payment_number}</span>` : ''}
                                         </div>
@@ -1327,8 +1327,8 @@ function renderCredits() {
                 
                 <!-- Кнопки действий -->
                 <div class="credit-card-actions">
-                    <button class="btn btn-sm btn-primary" onclick="showPayCreditModal(${c.id})">💳 Платёж</button>
-                    <button class="btn btn-sm btn-success" onclick="showPayCreditModal(${c.id}, true)">🚀 Досрочно</button>
+                    <button class="btn btn-sm btn-primary" onclick="showPayCreditModal(${c.id})">${svgIcon('credit-card','icon-sm')} Платёж</button>
+                    <button class="btn btn-sm btn-success" onclick="showPayCreditModal(${c.id}, true)">${svgIcon('rocket','icon-sm')} Досрочно</button>
                     <button class="btn btn-sm btn-secondary" onclick="showEditCreditModal(${c.id})">${svgIcon('edit','icon-sm')}</button>
                     <button class="btn btn-sm btn-danger" onclick="deleteCredit(${c.id})">${svgIcon('trash','icon-sm')}</button>
                 </div>
@@ -1344,7 +1344,7 @@ function toggleCreditHistory(creditId) {
     if (content) {
         const isHidden = content.style.display === 'none';
         content.style.display = isHidden ? 'block' : 'none';
-        if (toggle) toggle.textContent = isHidden ? '▲' : '▼';
+        if (toggle) toggle.innerHTML = isHidden ? svgIcon('chevron-up','icon-sm') : svgIcon('chevron-down','icon-sm');
     }
 }
 
@@ -1360,10 +1360,10 @@ function showAddHistoryPaymentModal(creditId) {
     const estimatedInterest = credit.remaining_amount * rate;
     const estimatedPrincipal = credit.monthly_payment - estimatedInterest;
     
-    openModal('📝 Добавить платёж в историю', `
+    openModal(`${svgIcon('edit','icon-sm')} Добавить платёж в историю`, `
         <form id="addHistoryPaymentForm">
             <div class="form-hint-box">
-                <p>💡 Здесь можно занести старые платежи, которые вы уже вносили ранее. Это не влияет на ваши счета — просто запись для истории.</p>
+                <p>${svgIcon('info','icon-sm')} Здесь можно занести старые платежи, которые вы уже вносили ранее. Это не влияет на ваши счета — просто запись для истории.</p>
             </div>
             
             <div class="form-group">
@@ -1371,12 +1371,12 @@ function showAddHistoryPaymentModal(creditId) {
                 <div class="payment-type-selector">
                     <label class="payment-type-option active">
                         <input type="radio" name="payment_type" value="regular" checked>
-                        <span class="option-icon">📅</span>
+                        <span class="option-icon">${svgIcon('calendar','icon-sm')}</span>
                         <span class="option-text">Обязательный</span>
                     </label>
                     <label class="payment-type-option">
                         <input type="radio" name="payment_type" value="extra">
-                        <span class="option-icon">🚀</span>
+                        <span class="option-icon">${svgIcon('rocket','icon-sm')}</span>
                         <span class="option-text">Досрочный</span>
                     </label>
                 </div>
@@ -1665,8 +1665,8 @@ function renderMortgages() {
                 ` : ''}
                 
                 <div class="mortgage-actions">
-                    <button class="btn btn-sm btn-primary" onclick="showPayMortgageModal(${m.id})">💳 Платёж</button>
-                    <button class="btn btn-sm btn-success" onclick="showPayMortgageModal(${m.id}, true)">🚀 Досрочно</button>
+                    <button class="btn btn-sm btn-primary" onclick="showPayMortgageModal(${m.id})">${svgIcon('credit-card','icon-sm')} Платёж</button>
+                    <button class="btn btn-sm btn-success" onclick="showPayMortgageModal(${m.id}, true)">${svgIcon('rocket','icon-sm')} Досрочно</button>
                     <button class="btn btn-sm btn-secondary" onclick="showEditMortgageModal(${m.id})">${svgIcon('edit','icon-sm')}</button>
                     <button class="btn btn-sm btn-danger" onclick="deleteMortgage(${m.id})">${svgIcon('trash','icon-sm')}</button>
                 </div>
