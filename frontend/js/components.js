@@ -21,7 +21,7 @@ function createStatCard(icon, label, value, change = null, color = null) {
                 <div class="stat-value" ${color ? `style="color: ${color}"` : ''}>${value}</div>
                 ${change !== null ? `
                     <div class="stat-change ${change >= 0 ? 'positive' : 'negative'}">
-                        ${change >= 0 ? '↑' : '↓'} ${Math.abs(change).toFixed(1)}%
+                        ${svgIcon(change >= 0 ? 'arrow-up' : 'arrow-down', 'icon-sm')} ${Math.abs(change).toFixed(1)}%
                     </div>
                 ` : ''}
             </div>
@@ -30,10 +30,10 @@ function createStatCard(icon, label, value, change = null, color = null) {
 }
 
 // Компонент пустого состояния
-function createEmptyState(icon, text, actionText = null, actionHandler = null) {
+function createEmptyState(iconId, text, actionText = null, actionHandler = null) {
     return `
         <div class="empty-state">
-            <div class="empty-state-icon">${icon}</div>
+            <div class="empty-state-icon">${svgIcon(iconId, 'icon-xl')}</div>
             <div class="empty-state-text">${text}</div>
             ${actionText ? `<button class="btn btn-primary btn-sm" onclick="${actionHandler}">${actionText}</button>` : ''}
         </div>
@@ -75,7 +75,7 @@ function createBadge(text, type = 'default') {
 }
 
 // Компонент аватара
-function createAvatar(icon, color = 'var(--primary)', size = '48px') {
+function createAvatar(iconId, color = 'var(--primary)', size = '48px') {
     return `
         <div class="avatar" style="
             width: ${size};
@@ -85,16 +85,15 @@ function createAvatar(icon, color = 'var(--primary)', size = '48px') {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: calc(${size} * 0.5);
-        ">${icon}</div>
+        ">${svgIcon(iconId)}</div>
     `;
 }
 
 // Компонент кнопки действия
-function createActionButton(icon, label, onClick, type = 'secondary', size = 'sm') {
+function createActionButton(iconId, label, onClick, type = 'secondary', size = 'sm') {
     return `
         <button class="btn btn-${size} btn-${type}" onclick="${onClick}" title="${label}">
-            ${icon}
+            ${svgIcon(iconId, 'icon-sm')}
         </button>
     `;
 }
@@ -107,7 +106,7 @@ function createDropdownMenu(triggerId, items) {
         }
         return `
             <a href="#" class="dropdown-item ${item.danger ? 'danger' : ''}" onclick="${item.onClick}; return false;">
-                <span class="dropdown-item-icon">${item.icon}</span>
+                <span class="dropdown-item-icon">${svgIcon(item.icon, 'icon-sm')}</span>
                 <span class="dropdown-item-text">${item.label}</span>
             </a>
         `;
@@ -128,11 +127,11 @@ function createTooltip(content, position = 'top') {
 }
 
 // Компонент карточки с графиком
-function createChartCard(title, chartId, icon = '📊') {
+function createChartCard(title, chartId, iconId = 'bar-chart') {
     return `
         <div class="card chart-card">
             <div class="card-header">
-                <span class="card-icon">${icon}</span>
+                <span class="card-icon">${svgIcon(iconId)}</span>
                 <span class="card-title">${title}</span>
             </div>
             <div class="chart-container" id="${chartId}"></div>
@@ -148,7 +147,7 @@ function createTabs(tabs, activeTab, onTabClick) {
                 <button class="tab ${tab.id === activeTab ? 'active' : ''}" 
                         onclick="${onTabClick}('${tab.id}')"
                         data-tab="${tab.id}">
-                    ${tab.icon ? `<span class="tab-icon">${tab.icon}</span>` : ''}
+                    ${tab.icon ? `<span class="tab-icon">${svgIcon(tab.icon, 'icon-sm')}</span>` : ''}
                     <span class="tab-text">${tab.label}</span>
                 </button>
             `).join('')}
@@ -193,7 +192,7 @@ function createBonusCardDisplay(card) {
     return `
         <div class="bonus-card-display" style="background: linear-gradient(135deg, ${card.color} 0%, ${card.color}dd 100%);">
             <div class="bonus-card-header">
-                <div class="bonus-card-icon">${card.icon}</div>
+                <div class="bonus-card-icon">${svgIcon('ticket')}</div>
                 <div class="bonus-card-info">
                     <div class="bonus-card-name">${card.name}</div>
                     <div class="bonus-card-store">${card.store_name}</div>
@@ -215,10 +214,10 @@ function createBonusCardDisplay(card) {
 // Компонент AI-совета
 function createAITip(tip) {
     const typeStyles = {
-        success: { bg: 'var(--success-light)', border: 'var(--success)', icon: '✅' },
-        warning: { bg: 'var(--warning-light)', border: 'var(--warning)', icon: '⚠️' },
-        danger: { bg: 'var(--danger-light)', border: 'var(--danger)', icon: '🚨' },
-        info: { bg: 'var(--gray-100)', border: 'var(--info)', icon: 'ℹ️' }
+        success: { bg: 'var(--success-light)', border: 'var(--success)', icon: 'check' },
+        warning: { bg: 'var(--warning-light)', border: 'var(--warning)', icon: 'alert-triangle' },
+        danger: { bg: 'var(--danger-light)', border: 'var(--danger)', icon: 'alert-triangle' },
+        info: { bg: 'var(--gray-100)', border: 'var(--info)', icon: 'info' }
     };
     
     const style = typeStyles[tip.type] || typeStyles.info;
@@ -226,7 +225,7 @@ function createAITip(tip) {
     return `
         <div class="ai-tip" style="background: ${style.bg}; border-left: 4px solid ${style.border}; padding: 16px; border-radius: var(--radius); margin-bottom: 12px;">
             <div class="ai-tip-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                <span class="ai-tip-icon">${tip.icon || style.icon}</span>
+                <span class="ai-tip-icon">${svgIcon(tip.iconId || style.icon)}</span>
                 <span class="ai-tip-title" style="font-weight: 600;">${tip.title}</span>
             </div>
             <div class="ai-tip-message" style="font-size: 14px; color: var(--gray-700);">${tip.message}</div>
@@ -236,10 +235,12 @@ function createAITip(tip) {
 
 // Компонент списка транзакций (компактный)
 function createTransactionItem(t, showActions = true) {
+    const iconId = t.type === 'transfer' ? 'repeat' : (t.type === 'income' ? 'trending-up' : 'trending-down');
+    
     return `
         <div class="transaction-item" data-id="${t.id}">
-            <div class="transaction-icon" style="background: ${t.category_color || '#667eea'}20">
-                ${t.category_icon || (t.type === 'transfer' ? '↔️' : '💰')}
+            <div class="transaction-icon" style="background: ${t.category_color || '#667eea'}20; color: ${t.category_color || '#667eea'}">
+                ${svgIcon(iconId)}
             </div>
             <div class="transaction-info">
                 <div class="transaction-category">
@@ -257,8 +258,8 @@ function createTransactionItem(t, showActions = true) {
             </div>
             ${showActions ? `
                 <div class="transaction-actions">
-                    <button class="btn-icon-sm" onclick="showEditTransactionModal(${t.id})" title="Редактировать">✏️</button>
-                    <button class="btn-icon-sm danger" onclick="deleteTransaction(${t.id})" title="Удалить">🗑️</button>
+                    <button class="btn-icon-sm" onclick="showEditTransactionModal(${t.id})" title="Редактировать">${svgIcon('edit', 'icon-sm')}</button>
+                    <button class="btn-icon-sm danger" onclick="deleteTransaction(${t.id})" title="Удалить">${svgIcon('trash', 'icon-sm')}</button>
                 </div>
             ` : ''}
         </div>
