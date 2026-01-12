@@ -8,12 +8,9 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <meta name="theme-color" content="#2563eb">
+    <meta name="theme-color" content="#6366f1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
     
     <!-- Chart.js для графиков -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -23,21 +20,6 @@
     
     <!-- QRCode для QR-кодов -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    
-    <style>
-        /* Стили для Lucide иконок */
-        .nav-icon svg,
-        .card-icon svg {
-            width: 20px;
-            height: 20px;
-            stroke-width: 2;
-        }
-        
-        .mobile-nav-item .nav-icon svg {
-            width: 22px;
-            height: 22px;
-        }
-    </style>
 </head>
 <body>
     <div class="app" id="app">
@@ -45,34 +27,32 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <div class="logo-icon">B</div>
+                    <div class="logo-icon">💰</div>
                     <div class="logo-text">
-                        <span class="logo-title">Budget</span>
-                        <span class="logo-subtitle">Professional</span>
+                        <span class="logo-title">Бюджет</span>
+                        <span class="logo-subtitle">Pro</span>
                     </div>
                 </div>
-                <button class="sidebar-close" id="sidebarClose">
-                    <i data-lucide="x"></i>
-                </button>
+                <button class="sidebar-close" id="sidebarClose">✕</button>
             </div>
             
             <nav class="sidebar-nav">
                 <div class="nav-section">
                     <div class="nav-section-title">Основное</div>
                     <a href="#" class="nav-item active" data-tab="dashboard">
-                        <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+                        <span class="nav-icon">📊</span>
                         <span class="nav-text">Дашборд</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="transactions">
-                        <span class="nav-icon"><i data-lucide="receipt"></i></span>
+                        <span class="nav-icon">💳</span>
                         <span class="nav-text">Операции</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="accounts">
-                        <span class="nav-icon"><i data-lucide="wallet"></i></span>
+                        <span class="nav-icon">🏦</span>
                         <span class="nav-text">Счета</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="categories">
-                        <span class="nav-icon"><i data-lucide="tags"></i></span>
+                        <span class="nav-icon">🏷️</span>
                         <span class="nav-text">Категории</span>
                     </a>
                 </div>
@@ -80,19 +60,19 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Кредиты</div>
                     <a href="#" class="nav-item" data-tab="credit-cards">
-                        <span class="nav-icon"><i data-lucide="credit-card"></i></span>
+                        <span class="nav-icon">💳</span>
                         <span class="nav-text">Кредитные карты</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="credits">
-                        <span class="nav-icon"><i data-lucide="file-text"></i></span>
+                        <span class="nav-icon">📋</span>
                         <span class="nav-text">Кредиты</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="mortgages">
-                        <span class="nav-icon"><i data-lucide="home"></i></span>
+                        <span class="nav-icon">🏠</span>
                         <span class="nav-text">Ипотека</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="calculator">
-                        <span class="nav-icon"><i data-lucide="calculator"></i></span>
+                        <span class="nav-icon">🧮</span>
                         <span class="nav-text">Калькулятор</span>
                     </a>
                 </div>
@@ -100,15 +80,15 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Планирование</div>
                     <a href="#" class="nav-item" data-tab="goals">
-                        <span class="nav-icon"><i data-lucide="target"></i></span>
+                        <span class="nav-icon">🎯</span>
                         <span class="nav-text">Цели</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="investments">
-                        <span class="nav-icon"><i data-lucide="trending-up"></i></span>
+                        <span class="nav-icon">📈</span>
                         <span class="nav-text">Инвестиции</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="taxes">
-                        <span class="nav-icon"><i data-lucide="landmark"></i></span>
+                        <span class="nav-icon">🧾</span>
                         <span class="nav-text">Налоги</span>
                     </a>
                 </div>
@@ -116,19 +96,19 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Аналитика</div>
                     <a href="#" class="nav-item" data-tab="analytics">
-                        <span class="nav-icon"><i data-lucide="bar-chart-3"></i></span>
+                        <span class="nav-icon">📉</span>
                         <span class="nav-text">Статистика</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="prices">
-                        <span class="nav-icon"><i data-lucide="store"></i></span>
+                        <span class="nav-icon">🏪</span>
                         <span class="nav-text">Сравнение цен</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="bonus-cards">
-                        <span class="nav-icon"><i data-lucide="ticket"></i></span>
+                        <span class="nav-icon">🎫</span>
                         <span class="nav-text">Бонусные карты</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="achievements">
-                        <span class="nav-icon"><i data-lucide="trophy"></i></span>
+                        <span class="nav-icon">🏆</span>
                         <span class="nav-text">Достижения</span>
                     </a>
                 </div>
@@ -136,7 +116,7 @@
             
             <div class="sidebar-footer">
                 <div class="user-info">
-                    <div class="user-avatar">F</div>
+                    <div class="user-avatar">👨‍👩‍👧‍👦</div>
                     <div class="user-details">
                         <div class="user-name">Семья</div>
                         <div class="user-status">Premium</div>
@@ -155,11 +135,9 @@
                 </button>
                 <h1 class="page-title" id="pageTitle">Дашборд</h1>
                 <div class="header-actions">
-                    <button class="btn btn-icon" id="refreshBtn" title="Обновить">
-                        <i data-lucide="refresh-cw"></i>
-                    </button>
+                    <button class="btn btn-icon" id="refreshBtn" title="Обновить">🔄</button>
                     <button class="btn btn-primary" id="addBtn">
-                        <i data-lucide="plus"></i>
+                        <span class="btn-icon-left">+</span>
                         <span class="btn-text">Добавить</span>
                     </button>
                 </div>
@@ -175,7 +153,7 @@
                         <!-- Баланс -->
                         <div class="card card-balance">
                             <div class="card-header">
-                                <div class="card-icon"><i data-lucide="wallet"></i></div>
+                                <span class="card-icon">💰</span>
                                 <span class="card-title">Общий баланс</span>
                             </div>
                             <div class="card-value" id="totalBalance">0 ₽</div>
@@ -185,7 +163,7 @@
                             </div>
                             <div class="balance-details">
                                 <div class="balance-detail-row">
-                                    <span>Резерв на налоги:</span>
+                                    <span>🧾 Резерв на налоги:</span>
                                     <span id="taxReserveBalance">0 ₽</span>
                                 </div>
                             </div>
@@ -194,12 +172,12 @@
                         <!-- Доходы -->
                         <div class="card card-income">
                             <div class="card-header">
-                                <div class="card-icon"><i data-lucide="trending-up"></i></div>
+                                <span class="card-icon">📈</span>
                                 <span class="card-title">Доходы</span>
                             </div>
                             <div class="card-value" id="monthlyIncome">0 ₽</div>
                             <div class="card-change positive" id="incomeChange">
-                                <span>+0%</span>
+                                <span>↑ 0%</span>
                                 <span>vs прошлый месяц</span>
                             </div>
                         </div>
@@ -207,33 +185,33 @@
                         <!-- Расходы -->
                         <div class="card card-expense">
                             <div class="card-header">
-                                <div class="card-icon"><i data-lucide="trending-down"></i></div>
+                                <span class="card-icon">📉</span>
                                 <span class="card-title">Расходы</span>
                             </div>
                             <div class="card-value" id="monthlyExpense">0 ₽</div>
                             <div class="card-change negative" id="expenseChange">
-                                <span>+0%</span>
+                                <span>↑ 0%</span>
                                 <span>vs прошлый месяц</span>
                             </div>
                             <div class="expense-breakdown">
                                 <div class="breakdown-row">
-                                    <span>Семейные:</span>
+                                    <span>👨‍👩‍👧 Семейные:</span>
                                     <span id="expensePersonal">0 ₽</span>
                                 </div>
                                 <div class="breakdown-row">
-                                    <span>Бизнес:</span>
+                                    <span>🏢 Бизнес:</span>
                                     <span id="expenseBusiness">0 ₽</span>
                                 </div>
                                 <div class="breakdown-row">
-                                    <span>Платёж кредиток:</span>
+                                    <span>💳 Платёж кредиток:</span>
                                     <span id="creditCardPayments">0 ₽</span>
                                 </div>
                                 <div class="breakdown-row">
-                                    <span>Платёж кредитов:</span>
+                                    <span>📋 Платёж кредитов:</span>
                                     <span id="creditPayments">0 ₽</span>
                                 </div>
                                 <div class="breakdown-row">
-                                    <span>Платёж ипотеки:</span>
+                                    <span>🏠 Платёж ипотеки:</span>
                                     <span id="mortgagePayments">0 ₽</span>
                                 </div>
                             </div>
@@ -242,7 +220,7 @@
                         <!-- Накоплено -->
                         <div class="card card-savings">
                             <div class="card-header">
-                                <div class="card-icon"><i data-lucide="piggy-bank"></i></div>
+                                <span class="card-icon">🐷</span>
                                 <span class="card-title">Накоплено</span>
                             </div>
                             <div class="card-value" id="monthlySavings">0 ₽</div>
@@ -255,7 +233,7 @@
                         <!-- Ближайшие платежи -->
                         <div class="card card-wide">
                             <div class="card-header">
-                                <div class="card-icon"><i data-lucide="clock"></i></div>
+                                <span class="card-icon">⏰</span>
                                 <span class="card-title">Ближайшие платежи</span>
                             </div>
                             <div class="upcoming-list" id="upcomingPayments">
@@ -266,18 +244,18 @@
                         <!-- Превышение бюджета -->
                         <div class="card">
                             <div class="card-header">
-                                <div class="card-icon"><i data-lucide="alert-triangle"></i></div>
+                                <span class="card-icon">⚠️</span>
                                 <span class="card-title">Превышение бюджета</span>
                             </div>
                             <div class="over-budget-list" id="overBudgetList">
-                                <div class="empty-state small">Всё под контролем</div>
+                                <div class="empty-state small">Всё под контролем! 👍</div>
                             </div>
                         </div>
                         
                         <!-- Тренды -->
                         <div class="card card-wide">
                             <div class="card-header">
-                                <div class="card-icon"><i data-lucide="bar-chart-3"></i></div>
+                                <span class="card-icon">📊</span>
                                 <span class="card-title">Тренды за 6 месяцев</span>
                             </div>
                             <div class="chart-container" id="trendsChart" style="height: 200px;"></div>
@@ -286,9 +264,9 @@
                         <!-- Цели -->
                         <div class="card">
                             <div class="card-header">
-                                <div class="card-icon"><i data-lucide="target"></i></div>
+                                <span class="card-icon">🎯</span>
                                 <span class="card-title">Цели</span>
-                                <a href="#" class="card-link" data-tab="goals">Все</a>
+                                <a href="#" class="card-link" data-tab="goals">Все →</a>
                             </div>
                             <div class="goals-mini" id="goalsMini"></div>
                         </div>
@@ -296,7 +274,7 @@
                         <!-- Долги -->
                         <div class="card">
                             <div class="card-header">
-                                <div class="card-icon"><i data-lucide="file-text"></i></div>
+                                <span class="card-icon">📋</span>
                                 <span class="card-title">Долги</span>
                             </div>
                             <div class="debts-summary" id="debtsSummary">
@@ -322,9 +300,9 @@
                         <!-- Инвестиции -->
                         <div class="card">
                             <div class="card-header">
-                                <div class="card-icon"><i data-lucide="trending-up"></i></div>
+                                <span class="card-icon">📈</span>
                                 <span class="card-title">Инвестиции</span>
-                                <a href="#" class="card-link" data-tab="investments">Все</a>
+                                <a href="#" class="card-link" data-tab="investments">Все →</a>
                             </div>
                             <div class="investments-mini" id="investmentsMini">
                                 <div class="investment-summary">
@@ -337,49 +315,422 @@
                         <!-- Последние операции -->
                         <div class="card card-wide">
                             <div class="card-header">
-                                <div class="card-icon"><i data-lucide="receipt"></i></div>
+                                <span class="card-icon">💳</span>
                                 <span class="card-title">Последние операции</span>
-                                <a href="#" class="card-link" data-tab="transactions">Все</a>
+                                <a href="#" class="card-link" data-tab="transactions">Все →</a>
                             </div>
                             <div class="transactions-mini" id="transactionsMini"></div>
                         </div>
                     </div>
                 </section>
 
-                <!-- Остальные секции остаются без изменений структуры -->
-                <!-- ... -->
-                
+                <!-- Transactions -->
+                <section class="tab-content" id="transactions-tab">
+                    <div class="filters-bar">
+                        <div class="filters-row">
+                            <div class="filter-group">
+                                <select id="filterType" class="filter-select">
+                                    <option value="">Все типы</option>
+                                    <option value="income">Доходы</option>
+                                    <option value="expense">Расходы</option>
+                                    <option value="transfer">Переводы</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <select id="filterAccount" class="filter-select">
+                                    <option value="">Все счета</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <select id="filterCategory" class="filter-select">
+                                    <option value="">Все категории</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="filters-row">
+                            <div class="filter-group">
+                                <input type="date" id="filterStartDate" class="filter-input">
+                            </div>
+                            <span class="filter-separator">—</span>
+                            <div class="filter-group">
+                                <input type="date" id="filterEndDate" class="filter-input">
+                            </div>
+                            <div class="filter-group">
+                                <input type="text" id="filterSearch" class="filter-input" placeholder="🔍 Поиск...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="transactions-list" id="transactionsList"></div>
+                </section>
+
+                <!-- Accounts -->
+                <section class="tab-content" id="accounts-tab">
+                    <div class="accounts-sections">
+                        <div class="accounts-section">
+                            <h3 class="section-title">💳 Дебетовые карты и счета</h3>
+                            <div class="accounts-grid" id="debitAccountsGrid"></div>
+                        </div>
+                        <div class="accounts-section">
+                            <h3 class="section-title">💵 Наличные</h3>
+                            <div class="accounts-grid" id="cashAccountsGrid"></div>
+                        </div>
+                        <div class="accounts-section">
+                            <h3 class="section-title">🏢 Бизнес (ИП)</h3>
+                            <div class="accounts-grid" id="businessAccountsGrid"></div>
+                        </div>
+                        <div class="accounts-section">
+                            <h3 class="section-title">🧾 Резерв на налоги</h3>
+                            <div class="accounts-grid" id="taxReserveAccountsGrid"></div>
+                        </div>
+                        <div class="accounts-section">
+                            <h3 class="section-title">📈 Инвестиционные</h3>
+                            <div class="accounts-grid" id="investmentAccountsGrid"></div>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-block" id="addAccountBtn">+ Добавить счёт</button>
+                </section>
+
+                <!-- Credit Cards -->
+                <section class="tab-content" id="credit-cards-tab">
+                    <div class="credit-cards-grid" id="creditCardsGrid"></div>
+                    <button class="btn btn-secondary btn-block" id="addCreditCardBtn">+ Добавить кредитную карту</button>
+                </section>
+
+                <!-- Categories -->
+                <section class="tab-content" id="categories-tab">
+                    <div class="categories-tabs">
+                        <button class="cat-tab active" data-type="expense">📉 Расходы</button>
+                        <button class="cat-tab" data-type="income">📈 Доходы</button>
+                    </div>
+                    <div class="categories-grid" id="categoriesGrid"></div>
+                    <button class="btn btn-secondary btn-block" id="addCategoryBtn">+ Добавить категорию</button>
+                </section>
+
+                <!-- Goals -->
+                <section class="tab-content" id="goals-tab">
+                    <div class="goals-stats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="goalsProgress">0%</div>
+                            <div class="stat-label">Общий прогресс</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="goalsCount">0</div>
+                            <div class="stat-label">Активных целей</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="goalsCompleted">0</div>
+                            <div class="stat-label">Достигнуто в этом месяце</div>
+                        </div>
+                    </div>
+                    <div class="goals-grid" id="goalsGrid"></div>
+                    <button class="btn btn-secondary btn-block" id="addGoalBtn">+ Добавить цель</button>
+                </section>
+
+                <!-- Credits -->
+                <section class="tab-content" id="credits-tab">
+                    <div class="credits-summary-card" id="creditsSummaryCard">
+                        <div class="summary-item">
+                            <span class="summary-label">Общий долг</span>
+                            <span class="summary-value" id="totalCreditsDebt">0 ₽</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Ежемесячный платёж</span>
+                            <span class="summary-value" id="monthlyCreditsPayment">0 ₽</span>
+                        </div>
+                    </div>
+                    <div class="credits-grid" id="creditsGrid"></div>
+                    <button class="btn btn-secondary btn-block" id="addCreditBtn">+ Добавить кредит</button>
+                </section>
+
+                <!-- Mortgages -->
+                <section class="tab-content" id="mortgages-tab">
+                    <div class="mortgages-summary" id="mortgagesSummary"></div>
+                    <div class="mortgages-grid" id="mortgagesGrid"></div>
+                    <button class="btn btn-secondary btn-block" id="addMortgageBtn">+ Добавить ипотеку</button>
+                </section>
+
+                <!-- Calculator -->
+                <section class="tab-content" id="calculator-tab">
+                    <div class="calculator-tabs">
+                        <button class="calc-tab active" data-calc="credit">💳 Кредит</button>
+                        <button class="calc-tab" data-calc="mortgage">🏠 Ипотека</button>
+                        <button class="calc-tab" data-calc="early">🚀 Досрочное погашение</button>
+                    </div>
+                    
+                    <div class="calculator-content">
+                        <!-- Кредитный калькулятор -->
+                        <div class="calc-section active" id="calc-credit">
+                            <div class="calc-form">
+                                <div class="form-group">
+                                    <label class="form-label">Сумма кредита *</label>
+                                    <input type="number" class="form-input" id="calcAmount" value="1000000" placeholder="1000000">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Ставка, % *</label>
+                                        <input type="number" class="form-input" id="calcRate" value="15" step="0.1">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Срок, мес. *</label>
+                                        <input type="number" class="form-input" id="calcTerm" value="36">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">📅 Дата взятия кредита</label>
+                                    <input type="date" class="form-input" id="calcStartDate">
+                                    <div class="form-hint">Укажите дату, чтобы увидеть сколько уже оплачено</div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">День платежа в месяце</label>
+                                    <input type="number" class="form-input" id="calcPaymentDay" value="1" min="1" max="31">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Досрочный платёж (ежемесячно)</label>
+                                    <input type="number" class="form-input" id="calcExtra" value="0" placeholder="0">
+                                    <div class="form-hint">Дополнительная сумма к ежемесячному платежу</div>
+                                </div>
+                                
+                                <button class="btn btn-primary btn-block" id="calcCreditBtn">🧮 Рассчитать</button>
+                            </div>
+                            <div class="calc-result" id="calcCreditResult"></div>
+                        </div>
+                        
+                        <!-- Ипотечный калькулятор -->
+                        <div class="calc-section" id="calc-mortgage">
+                            <div class="calc-form">
+                                <div class="form-group">
+                                    <label class="form-label">Стоимость недвижимости *</label>
+                                    <input type="number" class="form-input" id="calcPropertyValue" value="10000000">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Первоначальный взнос</label>
+                                    <input type="number" class="form-input" id="calcDownPayment" value="2000000">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Ставка, % *</label>
+                                        <input type="number" class="form-input" id="calcMortgageRate" value="8" step="0.1">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Срок, лет *</label>
+                                        <input type="number" class="form-input" id="calcMortgageTerm" value="20">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">📅 Дата взятия ипотеки</label>
+                                    <input type="date" class="form-input" id="calcMortgageStartDate">
+                                    <div class="form-hint">Укажите дату, чтобы увидеть текущий остаток</div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Тип платежа</label>
+                                    <select class="form-select" id="calcPaymentType">
+                                        <option value="annuity">Аннуитетный (равные платежи)</option>
+                                        <option value="differentiated">Дифференцированный (убывающие)</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary btn-block" id="calcMortgageBtn">🧮 Рассчитать</button>
+                            </div>
+                            <div class="calc-result" id="calcMortgageResult"></div>
+                        </div>
+                        
+                        <!-- Калькулятор досрочного погашения -->
+                        <div class="calc-section" id="calc-early">
+                            <div class="calc-form">
+                                <div class="form-group">
+                                    <label class="form-label">Остаток долга *</label>
+                                    <input type="number" class="form-input" id="calcEarlyRemaining" value="500000">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Ставка, % *</label>
+                                        <input type="number" class="form-input" id="calcEarlyRate" value="15" step="0.1">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Осталось мес. *</label>
+                                        <input type="number" class="form-input" id="calcEarlyMonths" value="24">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Текущий ежемесячный платёж *</label>
+                                    <input type="number" class="form-input" id="calcEarlyPayment" value="25000">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Сумма досрочного погашения *</label>
+                                    <input type="number" class="form-input" id="calcEarlyAmount" value="100000">
+                                    <div class="form-hint">Единоразовый платёж сверх ежемесячного</div>
+                                </div>
+                                <button class="btn btn-primary btn-block" id="calcEarlyBtn">📊 Сравнить варианты</button>
+                            </div>
+                            <div class="calc-result" id="calcEarlyResult"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Investments -->
+                <section class="tab-content" id="investments-tab">
+                    <div class="investments-summary-cards">
+                        <div class="summary-card">
+                            <div class="summary-icon">💰</div>
+                            <div class="summary-info">
+                                <div class="summary-label">Вложено</div>
+                                <div class="summary-value" id="totalInvested">0 ₽</div>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon">📊</div>
+                            <div class="summary-info">
+                                <div class="summary-label">Текущая стоимость</div>
+                                <div class="summary-value" id="totalInvestmentValue">0 ₽</div>
+                            </div>
+                        </div>
+                        <div class="summary-card profit">
+                            <div class="summary-icon">📈</div>
+                            <div class="summary-info">
+                                <div class="summary-label">Прибыль</div>
+                                <div class="summary-value" id="totalInvestmentProfit">0 ₽</div>
+                            </div>
+                        </div>
+                        <div class="summary-card dividends">
+                            <div class="summary-icon">💵</div>
+                            <div class="summary-info">
+                                <div class="summary-label">Дивиденды</div>
+                                <div class="summary-value" id="totalDividends">0 ₽</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="investments-accounts" id="investmentsAccounts"></div>
+                    
+                    <button class="btn btn-secondary btn-block" id="addInvestmentBtn">+ Добавить инвестицию</button>
+                </section>
+
+                <!-- Taxes -->
+                <section class="tab-content" id="taxes-tab">
+                    <div class="taxes-summary" id="taxesSummary"></div>
+                    <div class="taxes-reserves" id="taxesReserves"></div>
+                    <div class="taxes-payments" id="taxesPayments"></div>
+                    <button class="btn btn-secondary btn-block" id="addTaxBtn">+ Добавить налог</button>
+                </section>
+
+                <!-- Analytics -->
+                <section class="tab-content" id="analytics-tab">
+                    <div class="analytics-header">
+                        <div class="analytics-filters">
+                            <div class="analytics-period-controls">
+                                <select id="analyticsPeriod" class="filter-select">
+                                    <option value="month">Текущий месяц</option>
+                                    <option value="quarter">Квартал</option>
+                                    <option value="year">Год</option>
+                                    <option value="all">Всё время</option>
+                                    <option value="custom">Выбрать даты...</option>
+                                </select>
+                                <div class="analytics-custom-dates" id="analyticsCustomDates" style="display: none;">
+                                    <input type="date" class="form-input" id="analyticsStartDate">
+                                    <span class="date-separator">—</span>
+                                    <input type="date" class="form-input" id="analyticsEndDate">
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" id="analyzeAIBtn">🤖 AI-анализ</button>
+                        </div>
+                    </div>
+                    
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <h3>📉 Расходы по категориям</h3>
+                            <div class="chart-container" id="expenseChart" style="height: 300px;"></div>
+                        </div>
+                        <div class="analytics-card">
+                            <h3>📈 Доходы по категориям</h3>
+                            <div class="chart-container" id="incomeChart" style="height: 300px;"></div>
+                        </div>
+                        <div class="analytics-card wide">
+                            <h3>📊 Динамика за год</h3>
+                            <div class="chart-container" id="trendsLineChart" style="height: 300px;"></div>
+                        </div>
+                        <div class="analytics-card wide">
+                            <h3>🏪 Расходы по магазинам</h3>
+                            <div class="chart-container" id="storeChart" style="height: 250px;"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Price Comparison -->
+                <section class="tab-content" id="prices-tab">
+                    <div class="prices-header" style="margin-bottom: 20px;">
+                        <h3 style="margin: 0 0 4px 0;">🏪 Сравнение цен</h3>
+                        <p style="margin: 0; color: var(--gray-500); font-size: 14px;">Отслеживайте цены и находите выгодные предложения</p>
+                    </div>
+                    
+                    <div class="stores-section">
+                        <h4>Магазины</h4>
+                        <div id="storesGrid"></div>
+                        <button class="btn btn-sm btn-secondary" id="addStoreBtn" style="margin-top: 8px;">+ Магазин</button>
+                    </div>
+                    
+                    <div class="products-section">
+                        <h4>Товары и цены</h4>
+                        <div id="productsGrid"></div>
+                        <button class="btn btn-sm btn-secondary" id="addProductBtn" style="margin-top: 8px;">+ Товар</button>
+                    </div>
+                </section>
+
+                <!-- Bonus Cards -->
+                <section class="tab-content" id="bonus-cards-tab">
+                    <div class="bonus-cards-header">
+                        <h3>🎫 Бонусные карты магазинов</h3>
+                        <p>Храните карты лояльности и показывайте штрихкоды на кассе</p>
+                    </div>
+                    
+                    <div class="bonus-cards-grid" id="bonusCardsGrid"></div>
+                    
+                    <button class="btn btn-secondary btn-block" id="addBonusCardBtn">+ Добавить бонусную карту</button>
+                </section>
+
+                <!-- Achievements -->
+                <section class="tab-content" id="achievements-tab">
+                    <div class="achievements-header">
+                        <div class="achievements-points">
+                            <span class="points-icon">⭐</span>
+                            <span class="points-value" id="totalPoints">0</span>
+                            <span class="points-label">очков</span>
+                        </div>
+                    </div>
+                    <div class="achievements-grid" id="achievementsGrid"></div>
+                </section>
             </div>
         </main>
 
         <!-- Mobile Navigation -->
         <nav class="mobile-nav">
             <a href="#" class="mobile-nav-item active" data-tab="dashboard">
-                <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+                <span class="nav-icon">📊</span>
                 <span class="nav-text">Обзор</span>
             </a>
             <a href="#" class="mobile-nav-item" data-tab="transactions">
-                <span class="nav-icon"><i data-lucide="receipt"></i></span>
+                <span class="nav-icon">💳</span>
                 <span class="nav-text">Операции</span>
             </a>
             <a href="#" class="mobile-nav-item" data-tab="accounts">
-                <span class="nav-icon"><i data-lucide="wallet"></i></span>
+                <span class="nav-icon">🏦</span>
                 <span class="nav-text">Счета</span>
             </a>
             <a href="#" class="mobile-nav-item" data-tab="goals">
-                <span class="nav-icon"><i data-lucide="target"></i></span>
+                <span class="nav-icon">🎯</span>
                 <span class="nav-text">Цели</span>
             </a>
             <a href="#" class="mobile-nav-item" data-tab="analytics">
-                <span class="nav-icon"><i data-lucide="bar-chart-3"></i></span>
+                <span class="nav-icon">📈</span>
                 <span class="nav-text">Статистика</span>
             </a>
         </nav>
 
         <!-- FAB -->
-        <button class="fab" id="fab">
-            <i data-lucide="plus"></i>
-        </button>
+        <button class="fab" id="fab">+</button>
     </div>
 
     <!-- Modal -->
@@ -387,9 +738,7 @@
         <div class="modal" id="modal">
             <div class="modal-header">
                 <h2 class="modal-title" id="modalTitle">Заголовок</h2>
-                <button class="modal-close" id="modalClose">
-                    <i data-lucide="x"></i>
-                </button>
+                <button class="modal-close" id="modalClose">✕</button>
             </div>
             <div class="modal-body" id="modalBody"></div>
         </div>
@@ -402,12 +751,5 @@
     <script src="js/api.js"></script>
     <script src="js/components.js"></script>
     <script src="js/app.js"></script>
-    
-    <script>
-        // Инициализация Lucide иконок
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-        });
-    </script>
 </body>
 </html>
