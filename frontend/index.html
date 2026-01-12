@@ -20,39 +20,531 @@
     
     <!-- QRCode для QR-кодов -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    
+    <style>
+        /* SVG иконки */
+        .icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        .icon-sm {
+            width: 16px;
+            height: 16px;
+        }
+        .icon-lg {
+            width: 24px;
+            height: 24px;
+        }
+        .icon-xl {
+            width: 32px;
+            height: 32px;
+        }
+        .nav-icon .icon {
+            width: 20px;
+            height: 20px;
+        }
+        .card-icon .icon {
+            width: 22px;
+            height: 22px;
+        }
+        .logo-icon {
+            background: var(--gradient-primary);
+            padding: 10px;
+        }
+        .logo-icon .icon {
+            width: 22px;
+            height: 22px;
+            color: white;
+        }
+    </style>
 </head>
 <body>
+    <!-- SVG Sprite - все иконки в одном месте -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <!-- Wallet / Кошелёк -->
+        <symbol id="icon-wallet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+        </symbol>
+        
+        <!-- Dashboard / Дашборд -->
+        <symbol id="icon-dashboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="7" height="9" x="3" y="3" rx="1"/>
+            <rect width="7" height="5" x="14" y="3" rx="1"/>
+            <rect width="7" height="9" x="14" y="12" rx="1"/>
+            <rect width="7" height="5" x="3" y="16" rx="1"/>
+        </symbol>
+        
+        <!-- Credit Card / Карта -->
+        <symbol id="icon-credit-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="14" x="2" y="5" rx="2"/>
+            <line x1="2" x2="22" y1="10" y2="10"/>
+        </symbol>
+        
+        <!-- Bank / Банк -->
+        <symbol id="icon-bank" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" x2="21" y1="22" y2="22"/>
+            <line x1="6" x2="6" y1="18" y2="11"/>
+            <line x1="10" x2="10" y1="18" y2="11"/>
+            <line x1="14" x2="14" y1="18" y2="11"/>
+            <line x1="18" x2="18" y1="18" y2="11"/>
+            <polygon points="12 2 20 7 4 7"/>
+        </symbol>
+        
+        <!-- Tag / Категория -->
+        <symbol id="icon-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/>
+            <circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>
+        </symbol>
+        
+        <!-- Trending Up / Доход -->
+        <symbol id="icon-trending-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+            <polyline points="16 7 22 7 22 13"/>
+        </symbol>
+        
+        <!-- Trending Down / Расход -->
+        <symbol id="icon-trending-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/>
+            <polyline points="16 17 22 17 22 11"/>
+        </symbol>
+        
+        <!-- Target / Цель -->
+        <symbol id="icon-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="6"/>
+            <circle cx="12" cy="12" r="2"/>
+        </symbol>
+        
+        <!-- Chart / Аналитика -->
+        <symbol id="icon-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3v18h18"/>
+            <path d="m19 9-5 5-4-4-3 3"/>
+        </symbol>
+        
+        <!-- Bar Chart -->
+        <symbol id="icon-bar-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" x2="12" y1="20" y2="10"/>
+            <line x1="18" x2="18" y1="20" y2="4"/>
+            <line x1="6" x2="6" y1="20" y2="16"/>
+        </symbol>
+        
+        <!-- Home / Дом -->
+        <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+        </symbol>
+        
+        <!-- Calculator / Калькулятор -->
+        <symbol id="icon-calculator" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="16" height="20" x="4" y="2" rx="2"/>
+            <line x1="8" x2="16" y1="6" y2="6"/>
+            <line x1="16" x2="16" y1="14" y2="18"/>
+            <path d="M16 10h.01"/>
+            <path d="M12 10h.01"/>
+            <path d="M8 10h.01"/>
+            <path d="M12 14h.01"/>
+            <path d="M8 14h.01"/>
+            <path d="M12 18h.01"/>
+            <path d="M8 18h.01"/>
+        </symbol>
+        
+        <!-- File Text / Документ -->
+        <symbol id="icon-file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+            <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+            <line x1="16" x2="8" y1="13" y2="13"/>
+            <line x1="16" x2="8" y1="17" y2="17"/>
+            <line x1="10" x2="8" y1="9" y2="9"/>
+        </symbol>
+        
+        <!-- Receipt / Чек -->
+        <symbol id="icon-receipt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/>
+            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+            <path d="M12 17.5v-11"/>
+        </symbol>
+        
+        <!-- Piggy Bank / Копилка -->
+        <symbol id="icon-piggy-bank" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z"/>
+            <path d="M2 9v1c0 1.1.9 2 2 2h1"/>
+            <path d="M16 11h.01"/>
+        </symbol>
+        
+        <!-- Clock / Время -->
+        <symbol id="icon-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+        </symbol>
+        
+        <!-- Alert Triangle / Предупреждение -->
+        <symbol id="icon-alert-triangle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+            <path d="M12 9v4"/>
+            <path d="M12 17h.01"/>
+        </symbol>
+        
+        <!-- Trophy / Достижение -->
+        <symbol id="icon-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+            <path d="M4 22h16"/>
+            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+        </symbol>
+        
+        <!-- Store / Магазин -->
+        <symbol id="icon-store" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+            <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
+            <path d="M2 7h20"/>
+            <path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"/>
+        </symbol>
+        
+        <!-- Ticket / Бонусная карта -->
+        <symbol id="icon-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
+            <path d="M13 5v2"/>
+            <path d="M13 17v2"/>
+            <path d="M13 11v2"/>
+        </symbol>
+        
+        <!-- Users / Семья -->
+        <symbol id="icon-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </symbol>
+        
+        <!-- Refresh / Обновить -->
+        <symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+            <path d="M21 3v5h-5"/>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+            <path d="M8 16H3v5"/>
+        </symbol>
+        
+        <!-- Plus / Добавить -->
+        <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"/>
+            <path d="M12 5v14"/>
+        </symbol>
+        
+        <!-- X / Закрыть -->
+        <symbol id="icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"/>
+            <path d="m6 6 12 12"/>
+        </symbol>
+        
+        <!-- Menu / Меню -->
+        <symbol id="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" x2="20" y1="12" y2="12"/>
+            <line x1="4" x2="20" y1="6" y2="6"/>
+            <line x1="4" x2="20" y1="18" y2="18"/>
+        </symbol>
+        
+        <!-- Edit / Редактировать -->
+        <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+            <path d="m15 5 4 4"/>
+        </symbol>
+        
+        <!-- Trash / Удалить -->
+        <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"/>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+            <line x1="10" x2="10" y1="11" y2="17"/>
+            <line x1="14" x2="14" y1="11" y2="17"/>
+        </symbol>
+        
+        <!-- Arrow Right -->
+        <symbol id="icon-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"/>
+            <path d="m12 5 7 7-7 7"/>
+        </symbol>
+        
+        <!-- Chevron Down -->
+        <symbol id="icon-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 9 6 6 6-6"/>
+        </symbol>
+        
+        <!-- Search / Поиск -->
+        <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.3-4.3"/>
+        </symbol>
+        
+        <!-- Calendar / Календарь -->
+        <symbol id="icon-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 2v4"/>
+            <path d="M16 2v4"/>
+            <rect width="18" height="18" x="3" y="4" rx="2"/>
+            <path d="M3 10h18"/>
+        </symbol>
+        
+        <!-- Dollar Sign / Деньги -->
+        <symbol id="icon-dollar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" x2="12" y1="2" y2="22"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </symbol>
+        
+        <!-- Percent -->
+        <symbol id="icon-percent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" x2="5" y1="5" y2="19"/>
+            <circle cx="6.5" cy="6.5" r="2.5"/>
+            <circle cx="17.5" cy="17.5" r="2.5"/>
+        </symbol>
+        
+        <!-- Briefcase / Бизнес -->
+        <symbol id="icon-briefcase" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            <rect width="20" height="14" x="2" y="6" rx="2"/>
+        </symbol>
+        
+        <!-- Rocket / Досрочно -->
+        <symbol id="icon-rocket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+            <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+            <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+            <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+        </symbol>
+        
+        <!-- Shield / Защита -->
+        <symbol id="icon-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+        </symbol>
+        
+        <!-- Star -->
+        <symbol id="icon-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </symbol>
+        
+        <!-- Star Filled -->
+        <symbol id="icon-star-filled" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </symbol>
+        
+        <!-- Check / Галочка -->
+        <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6 9 17l-5-5"/>
+        </symbol>
+        
+        <!-- Info -->
+        <symbol id="icon-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 16v-4"/>
+            <path d="M12 8h.01"/>
+        </symbol>
+        
+        <!-- Settings / Настройки -->
+        <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+        </symbol>
+        
+        <!-- Bot / AI -->
+        <symbol id="icon-bot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 8V4H8"/>
+            <rect width="16" height="12" x="4" y="8" rx="2"/>
+            <path d="M2 14h2"/>
+            <path d="M20 14h2"/>
+            <path d="M15 13v2"/>
+            <path d="M9 13v2"/>
+        </symbol>
+        
+        <!-- Coins -->
+        <symbol id="icon-coins" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="8" r="6"/>
+            <path d="M18.09 10.37A6 6 0 1 1 10.34 18"/>
+            <path d="M7 6h1v4"/>
+            <path d="m16.71 13.88.7.71-2.82 2.82"/>
+        </symbol>
+        
+        <!-- Landmark / Ипотека -->
+        <symbol id="icon-landmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" x2="21" y1="22" y2="22"/>
+            <line x1="6" x2="6" y1="18" y2="11"/>
+            <line x1="10" x2="10" y1="18" y2="11"/>
+            <line x1="14" x2="14" y1="18" y2="11"/>
+            <line x1="18" x2="18" y1="18" y2="11"/>
+            <polygon points="12 2 20 7 4 7"/>
+        </symbol>
+        
+        <!-- Building -->
+        <symbol id="icon-building" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="16" height="20" x="4" y="2" rx="2" ry="2"/>
+            <path d="M9 22v-4h6v4"/>
+            <path d="M8 6h.01"/>
+            <path d="M16 6h.01"/>
+            <path d="M12 6h.01"/>
+            <path d="M12 10h.01"/>
+            <path d="M12 14h.01"/>
+            <path d="M16 10h.01"/>
+            <path d="M16 14h.01"/>
+            <path d="M8 10h.01"/>
+            <path d="M8 14h.01"/>
+        </symbol>
+        
+        <!-- Cash / Наличные -->
+        <symbol id="icon-cash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="12" x="2" y="6" rx="2"/>
+            <circle cx="12" cy="12" r="2"/>
+            <path d="M6 12h.01M18 12h.01"/>
+        </symbol>
+        
+        <!-- Layers / Инвестиции -->
+        <symbol id="icon-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/>
+            <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/>
+            <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>
+        </symbol>
+        
+        <!-- Thumbs Up -->
+        <symbol id="icon-thumbs-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 10v12"/>
+            <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/>
+        </symbol>
+        
+        <!-- Flame / Акция -->
+        <symbol id="icon-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+        </symbol>
+        
+        <!-- External Link -->
+        <symbol id="icon-external-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6"/>
+            <path d="M10 14 21 3"/>
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+        </symbol>
+        
+        <!-- Download -->
+        <symbol id="icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" x2="12" y1="15" y2="3"/>
+        </symbol>
+        
+        <!-- Upload -->
+        <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" x2="12" y1="3" y2="15"/>
+        </symbol>
+        
+        <!-- Eye -->
+        <symbol id="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+            <circle cx="12" cy="12" r="3"/>
+        </symbol>
+        
+        <!-- History -->
+        <symbol id="icon-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+            <path d="M12 7v5l4 2"/>
+        </symbol>
+        
+        <!-- Wallet Cards -->
+        <symbol id="icon-wallet-cards" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="2"/>
+            <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2"/>
+            <path d="M3 11h3c.8 0 1.6.3 2.1.9l1.1.9c1.6 1.6 4.1 1.6 5.7 0l1.1-.9c.5-.5 1.3-.9 2.1-.9H21"/>
+        </symbol>
+        
+        <!-- Banknote -->
+        <symbol id="icon-banknote" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="12" x="2" y="6" rx="2"/>
+            <circle cx="12" cy="12" r="2"/>
+            <path d="M6 12h.01M18 12h.01"/>
+        </symbol>
+        
+        <!-- Gem / Premium -->
+        <symbol id="icon-gem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 3h12l4 6-10 13L2 9Z"/>
+            <path d="M11 3 8 9l4 13 4-13-3-6"/>
+            <path d="M2 9h20"/>
+        </symbol>
+        
+        <!-- Arrow Up -->
+        <symbol id="icon-arrow-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m5 12 7-7 7 7"/>
+            <path d="M12 19V5"/>
+        </symbol>
+        
+        <!-- Arrow Down -->
+        <symbol id="icon-arrow-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14"/>
+            <path d="m19 12-7 7-7-7"/>
+        </symbol>
+        
+        <!-- Repeat / Transfer -->
+        <symbol id="icon-repeat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m17 2 4 4-4 4"/>
+            <path d="M3 11v-1a4 4 0 0 1 4-4h14"/>
+            <path d="m7 22-4-4 4-4"/>
+            <path d="M21 13v1a4 4 0 0 1-4 4H3"/>
+        </symbol>
+        
+        <!-- Filter -->
+        <symbol id="icon-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+        </symbol>
+        
+        <!-- More Horizontal -->
+        <symbol id="icon-more-horizontal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="1"/>
+            <circle cx="19" cy="12" r="1"/>
+            <circle cx="5" cy="12" r="1"/>
+        </symbol>
+        
+        <!-- Zap / Быстро -->
+        <symbol id="icon-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>
+        </symbol>
+    </svg>
+
     <div class="app" id="app">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <div class="logo-icon">💰</div>
+                    <div class="logo-icon">
+                        <svg class="icon"><use href="#icon-wallet"/></svg>
+                    </div>
                     <div class="logo-text">
                         <span class="logo-title">Бюджет</span>
                         <span class="logo-subtitle">Pro</span>
                     </div>
                 </div>
-                <button class="sidebar-close" id="sidebarClose">✕</button>
+                <button class="sidebar-close" id="sidebarClose">
+                    <svg class="icon icon-sm"><use href="#icon-x"/></svg>
+                </button>
             </div>
             
             <nav class="sidebar-nav">
                 <div class="nav-section">
                     <div class="nav-section-title">Основное</div>
                     <a href="#" class="nav-item active" data-tab="dashboard">
-                        <span class="nav-icon">📊</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-dashboard"/></svg></span>
                         <span class="nav-text">Дашборд</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="transactions">
-                        <span class="nav-icon">💳</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-repeat"/></svg></span>
                         <span class="nav-text">Операции</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="accounts">
-                        <span class="nav-icon">🏦</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-bank"/></svg></span>
                         <span class="nav-text">Счета</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="categories">
-                        <span class="nav-icon">🏷️</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-tag"/></svg></span>
                         <span class="nav-text">Категории</span>
                     </a>
                 </div>
@@ -60,19 +552,19 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Кредиты</div>
                     <a href="#" class="nav-item" data-tab="credit-cards">
-                        <span class="nav-icon">💳</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-credit-card"/></svg></span>
                         <span class="nav-text">Кредитные карты</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="credits">
-                        <span class="nav-icon">📋</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-file-text"/></svg></span>
                         <span class="nav-text">Кредиты</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="mortgages">
-                        <span class="nav-icon">🏠</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-home"/></svg></span>
                         <span class="nav-text">Ипотека</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="calculator">
-                        <span class="nav-icon">🧮</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-calculator"/></svg></span>
                         <span class="nav-text">Калькулятор</span>
                     </a>
                 </div>
@@ -80,15 +572,15 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Планирование</div>
                     <a href="#" class="nav-item" data-tab="goals">
-                        <span class="nav-icon">🎯</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-target"/></svg></span>
                         <span class="nav-text">Цели</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="investments">
-                        <span class="nav-icon">📈</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-layers"/></svg></span>
                         <span class="nav-text">Инвестиции</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="taxes">
-                        <span class="nav-icon">🧾</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-receipt"/></svg></span>
                         <span class="nav-text">Налоги</span>
                     </a>
                 </div>
@@ -96,19 +588,19 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Аналитика</div>
                     <a href="#" class="nav-item" data-tab="analytics">
-                        <span class="nav-icon">📉</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-chart"/></svg></span>
                         <span class="nav-text">Статистика</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="prices">
-                        <span class="nav-icon">🏪</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-store"/></svg></span>
                         <span class="nav-text">Сравнение цен</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="bonus-cards">
-                        <span class="nav-icon">🎫</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-ticket"/></svg></span>
                         <span class="nav-text">Бонусные карты</span>
                     </a>
                     <a href="#" class="nav-item" data-tab="achievements">
-                        <span class="nav-icon">🏆</span>
+                        <span class="nav-icon"><svg class="icon"><use href="#icon-trophy"/></svg></span>
                         <span class="nav-text">Достижения</span>
                     </a>
                 </div>
@@ -116,10 +608,15 @@
             
             <div class="sidebar-footer">
                 <div class="user-info">
-                    <div class="user-avatar">👨‍👩‍👧‍👦</div>
+                    <div class="user-avatar">
+                        <svg class="icon"><use href="#icon-users"/></svg>
+                    </div>
                     <div class="user-details">
                         <div class="user-name">Семья</div>
-                        <div class="user-status">Premium</div>
+                        <div class="user-status">
+                            <svg class="icon icon-sm" style="color: var(--warning);"><use href="#icon-gem"/></svg>
+                            Premium
+                        </div>
                     </div>
                 </div>
             </div>
@@ -129,15 +626,15 @@
         <main class="main">
             <header class="header">
                 <button class="menu-btn" id="menuBtn">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                    <svg class="icon"><use href="#icon-menu"/></svg>
                 </button>
                 <h1 class="page-title" id="pageTitle">Дашборд</h1>
                 <div class="header-actions">
-                    <button class="btn btn-icon" id="refreshBtn" title="Обновить">🔄</button>
+                    <button class="btn btn-icon" id="refreshBtn" title="Обновить">
+                        <svg class="icon"><use href="#icon-refresh"/></svg>
+                    </button>
                     <button class="btn btn-primary" id="addBtn">
-                        <span class="btn-icon-left">+</span>
+                        <svg class="icon icon-sm"><use href="#icon-plus"/></svg>
                         <span class="btn-text">Добавить</span>
                     </button>
                 </div>
@@ -153,7 +650,7 @@
                         <!-- Баланс -->
                         <div class="card card-balance">
                             <div class="card-header">
-                                <span class="card-icon">💰</span>
+                                <span class="card-icon"><svg class="icon"><use href="#icon-wallet"/></svg></span>
                                 <span class="card-title">Общий баланс</span>
                             </div>
                             <div class="card-value" id="totalBalance">0 ₽</div>
@@ -163,7 +660,7 @@
                             </div>
                             <div class="balance-details">
                                 <div class="balance-detail-row">
-                                    <span>🧾 Резерв на налоги:</span>
+                                    <span><svg class="icon icon-sm"><use href="#icon-receipt"/></svg> Резерв на налоги:</span>
                                     <span id="taxReserveBalance">0 ₽</span>
                                 </div>
                             </div>
@@ -172,12 +669,13 @@
                         <!-- Доходы -->
                         <div class="card card-income">
                             <div class="card-header">
-                                <span class="card-icon">📈</span>
+                                <span class="card-icon"><svg class="icon" style="color: var(--success);"><use href="#icon-trending-up"/></svg></span>
                                 <span class="card-title">Доходы</span>
                             </div>
                             <div class="card-value" id="monthlyIncome">0 ₽</div>
                             <div class="card-change positive" id="incomeChange">
-                                <span>↑ 0%</span>
+                                <svg class="icon icon-sm"><use href="#icon-arrow-up"/></svg>
+                                <span>0%</span>
                                 <span>vs прошлый месяц</span>
                             </div>
                         </div>
@@ -185,33 +683,34 @@
                         <!-- Расходы -->
                         <div class="card card-expense">
                             <div class="card-header">
-                                <span class="card-icon">📉</span>
+                                <span class="card-icon"><svg class="icon" style="color: var(--danger);"><use href="#icon-trending-down"/></svg></span>
                                 <span class="card-title">Расходы</span>
                             </div>
                             <div class="card-value" id="monthlyExpense">0 ₽</div>
                             <div class="card-change negative" id="expenseChange">
-                                <span>↑ 0%</span>
+                                <svg class="icon icon-sm"><use href="#icon-arrow-up"/></svg>
+                                <span>0%</span>
                                 <span>vs прошлый месяц</span>
                             </div>
                             <div class="expense-breakdown">
                                 <div class="breakdown-row">
-                                    <span>👨‍👩‍👧 Семейные:</span>
+                                    <span><svg class="icon icon-sm"><use href="#icon-users"/></svg> Семейные:</span>
                                     <span id="expensePersonal">0 ₽</span>
                                 </div>
                                 <div class="breakdown-row">
-                                    <span>🏢 Бизнес:</span>
+                                    <span><svg class="icon icon-sm"><use href="#icon-briefcase"/></svg> Бизнес:</span>
                                     <span id="expenseBusiness">0 ₽</span>
                                 </div>
                                 <div class="breakdown-row">
-                                    <span>💳 Платёж кредиток:</span>
+                                    <span><svg class="icon icon-sm"><use href="#icon-credit-card"/></svg> Платёж кредиток:</span>
                                     <span id="creditCardPayments">0 ₽</span>
                                 </div>
                                 <div class="breakdown-row">
-                                    <span>📋 Платёж кредитов:</span>
+                                    <span><svg class="icon icon-sm"><use href="#icon-file-text"/></svg> Платёж кредитов:</span>
                                     <span id="creditPayments">0 ₽</span>
                                 </div>
                                 <div class="breakdown-row">
-                                    <span>🏠 Платёж ипотеки:</span>
+                                    <span><svg class="icon icon-sm"><use href="#icon-home"/></svg> Платёж ипотеки:</span>
                                     <span id="mortgagePayments">0 ₽</span>
                                 </div>
                             </div>
@@ -220,7 +719,7 @@
                         <!-- Накоплено -->
                         <div class="card card-savings">
                             <div class="card-header">
-                                <span class="card-icon">🐷</span>
+                                <span class="card-icon"><svg class="icon" style="color: var(--warning);"><use href="#icon-piggy-bank"/></svg></span>
                                 <span class="card-title">Накоплено</span>
                             </div>
                             <div class="card-value" id="monthlySavings">0 ₽</div>
@@ -233,7 +732,7 @@
                         <!-- Ближайшие платежи -->
                         <div class="card card-wide">
                             <div class="card-header">
-                                <span class="card-icon">⏰</span>
+                                <span class="card-icon"><svg class="icon"><use href="#icon-clock"/></svg></span>
                                 <span class="card-title">Ближайшие платежи</span>
                             </div>
                             <div class="upcoming-list" id="upcomingPayments">
@@ -244,18 +743,21 @@
                         <!-- Превышение бюджета -->
                         <div class="card">
                             <div class="card-header">
-                                <span class="card-icon">⚠️</span>
+                                <span class="card-icon"><svg class="icon" style="color: var(--warning);"><use href="#icon-alert-triangle"/></svg></span>
                                 <span class="card-title">Превышение бюджета</span>
                             </div>
                             <div class="over-budget-list" id="overBudgetList">
-                                <div class="empty-state small">Всё под контролем! 👍</div>
+                                <div class="empty-state small">
+                                    <svg class="icon"><use href="#icon-thumbs-up"/></svg>
+                                    Всё под контролем!
+                                </div>
                             </div>
                         </div>
                         
                         <!-- Тренды -->
                         <div class="card card-wide">
                             <div class="card-header">
-                                <span class="card-icon">📊</span>
+                                <span class="card-icon"><svg class="icon"><use href="#icon-bar-chart"/></svg></span>
                                 <span class="card-title">Тренды за 6 месяцев</span>
                             </div>
                             <div class="chart-container" id="trendsChart" style="height: 200px;"></div>
@@ -264,9 +766,11 @@
                         <!-- Цели -->
                         <div class="card">
                             <div class="card-header">
-                                <span class="card-icon">🎯</span>
+                                <span class="card-icon"><svg class="icon"><use href="#icon-target"/></svg></span>
                                 <span class="card-title">Цели</span>
-                                <a href="#" class="card-link" data-tab="goals">Все →</a>
+                                <a href="#" class="card-link" data-tab="goals">
+                                    Все <svg class="icon icon-sm"><use href="#icon-arrow-right"/></svg>
+                                </a>
                             </div>
                             <div class="goals-mini" id="goalsMini"></div>
                         </div>
@@ -274,7 +778,7 @@
                         <!-- Долги -->
                         <div class="card">
                             <div class="card-header">
-                                <span class="card-icon">📋</span>
+                                <span class="card-icon"><svg class="icon"><use href="#icon-file-text"/></svg></span>
                                 <span class="card-title">Долги</span>
                             </div>
                             <div class="debts-summary" id="debtsSummary">
@@ -300,9 +804,11 @@
                         <!-- Инвестиции -->
                         <div class="card">
                             <div class="card-header">
-                                <span class="card-icon">📈</span>
+                                <span class="card-icon"><svg class="icon"><use href="#icon-layers"/></svg></span>
                                 <span class="card-title">Инвестиции</span>
-                                <a href="#" class="card-link" data-tab="investments">Все →</a>
+                                <a href="#" class="card-link" data-tab="investments">
+                                    Все <svg class="icon icon-sm"><use href="#icon-arrow-right"/></svg>
+                                </a>
                             </div>
                             <div class="investments-mini" id="investmentsMini">
                                 <div class="investment-summary">
@@ -315,9 +821,11 @@
                         <!-- Последние операции -->
                         <div class="card card-wide">
                             <div class="card-header">
-                                <span class="card-icon">💳</span>
+                                <span class="card-icon"><svg class="icon"><use href="#icon-repeat"/></svg></span>
                                 <span class="card-title">Последние операции</span>
-                                <a href="#" class="card-link" data-tab="transactions">Все →</a>
+                                <a href="#" class="card-link" data-tab="transactions">
+                                    Все <svg class="icon icon-sm"><use href="#icon-arrow-right"/></svg>
+                                </a>
                             </div>
                             <div class="transactions-mini" id="transactionsMini"></div>
                         </div>
@@ -356,7 +864,10 @@
                                 <input type="date" id="filterEndDate" class="filter-input">
                             </div>
                             <div class="filter-group">
-                                <input type="text" id="filterSearch" class="filter-input" placeholder="🔍 Поиск...">
+                                <div class="search-input-wrapper">
+                                    <svg class="icon icon-sm search-icon"><use href="#icon-search"/></svg>
+                                    <input type="text" id="filterSearch" class="filter-input" placeholder="Поиск..." style="padding-left: 36px;">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -367,43 +878,73 @@
                 <section class="tab-content" id="accounts-tab">
                     <div class="accounts-sections">
                         <div class="accounts-section">
-                            <h3 class="section-title">💳 Дебетовые карты и счета</h3>
+                            <h3 class="section-title">
+                                <svg class="icon"><use href="#icon-credit-card"/></svg>
+                                Дебетовые карты и счета
+                            </h3>
                             <div class="accounts-grid" id="debitAccountsGrid"></div>
                         </div>
                         <div class="accounts-section">
-                            <h3 class="section-title">💵 Наличные</h3>
+                            <h3 class="section-title">
+                                <svg class="icon"><use href="#icon-banknote"/></svg>
+                                Наличные
+                            </h3>
                             <div class="accounts-grid" id="cashAccountsGrid"></div>
                         </div>
                         <div class="accounts-section">
-                            <h3 class="section-title">🏢 Бизнес (ИП)</h3>
+                            <h3 class="section-title">
+                                <svg class="icon"><use href="#icon-briefcase"/></svg>
+                                Бизнес (ИП)
+                            </h3>
                             <div class="accounts-grid" id="businessAccountsGrid"></div>
                         </div>
                         <div class="accounts-section">
-                            <h3 class="section-title">🧾 Резерв на налоги</h3>
+                            <h3 class="section-title">
+                                <svg class="icon"><use href="#icon-receipt"/></svg>
+                                Резерв на налоги
+                            </h3>
                             <div class="accounts-grid" id="taxReserveAccountsGrid"></div>
                         </div>
                         <div class="accounts-section">
-                            <h3 class="section-title">📈 Инвестиционные</h3>
+                            <h3 class="section-title">
+                                <svg class="icon"><use href="#icon-layers"/></svg>
+                                Инвестиционные
+                            </h3>
                             <div class="accounts-grid" id="investmentAccountsGrid"></div>
                         </div>
                     </div>
-                    <button class="btn btn-secondary btn-block" id="addAccountBtn">+ Добавить счёт</button>
+                    <button class="btn btn-secondary btn-block" id="addAccountBtn">
+                        <svg class="icon icon-sm"><use href="#icon-plus"/></svg>
+                        Добавить счёт
+                    </button>
                 </section>
 
                 <!-- Credit Cards -->
                 <section class="tab-content" id="credit-cards-tab">
                     <div class="credit-cards-grid" id="creditCardsGrid"></div>
-                    <button class="btn btn-secondary btn-block" id="addCreditCardBtn">+ Добавить кредитную карту</button>
+                    <button class="btn btn-secondary btn-block" id="addCreditCardBtn">
+                        <svg class="icon icon-sm"><use href="#icon-plus"/></svg>
+                        Добавить кредитную карту
+                    </button>
                 </section>
 
                 <!-- Categories -->
                 <section class="tab-content" id="categories-tab">
                     <div class="categories-tabs">
-                        <button class="cat-tab active" data-type="expense">📉 Расходы</button>
-                        <button class="cat-tab" data-type="income">📈 Доходы</button>
+                        <button class="cat-tab active" data-type="expense">
+                            <svg class="icon icon-sm"><use href="#icon-trending-down"/></svg>
+                            Расходы
+                        </button>
+                        <button class="cat-tab" data-type="income">
+                            <svg class="icon icon-sm"><use href="#icon-trending-up"/></svg>
+                            Доходы
+                        </button>
                     </div>
                     <div class="categories-grid" id="categoriesGrid"></div>
-                    <button class="btn btn-secondary btn-block" id="addCategoryBtn">+ Добавить категорию</button>
+                    <button class="btn btn-secondary btn-block" id="addCategoryBtn">
+                        <svg class="icon icon-sm"><use href="#icon-plus"/></svg>
+                        Добавить категорию
+                    </button>
                 </section>
 
                 <!-- Goals -->
@@ -423,7 +964,10 @@
                         </div>
                     </div>
                     <div class="goals-grid" id="goalsGrid"></div>
-                    <button class="btn btn-secondary btn-block" id="addGoalBtn">+ Добавить цель</button>
+                    <button class="btn btn-secondary btn-block" id="addGoalBtn">
+                        <svg class="icon icon-sm"><use href="#icon-plus"/></svg>
+                        Добавить цель
+                    </button>
                 </section>
 
                 <!-- Credits -->
@@ -439,22 +983,37 @@
                         </div>
                     </div>
                     <div class="credits-grid" id="creditsGrid"></div>
-                    <button class="btn btn-secondary btn-block" id="addCreditBtn">+ Добавить кредит</button>
+                    <button class="btn btn-secondary btn-block" id="addCreditBtn">
+                        <svg class="icon icon-sm"><use href="#icon-plus"/></svg>
+                        Добавить кредит
+                    </button>
                 </section>
 
                 <!-- Mortgages -->
                 <section class="tab-content" id="mortgages-tab">
                     <div class="mortgages-summary" id="mortgagesSummary"></div>
                     <div class="mortgages-grid" id="mortgagesGrid"></div>
-                    <button class="btn btn-secondary btn-block" id="addMortgageBtn">+ Добавить ипотеку</button>
+                    <button class="btn btn-secondary btn-block" id="addMortgageBtn">
+                        <svg class="icon icon-sm"><use href="#icon-plus"/></svg>
+                        Добавить ипотеку
+                    </button>
                 </section>
 
                 <!-- Calculator -->
                 <section class="tab-content" id="calculator-tab">
                     <div class="calculator-tabs">
-                        <button class="calc-tab active" data-calc="credit">💳 Кредит</button>
-                        <button class="calc-tab" data-calc="mortgage">🏠 Ипотека</button>
-                        <button class="calc-tab" data-calc="early">🚀 Досрочное погашение</button>
+                        <button class="calc-tab active" data-calc="credit">
+                            <svg class="icon icon-sm"><use href="#icon-credit-card"/></svg>
+                            Кредит
+                        </button>
+                        <button class="calc-tab" data-calc="mortgage">
+                            <svg class="icon icon-sm"><use href="#icon-home"/></svg>
+                            Ипотека
+                        </button>
+                        <button class="calc-tab" data-calc="early">
+                            <svg class="icon icon-sm"><use href="#icon-rocket"/></svg>
+                            Досрочное погашение
+                        </button>
                     </div>
                     
                     <div class="calculator-content">
@@ -477,7 +1036,10 @@
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label class="form-label">📅 Дата взятия кредита</label>
+                                    <label class="form-label">
+                                        <svg class="icon icon-sm"><use href="#icon-calendar"/></svg>
+                                        Дата взятия кредита
+                                    </label>
                                     <input type="date" class="form-input" id="calcStartDate">
                                     <div class="form-hint">Укажите дату, чтобы увидеть сколько уже оплачено</div>
                                 </div>
@@ -493,7 +1055,10 @@
                                     <div class="form-hint">Дополнительная сумма к ежемесячному платежу</div>
                                 </div>
                                 
-                                <button class="btn btn-primary btn-block" id="calcCreditBtn">🧮 Рассчитать</button>
+                                <button class="btn btn-primary btn-block" id="calcCreditBtn">
+                                    <svg class="icon icon-sm"><use href="#icon-calculator"/></svg>
+                                    Рассчитать
+                                </button>
                             </div>
                             <div class="calc-result" id="calcCreditResult"></div>
                         </div>
@@ -521,7 +1086,10 @@
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label class="form-label">📅 Дата взятия ипотеки</label>
+                                    <label class="form-label">
+                                        <svg class="icon icon-sm"><use href="#icon-calendar"/></svg>
+                                        Дата взятия ипотеки
+                                    </label>
                                     <input type="date" class="form-input" id="calcMortgageStartDate">
                                     <div class="form-hint">Укажите дату, чтобы увидеть текущий остаток</div>
                                 </div>
@@ -533,7 +1101,10 @@
                                         <option value="differentiated">Дифференцированный (убывающие)</option>
                                     </select>
                                 </div>
-                                <button class="btn btn-primary btn-block" id="calcMortgageBtn">🧮 Рассчитать</button>
+                                <button class="btn btn-primary btn-block" id="calcMortgageBtn">
+                                    <svg class="icon icon-sm"><use href="#icon-calculator"/></svg>
+                                    Рассчитать
+                                </button>
                             </div>
                             <div class="calc-result" id="calcMortgageResult"></div>
                         </div>
@@ -564,7 +1135,10 @@
                                     <input type="number" class="form-input" id="calcEarlyAmount" value="100000">
                                     <div class="form-hint">Единоразовый платёж сверх ежемесячного</div>
                                 </div>
-                                <button class="btn btn-primary btn-block" id="calcEarlyBtn">📊 Сравнить варианты</button>
+                                <button class="btn btn-primary btn-block" id="calcEarlyBtn">
+                                    <svg class="icon icon-sm"><use href="#icon-bar-chart"/></svg>
+                                    Сравнить варианты
+                                </button>
                             </div>
                             <div class="calc-result" id="calcEarlyResult"></div>
                         </div>
@@ -575,28 +1149,36 @@
                 <section class="tab-content" id="investments-tab">
                     <div class="investments-summary-cards">
                         <div class="summary-card">
-                            <div class="summary-icon">💰</div>
+                            <div class="summary-icon">
+                                <svg class="icon icon-lg"><use href="#icon-wallet"/></svg>
+                            </div>
                             <div class="summary-info">
                                 <div class="summary-label">Вложено</div>
                                 <div class="summary-value" id="totalInvested">0 ₽</div>
                             </div>
                         </div>
                         <div class="summary-card">
-                            <div class="summary-icon">📊</div>
+                            <div class="summary-icon">
+                                <svg class="icon icon-lg"><use href="#icon-bar-chart"/></svg>
+                            </div>
                             <div class="summary-info">
                                 <div class="summary-label">Текущая стоимость</div>
                                 <div class="summary-value" id="totalInvestmentValue">0 ₽</div>
                             </div>
                         </div>
                         <div class="summary-card profit">
-                            <div class="summary-icon">📈</div>
+                            <div class="summary-icon">
+                                <svg class="icon icon-lg"><use href="#icon-trending-up"/></svg>
+                            </div>
                             <div class="summary-info">
                                 <div class="summary-label">Прибыль</div>
                                 <div class="summary-value" id="totalInvestmentProfit">0 ₽</div>
                             </div>
                         </div>
                         <div class="summary-card dividends">
-                            <div class="summary-icon">💵</div>
+                            <div class="summary-icon">
+                                <svg class="icon icon-lg"><use href="#icon-coins"/></svg>
+                            </div>
                             <div class="summary-info">
                                 <div class="summary-label">Дивиденды</div>
                                 <div class="summary-value" id="totalDividends">0 ₽</div>
@@ -606,7 +1188,10 @@
                     
                     <div class="investments-accounts" id="investmentsAccounts"></div>
                     
-                    <button class="btn btn-secondary btn-block" id="addInvestmentBtn">+ Добавить инвестицию</button>
+                    <button class="btn btn-secondary btn-block" id="addInvestmentBtn">
+                        <svg class="icon icon-sm"><use href="#icon-plus"/></svg>
+                        Добавить инвестицию
+                    </button>
                 </section>
 
                 <!-- Taxes -->
@@ -614,7 +1199,10 @@
                     <div class="taxes-summary" id="taxesSummary"></div>
                     <div class="taxes-reserves" id="taxesReserves"></div>
                     <div class="taxes-payments" id="taxesPayments"></div>
-                    <button class="btn btn-secondary btn-block" id="addTaxBtn">+ Добавить налог</button>
+                    <button class="btn btn-secondary btn-block" id="addTaxBtn">
+                        <svg class="icon icon-sm"><use href="#icon-plus"/></svg>
+                        Добавить налог
+                    </button>
                 </section>
 
                 <!-- Analytics -->
@@ -635,25 +1223,40 @@
                                     <input type="date" class="form-input" id="analyticsEndDate">
                                 </div>
                             </div>
-                            <button class="btn btn-primary" id="analyzeAIBtn">🤖 AI-анализ</button>
+                            <button class="btn btn-primary" id="analyzeAIBtn">
+                                <svg class="icon icon-sm"><use href="#icon-bot"/></svg>
+                                AI-анализ
+                            </button>
                         </div>
                     </div>
                     
                     <div class="analytics-grid">
                         <div class="analytics-card">
-                            <h3>📉 Расходы по категориям</h3>
+                            <h3>
+                                <svg class="icon icon-sm"><use href="#icon-trending-down"/></svg>
+                                Расходы по категориям
+                            </h3>
                             <div class="chart-container" id="expenseChart" style="height: 300px;"></div>
                         </div>
                         <div class="analytics-card">
-                            <h3>📈 Доходы по категориям</h3>
+                            <h3>
+                                <svg class="icon icon-sm"><use href="#icon-trending-up"/></svg>
+                                Доходы по категориям
+                            </h3>
                             <div class="chart-container" id="incomeChart" style="height: 300px;"></div>
                         </div>
                         <div class="analytics-card wide">
-                            <h3>📊 Динамика за год</h3>
+                            <h3>
+                                <svg class="icon icon-sm"><use href="#icon-bar-chart"/></svg>
+                                Динамика за год
+                            </h3>
                             <div class="chart-container" id="trendsLineChart" style="height: 300px;"></div>
                         </div>
                         <div class="analytics-card wide">
-                            <h3>🏪 Расходы по магазинам</h3>
+                            <h3>
+                                <svg class="icon icon-sm"><use href="#icon-store"/></svg>
+                                Расходы по магазинам
+                            </h3>
                             <div class="chart-container" id="storeChart" style="height: 250px;"></div>
                         </div>
                     </div>
@@ -662,40 +1265,55 @@
                 <!-- Price Comparison -->
                 <section class="tab-content" id="prices-tab">
                     <div class="prices-header" style="margin-bottom: 20px;">
-                        <h3 style="margin: 0 0 4px 0;">🏪 Сравнение цен</h3>
+                        <h3 style="margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon"><use href="#icon-store"/></svg>
+                            Сравнение цен
+                        </h3>
                         <p style="margin: 0; color: var(--gray-500); font-size: 14px;">Отслеживайте цены и находите выгодные предложения</p>
                     </div>
                     
                     <div class="stores-section">
                         <h4>Магазины</h4>
                         <div id="storesGrid"></div>
-                        <button class="btn btn-sm btn-secondary" id="addStoreBtn" style="margin-top: 8px;">+ Магазин</button>
+                        <button class="btn btn-sm btn-secondary" id="addStoreBtn" style="margin-top: 8px;">
+                            <svg class="icon icon-sm"><use href="#icon-plus"/></svg>
+                            Магазин
+                        </button>
                     </div>
                     
                     <div class="products-section">
                         <h4>Товары и цены</h4>
                         <div id="productsGrid"></div>
-                        <button class="btn btn-sm btn-secondary" id="addProductBtn" style="margin-top: 8px;">+ Товар</button>
+                        <button class="btn btn-sm btn-secondary" id="addProductBtn" style="margin-top: 8px;">
+                            <svg class="icon icon-sm"><use href="#icon-plus"/></svg>
+                            Товар
+                        </button>
                     </div>
                 </section>
 
                 <!-- Bonus Cards -->
                 <section class="tab-content" id="bonus-cards-tab">
                     <div class="bonus-cards-header">
-                        <h3>🎫 Бонусные карты магазинов</h3>
+                        <h3 style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+                            <svg class="icon icon-lg"><use href="#icon-ticket"/></svg>
+                            Бонусные карты магазинов
+                        </h3>
                         <p>Храните карты лояльности и показывайте штрихкоды на кассе</p>
                     </div>
                     
                     <div class="bonus-cards-grid" id="bonusCardsGrid"></div>
                     
-                    <button class="btn btn-secondary btn-block" id="addBonusCardBtn">+ Добавить бонусную карту</button>
+                    <button class="btn btn-secondary btn-block" id="addBonusCardBtn">
+                        <svg class="icon icon-sm"><use href="#icon-plus"/></svg>
+                        Добавить бонусную карту
+                    </button>
                 </section>
 
                 <!-- Achievements -->
                 <section class="tab-content" id="achievements-tab">
                     <div class="achievements-header">
                         <div class="achievements-points">
-                            <span class="points-icon">⭐</span>
+                            <svg class="icon icon-lg"><use href="#icon-star-filled"/></svg>
                             <span class="points-value" id="totalPoints">0</span>
                             <span class="points-label">очков</span>
                         </div>
@@ -708,29 +1326,31 @@
         <!-- Mobile Navigation -->
         <nav class="mobile-nav">
             <a href="#" class="mobile-nav-item active" data-tab="dashboard">
-                <span class="nav-icon">📊</span>
+                <span class="nav-icon"><svg class="icon"><use href="#icon-dashboard"/></svg></span>
                 <span class="nav-text">Обзор</span>
             </a>
             <a href="#" class="mobile-nav-item" data-tab="transactions">
-                <span class="nav-icon">💳</span>
+                <span class="nav-icon"><svg class="icon"><use href="#icon-repeat"/></svg></span>
                 <span class="nav-text">Операции</span>
             </a>
             <a href="#" class="mobile-nav-item" data-tab="accounts">
-                <span class="nav-icon">🏦</span>
+                <span class="nav-icon"><svg class="icon"><use href="#icon-bank"/></svg></span>
                 <span class="nav-text">Счета</span>
             </a>
             <a href="#" class="mobile-nav-item" data-tab="goals">
-                <span class="nav-icon">🎯</span>
+                <span class="nav-icon"><svg class="icon"><use href="#icon-target"/></svg></span>
                 <span class="nav-text">Цели</span>
             </a>
             <a href="#" class="mobile-nav-item" data-tab="analytics">
-                <span class="nav-icon">📈</span>
+                <span class="nav-icon"><svg class="icon"><use href="#icon-chart"/></svg></span>
                 <span class="nav-text">Статистика</span>
             </a>
         </nav>
 
         <!-- FAB -->
-        <button class="fab" id="fab">+</button>
+        <button class="fab" id="fab">
+            <svg class="icon icon-lg"><use href="#icon-plus"/></svg>
+        </button>
     </div>
 
     <!-- Modal -->
@@ -738,7 +1358,9 @@
         <div class="modal" id="modal">
             <div class="modal-header">
                 <h2 class="modal-title" id="modalTitle">Заголовок</h2>
-                <button class="modal-close" id="modalClose">✕</button>
+                <button class="modal-close" id="modalClose">
+                    <svg class="icon"><use href="#icon-x"/></svg>
+                </button>
             </div>
             <div class="modal-body" id="modalBody"></div>
         </div>
