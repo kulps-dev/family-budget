@@ -1073,7 +1073,12 @@ function renderTransactions() {
                     ${t.type === 'transfer' 
                         ? `${t.account_name} → ${t.to_account_name}` 
                         : (t.category_name || 'Без категории')}
-                    ${t.is_business_expense ? '<span style="background: #9C27B0; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 6px;">🏢 Бизнес</span>' : ''}
+                    ${t.is_business_expense
+                    ? `<span style="background: #9C27B0; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                        ${svgIcon('building', 'icon-sm')}
+                        Бизнес
+                        </span>`
+                    : ''}
                 </div>
                 ${t.description ? `<div class="transaction-description">${t.description}</div>` : ''}
                 <div class="transaction-meta">
@@ -1876,7 +1881,7 @@ function renderStores() {
     if (state.stores.length === 0) {
         container.innerHTML = `
             <div class="empty-hint">
-                <span>🏪</span>
+                <span>svgIcon('store')</span>
                 <span>Добавьте магазины</span>
             </div>
         `;
@@ -2562,7 +2567,7 @@ function showTransactionModal(editId = null) {
             <div class="form-group" id="businessExpenseGroup" style="${transaction?.type === 'expense' ? '' : 'display:none'}">
                 <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                     <input type="checkbox" name="is_business_expense" ${transaction?.is_business_expense ? 'checked' : ''}> 
-                    🏢 Это бизнес-расход
+                    svgIcon('building') Это бизнес-расход
                 </label>
                 <div class="form-hint">Отметьте, если это расход для бизнеса/ИП</div>
             </div>
@@ -2874,7 +2879,7 @@ function showCreditCardModal() {
             <div class="form-group">
                 <label class="form-label">Иконка</label>
                 <div class="icon-picker">
-                    ${[svgIcon('credit-card'), '🏦', svgIcon('coins'), '💵', '🔥', '⭐', '💎', '🎯'].map(icon => 
+                    ${[svgIcon('credit-card'), svgIcon('bank'), svgIcon('coins'), '💵', '🔥', '⭐', '💎', '🎯'].map(icon => 
                         `<div class="icon-option" data-icon="${icon}">${icon}</div>`
                     ).join('')}
                 </div>
@@ -3876,7 +3881,7 @@ function showBonusCardModal(id = null) {
             <div class="form-group">
                 <label class="form-label">Иконка</label>
                 <div class="icon-picker">
-                    ${['🎫', svgIcon('credit-card'), '🏪', '🛒', '🎁', '⭐', '💎', '🔥', '🏷️', '🎯'].map(icon => 
+                    ${['🎫', svgIcon('credit-card'), svgIcon('store'), '🛒', '🎁', '⭐', '💎', '🔥', '🏷️', '🎯'].map(icon => 
                         `<div class="icon-option ${card?.icon === icon ? 'selected' : ''}" data-icon="${icon}">${icon}</div>`
                     ).join('')}
                 </div>
@@ -4899,11 +4904,11 @@ function showStoreModal() {
             <div class="form-group">
                 <label class="form-label">Иконка</label>
                 <div class="icon-picker">
-                    ${['🏪', '🛒', '🏬', '🏢', '🏥', '⛽', '🍞', '🥬', '🥩', '🧀'].map(icon => 
+                    ${[svgIcon('store'), '🛒', '🏬', svgIcon('building'), '🏥', '⛽', '🍞', '🥬', '🥩', '🧀'].map(icon => 
                         `<div class="icon-option" data-icon="${icon}">${icon}</div>`
                     ).join('')}
                 </div>
-                <input type="hidden" name="icon" value="🏪">
+                <input type="hidden" name="icon" value="svgIcon('store')">
             </div>
             
             <div class="form-group">
