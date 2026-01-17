@@ -190,6 +190,25 @@ const COLORS = [
     '#FF5722', '#8BC34A', '#607D8B', '#795548'
 ];
 
+const CREDIT_CARD_ICON_KEYS = ['credit-card','bank','money','cash','flame','star','gem','target'];
+const GOAL_ICON_KEYS = ['target','home','car','plane','laptop','smartphone','baby','ring','graduation-cap','dumbbell','beach','gift','gem','rocket','star','flame'];
+// ===== ICON KEYS (вместо emoji) =====
+const BONUS_CARD_ICON_KEYS = [
+  'ticket', 'credit-card', 'store', 'shopping-cart',
+  'gift', 'star', 'gem', 'flame', 'tag', 'target'
+];
+
+const STORE_ICON_KEYS = [
+  'store', 'shopping-cart', 'building', 'shield',
+  'zap', 'monitor', 'tag', 'external-link'
+];
+
+// Для товаров (просто набор нейтральных иконок)
+const PRODUCT_ICON_KEYS = [
+  'box', 'shopping-cart', 'tag', 'store',
+  'gift', 'star', 'flame', 'percent'
+];
+
 const ACCOUNT_TYPES = {
     'debit': { name: 'Дебетовая карта', icon: 'credit-card' },
     'credit_card': { name: 'Кредитная карта', icon: 'credit-card' },

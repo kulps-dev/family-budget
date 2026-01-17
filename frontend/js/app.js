@@ -531,11 +531,15 @@ function renderUpcomingPayments(payments) {
     if (!container) return;
     
     if (!payments || payments.length === 0) {
-        container.innerHTML = '<div class="empty-state small">Нет предстоящих платежей 🎉</div>';
+        container.innerHTML = `<div class="empty-state small">Нет предстоящих платежей ${svgIcon('party')}</div>`;
         return;
     }
     
-    const icons = { mortgage: '🏠', credit_card: '💳', credit: '📋' };
+    const icons = {
+        mortgage: svgIcon('home'),
+        credit_card: svgIcon('credit-card'),
+        credit: svgIcon('file-text')
+    };
     
     container.innerHTML = payments.map(p => {
         // Форматируем дату платежа
@@ -583,7 +587,7 @@ function renderOverBudget(categories) {
     if (!container) return;
     
     if (!categories || categories.length === 0) {
-        container.innerHTML = '<div class="empty-state small">Всё под контролем! 👍</div>';
+        container.innerHTML = `<div class="empty-state small">Всё под контролем! ${svgIcon('thumbs-up','icon-sm')}</div>`;
         return;
     }
     
@@ -928,7 +932,7 @@ function renderAccountsGrid(containerId, accounts) {
                 </div>
                 ${extraInfo}
                 <div class="account-actions">
-                    <button class="btn btn-sm btn-secondary" onclick="showAccountModal(${a.id})">✏️ Изменить</button>
+                    <button class="btn btn-sm btn-secondary" onclick="showAccountModal(${a.id})">${svgIcon('edit','icon-sm')} Изменить</button>
                     <button class="btn btn-sm btn-danger" onclick="deleteAccount(${a.id})">${svgIcon('trash', 'icon-sm')}</button>
                 </div>
             </div>
@@ -1069,7 +1073,7 @@ function renderTransactions() {
                     ${t.type === 'transfer' 
                         ? `${t.account_name} → ${t.to_account_name}` 
                         : (t.category_name || 'Без категории')}
-                    ${t.is_business_expense ? '<span style="background: #9C27B0; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 6px;">🏢 Бизнес</span>' : ''}
+                    ${t.is_business_expense ? `<span style="background: #9C27B0; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 6px;">${svgIcon('building','icon-sm')} Бизнес</span>` : ''}
                 </div>
                 ${t.description ? `<div class="transaction-description">${t.description}</div>` : ''}
                 <div class="transaction-meta">
@@ -1484,7 +1488,7 @@ async function showAllCreditPayments(creditId) {
     try {
         const payments = await API.credits.getPayments(creditId);
         
-        openModal(`📋 Все платежи: ${credit.name}`, `
+        openModal(`${svgIcon('clipboard','icon-sm')} Все платежи: ${credit.name}`, `
             <div class="payments-modal">
                 <div class="payments-stats">
                     <div class="stat-item">
@@ -1509,7 +1513,7 @@ async function showAllCreditPayments(creditId) {
                     ${payments.length > 0 ? payments.map(p => `
                         <div class="payment-row ${p.is_extra ? 'extra' : ''}">
                             <div class="payment-col date">
-                                <span class="payment-icon">${p.is_extra ? '🚀' : '📅'}</span>
+                                <span class="payment-icon">${p.is_extra ? svgIcon('rocket','icon-sm') : svgIcon('calendar','icon-sm')}</span>
                                 <span>${formatDate(p.date)}</span>
                                 ${p.payment_number ? `<span class="payment-num">#${p.payment_number}</span>` : ''}
                             </div>
@@ -1527,7 +1531,7 @@ async function showAllCreditPayments(creditId) {
                                 ${p.remaining_after !== null ? `Остаток: ${formatMoney(p.remaining_after)}` : ''}
                             </div>
                             <div class="payment-col actions">
-                                <button class="btn-icon-sm danger" onclick="deleteCreditPaymentFromModal(${creditId}, ${p.id})" title="Удалить">🗑️</button>
+                                <button class="btn-icon-sm danger" onclick="deleteCreditPaymentFromModal(${creditId}, ${p.id})" title="Удалить">${svgIcon('trash','icon-sm')}</button>
                             </div>
                         </div>
                     `).join('') : '<div class="empty-state small">Нет платежей</div>'}
@@ -1583,7 +1587,7 @@ function renderMortgages() {
         if (summaryContainer) summaryContainer.innerHTML = '';
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state-icon">🏠</div>
+                <div class="empty-state-icon">${svgIcon('home')}</div>
                 <div class="empty-state-text">Нет ипотеки</div>
             </div>
         `;
@@ -1702,7 +1706,7 @@ function renderInvestments() {
     if (state.investments.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state-icon">📈</div>
+                <div class="empty-state-icon">${svgIcon('trending-up')}</div>
                 <div class="empty-state-text">Нет инвестиций</div>
             </div>
         `;
@@ -1739,7 +1743,7 @@ function renderInvestments() {
                                 <div class="investment-main-info">
                                     <div class="investment-ticker-block">
                                         <span class="investment-ticker">${inv.ticker}</span>
-                                        <span class="investment-type-badge">${ASSET_TYPES[inv.asset_type]?.icon || '📊'}</span>
+                                        <span class="investment-type-badge">${ASSET_TYPES[inv.asset_type]?.icon || svgIcon('bar-chart')}
                                     </div>
                                     <div class="investment-name">${inv.name}</div>
                                     ${inv.sector ? `<div class="investment-sector">${inv.sector}</div>` : ''}
@@ -1750,7 +1754,7 @@ function renderInvestments() {
                                         ${inv.profit >= 0 ? '+' : ''}${formatMoney(inv.profit)} (${inv.profit_percent}%)
                                     </div>
                                 </div>
-                                <div class="investment-expand-icon">▼</div>
+                                <div class="investment-expand-icon">${svgIcon('chevron-down','icon-sm')}</div>
                             </div>
                             
                             <div class="investment-details" id="investment-details-${inv.id}" style="display: none;">
@@ -1784,16 +1788,16 @@ function renderInvestments() {
                                 </div>
                                 
                                 <div class="investment-actions-row">
-                                    <button class="btn btn-sm btn-success" onclick="showBuyInvestmentModal(${inv.id})">📈 Купить</button>
-                                    <button class="btn btn-sm btn-warning" onclick="showSellInvestmentModal(${inv.id})">📉 Продать</button>
-                                    <button class="btn btn-sm btn-info" onclick="showDividendModal(${inv.id})">💰 Дивиденд</button>
+                                    <button class="btn btn-sm btn-success" onclick="showBuyInvestmentModal(${inv.id})">${svgIcon('trending-up','icon-sm')} Купить</button>
+                                    <button class="btn btn-sm btn-warning" onclick="showSellInvestmentModal(${inv.id})">${svgIcon('trending-down','icon-sm')} Продать</button>
+                                    <button class="btn btn-sm btn-info" onclick="showDividendModal(${inv.id})">${svgIcon('money','icon-sm')} Дивиденд</button>
                                     <button class="btn btn-sm btn-secondary" onclick="showInvestmentModal(${inv.id})">${svgIcon('edit','icon-sm')}</button>
                                     <button class="btn btn-sm btn-danger" onclick="deleteInvestment(${inv.id})">${svgIcon('trash','icon-sm')}</button>
                                 </div>
                                 
                                 <div class="investment-history">
                                     <div class="investment-history-header">
-                                        <span>📋 История операций (${inv.transactions_count || 0})</span>
+                                        <span>${svgIcon('clipboard','icon-sm')} История операций (${inv.transactions_count || 0})</span>
                                         <button class="btn btn-sm btn-link" onclick="toggleTransactionHistory(${inv.id})">
                                             Показать
                                         </button>
@@ -1817,13 +1821,13 @@ function renderInvestmentTransactions(transactions) {
     }
     
     const typeLabels = {
-        'buy': { label: 'Покупка', icon: '📈', color: 'var(--success)' },
-        'sell': { label: 'Продажа', icon: '📉', color: 'var(--danger)' },
-        'dividend': { label: 'Дивиденд', icon: '💰', color: 'var(--warning)' }
+        'buy': { label: 'Покупка', icon: svgIcon('trending-up','icon-sm'), color: 'var(--success)' },
+        'sell': { label: 'Продажа', icon: svgIcon('trending-down','icon-sm'), color: 'var(--danger)' },
+        'dividend': { label: 'Дивиденд', icon: svgIcon('money','icon-sm'), color: 'var(--warning)' }
     };
     
     return transactions.map(t => {
-        const type = typeLabels[t.type] || { label: t.type, icon: '📋', color: 'var(--gray-500)' };
+        const type = typeLabels[t.type] || { label: t.type, icon: svgIcon('clipboard','icon-sm'), color: 'var(--gray-500)' };
         return `
             <div class="investment-trans-item">
                 <div class="investment-trans-icon" style="color: ${type.color}">${type.icon}</div>
@@ -1838,7 +1842,7 @@ function renderInvestmentTransactions(transactions) {
                     <div style="font-weight: 600; color: ${type.color}">${formatMoney(t.total_amount)}</div>
                     ${t.commission > 0 ? `<div style="font-size: 11px; color: var(--gray-500)">Комиссия: ${formatMoney(t.commission)}</div>` : ''}
                 </div>
-                <button class="btn-icon-sm danger" onclick="deleteInvestmentTransaction(${t.id})" title="Удалить">🗑️</button>
+                <button class="btn-icon-sm danger" onclick="deleteInvestmentTransaction(${t.id})" title="Удалить">${svgIcon('trash','icon-sm')}</button>
             </div>
         `;
     }).join('');
@@ -1852,7 +1856,7 @@ function toggleInvestmentDetails(id) {
     if (details) {
         const isHidden = details.style.display === 'none';
         details.style.display = isHidden ? 'block' : 'none';
-        if (icon) icon.textContent = isHidden ? '▲' : '▼';
+        if (icon) icon.innerHTML = isHidden ? svgIcon('chevron-up','icon-sm') : svgIcon('chevron-down','icon-sm');
         if (card) card.classList.toggle('expanded', isHidden);
     }
 }
@@ -1872,7 +1876,7 @@ function renderStores() {
     if (state.stores.length === 0) {
         container.innerHTML = `
             <div class="empty-hint">
-                <span>🏪</span>
+                <span>${svgIcon('store')}</span>
                 <span>Добавьте магазины</span>
             </div>
         `;
@@ -1900,7 +1904,7 @@ function renderProducts() {
     if (state.products.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state-icon">📦</div>
+                <div class="empty-state-icon">${svgIcon('box')}</div>
                 <div class="empty-state-text">Добавьте товары для сравнения цен</div>
             </div>
         `;
@@ -1915,14 +1919,14 @@ function renderProducts() {
         return `
             <div class="price-compare-row">
                 <div class="price-compare-product">
-                    <span class="product-emoji">${p.icon}</span>
+                    <span class="product-emoji">${svgIcon(p.icon, 'icon-sm')}</span>
                     <div class="product-details">
                         <div class="product-title">${p.name}</div>
                         <div class="product-meta">${p.unit}${p.price_diff_percent > 0 ? ` • <span class="text-success">−${p.price_diff_percent}%</span>` : ''}</div>
                     </div>
                     <div class="product-quick-actions">
                         <button class="btn-micro" onclick="showAddPriceModal(${p.id})" title="Добавить цену">+</button>
-                        <button class="btn-micro" onclick="showEditProductModal(${p.id})" title="Редактировать">✎</button>
+                        <button class="btn-micro" onclick="showEditProductModal(${p.id})" title="Редактировать">${svgIcon('edit','icon-sm')}</button>
                         <button class="btn-micro danger" onclick="deleteProduct(${p.id})" title="Удалить">×</button>
                     </div>
                 </div>
@@ -1936,8 +1940,8 @@ function renderProducts() {
                             <div class="price-chip ${isBest ? 'best' : ''} ${isWorst ? 'worst' : ''} ${price.is_sale ? 'sale' : ''}">
                                 <div class="price-chip-store">${price.store_icon}</div>
                                 <div class="price-chip-value">${price.price.toLocaleString('ru-RU')} ₽</div>
-                                ${isBest ? '<div class="price-chip-badge">👍</div>' : ''}
-                                ${price.is_sale ? '<div class="price-chip-badge">🔥</div>' : ''}
+                                ${isBest ? `<div class="price-chip-badge">${svgIcon('thumbs-up','icon-sm')}</div>` : ''}
+                                ${price.is_sale ? `<div class="price-chip-badge">${svgIcon('flame','icon-sm')}</div>` : ''}
                             </div>
                         `;
                     }).join('') : '<div class="no-prices-hint">Нет цен</div>'}
@@ -1981,7 +1985,7 @@ function renderTaxes() {
             reservesContainer.innerHTML = '<p style="color: var(--gray-500); text-align: center;">Нет резервов на налоги</p>';
         } else {
             reservesContainer.innerHTML = `
-                <h3>💰 Резервы на налоги</h3>
+                <h3>${svgIcon('money','icon-sm')} Резервы на налоги</h3>
                 ${state.taxes.tax_reserve_accounts ? state.taxes.tax_reserve_accounts.map(a => `
                     <div class="tax-reserve-item">
                         <div class="tax-reserve-info">
@@ -2010,13 +2014,13 @@ function renderTaxes() {
     // Платежи
     if (paymentsContainer) {
         if (state.taxes.payments.length === 0) {
-            paymentsContainer.innerHTML = '<h3>📋 Налоговые платежи</h3><p style="color: var(--gray-500); text-align: center;">Нет запланированных платежей</p>';
+            paymentsContainer.innerHTML = `<h3>${svgIcon('clipboard','icon-sm')} Налоговые платежи</h3><p style="color: var(--gray-500); text-align: center;">Нет запланированных платежей</p>`;
         } else {
             paymentsContainer.innerHTML = `
-                <h3>📋 Налоговые платежи</h3>
+                <h3>${svgIcon('clipboard','icon-sm')} Налоговые платежи</h3>
                 ${state.taxes.payments.map(p => `
                     <div class="tax-payment-item ${p.is_overdue ? 'overdue' : ''} ${p.is_paid ? 'paid' : ''}">
-                        <div class="tax-payment-icon">${TAX_TYPES[p.tax_type]?.icon || '🧾'}</div>
+                        <div class="tax-payment-icon">${TAX_TYPES[p.tax_type]?.icon || svgIcon('receipt')}
                         <div class="tax-payment-info">
                             <div class="tax-payment-type">${TAX_TYPES[p.tax_type]?.name || p.tax_type}</div>
                             <div class="tax-payment-period">${formatDate(p.period_start)} — ${formatDate(p.period_end)}</div>
@@ -2024,7 +2028,7 @@ function renderTaxes() {
                         <div class="tax-payment-amount">
                             ${formatMoney(p.amount)}
                             <div class="tax-payment-due">
-                                ${p.is_paid ? `✅ Оплачено ${formatDate(p.paid_date)}` : `До ${formatDate(p.due_date)}`}
+                                ${p.is_paid ? `${svgIcon('check-circle','icon-sm')} Оплачено ${formatDate(p.paid_date)}` : `До ${formatDate(p.due_date)}`}
                             </div>
                         </div>
                         <div class="tax-payment-actions">
@@ -2049,7 +2053,7 @@ function renderBonusCards() {
     if (state.bonusCards.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state-icon">🎫</div>
+                <div class="empty-state-icon">${svgIcon('ticket')}</div>
                 <div class="empty-state-text">Добавьте бонусные карты магазинов</div>
             </div>
         `;
@@ -2085,8 +2089,8 @@ function renderBonusCards() {
             </div>
             
             <div class="bonus-card-actions">
-                <button class="btn btn-sm btn-secondary" onclick="showEditBonusCardModal(${card.id})">✏️ Изменить</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteBonusCard(${card.id})">🗑️</button>
+                <button class="btn btn-sm btn-secondary" onclick="showEditBonusCardModal(${card.id})">${svgIcon('edit','icon-sm')} Изменить</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteBonusCard(${card.id})">${svgIcon('trash','icon-sm')}</button>
             </div>
         </div>
     `).join('');
@@ -2398,7 +2402,7 @@ function renderTrendsLineChart(containerId, trends) {
 async function runAIAnalysis() {
     const period = document.getElementById('analyticsPeriod')?.value || 'month';
     
-    openModal('🤖 AI-анализ расходов', `
+    openModal(`${svgIcon('bot','icon-sm')} AI-анализ расходов`, `
         <div class="ai-analysis-loading">
             <div class="spinner"></div>
             <p>Анализирую ваши расходы...</p>
@@ -2438,7 +2442,7 @@ async function runAIAnalysis() {
     } catch (error) {
         document.getElementById('modalBody').innerHTML = `
             <div class="ai-analysis-error">
-                <div class="error-icon">😕</div>
+                <div class="error-icon">${svgIcon('help-circle')}</div>
                 <p>Не удалось получить AI-анализ</p>
                 <p style="font-size: 13px; color: var(--gray-500);">${error.message || 'Попробуйте позже'}</p>
             </div>
@@ -2474,7 +2478,7 @@ function renderAchievements() {
             <div class="achievement-name">${a.name}</div>
             <div class="achievement-description">${a.description}</div>
             <div class="achievement-points">
-                <span>⭐</span>
+                <span>${svgIcon('star','icon-sm')}</span>
                 <span>${a.points} очков</span>
             </div>
             ${a.unlocked && a.unlocked_at ? `
@@ -2497,9 +2501,9 @@ function showTransactionModal(editId = null) {
             <input type="hidden" name="id" value="${transaction?.id || ''}">
             
             <div class="type-tabs">
-                <button type="button" class="type-tab expense ${(!transaction || transaction.type === 'expense') ? 'active' : ''}" data-type="expense">📉 Расход</button>
-                <button type="button" class="type-tab income ${transaction?.type === 'income' ? 'active' : ''}" data-type="income">📈 Доход</button>
-                <button type="button" class="type-tab transfer ${transaction?.type === 'transfer' ? 'active' : ''}" data-type="transfer">↔️ Перевод</button>
+                <button type="button" class="type-tab expense ${(!transaction || transaction.type === 'expense') ? 'active' : ''}" data-type="expense">${svgIcon('trending-down','icon-sm')} Расход</button>
+                <button type="button" class="type-tab income ${transaction?.type === 'income' ? 'active' : ''}" data-type="income">${svgIcon('trending-up','icon-sm')} Доход</button>
+                <button type="button" class="type-tab transfer ${transaction?.type === 'transfer' ? 'active' : ''}" data-type="transfer">${svgIcon('repeat','icon-sm')} Перевод</button>
             </div>
             <input type="hidden" name="type" value="${transaction?.type || 'expense'}">
             
@@ -2558,7 +2562,7 @@ function showTransactionModal(editId = null) {
             <div class="form-group" id="businessExpenseGroup" style="${transaction?.type === 'expense' ? '' : 'display:none'}">
                 <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                     <input type="checkbox" name="is_business_expense" ${transaction?.is_business_expense ? 'checked' : ''}> 
-                    🏢 Это бизнес-расход
+                    ${svgIcon('building','icon-sm')} Это бизнес-расход
                 </label>
                 <div class="form-hint">Отметьте, если это расход для бизнеса/ИП</div>
             </div>
@@ -2735,7 +2739,7 @@ function showAccountModal(id = null) {
                         `<div class="icon-option ${account?.icon === icon ? 'selected' : ''}" data-icon="${icon}">${icon}</div>`
                     ).join('')}
                 </div>
-                <input type="hidden" name="icon" value="${account?.icon || '💳'}">
+                <input type="hidden" name="icon" value="${account?.icon || 'credit-card'}">
             </div>
             
             <div class="form-group">
@@ -2870,11 +2874,13 @@ function showCreditCardModal() {
             <div class="form-group">
                 <label class="form-label">Иконка</label>
                 <div class="icon-picker">
-                    ${['💳', '🏦', '💰', '💵', '🔥', '⭐', '💎', '🎯'].map(icon => 
-                        `<div class="icon-option" data-icon="${icon}">${icon}</div>`
+                    ${CREDIT_CARD_ICON_KEYS.map(key =>
+                    `<div class="icon-option ${key === 'credit-card' ? 'selected' : ''}" data-icon="${key}">
+                        ${svgIcon(key,'icon-sm')}
+                    </div>`
                     ).join('')}
                 </div>
-                <input type="hidden" name="icon" value="💳">
+                <input type="hidden" name="icon" value="credit-card">
             </div>
             
             <div class="form-group">
@@ -3102,8 +3108,8 @@ function showCategoryModal(id = null) {
                 <div class="form-group">
                     <label class="form-label">Тип</label>
                     <select class="form-select" name="type">
-                        <option value="expense" ${state.currentCategoryType === 'expense' ? 'selected' : ''}>📉 Расход</option>
-                        <option value="income" ${state.currentCategoryType === 'income' ? 'selected' : ''}>📈 Доход</option>
+                        <option value="expense" ${state.currentCategoryType === 'expense' ? 'selected' : ''}>${svgIcon('trending-down','icon-sm')} Расход</option>
+                        <option value="income" ${state.currentCategoryType === 'income' ? 'selected' : ''}>${svgIcon('trending-up','icon-sm')} Доход</option>
                     </select>
                 </div>
             ` : ''}
@@ -3121,7 +3127,7 @@ function showCategoryModal(id = null) {
                         `<div class="icon-option ${category?.icon === icon ? 'selected' : ''}" data-icon="${icon}">${icon}</div>`
                     ).join('')}
                 </div>
-                <input type="hidden" name="icon" value="${category?.icon || '📦'}">
+                <input type="hidden" name="icon" value="${category?.icon || 'box'}">
             </div>
             
             <div class="form-group">
@@ -3209,11 +3215,11 @@ function showGoalModal(id = null) {
             <div class="form-group">
                 <label class="form-label">Иконка</label>
                 <div class="icon-picker">
-                    ${['🎯', '🏠', '🚗', '✈️', '💻', '📱', '👶', '💍', '🎓', '💪', '🏖️', '🎁', '💎', '🚀', '⭐', '🔥'].map(icon => 
-                        `<div class="icon-option ${goal?.icon === icon ? 'selected' : ''}" data-icon="${icon}">${icon}</div>`
+                    ${GOAL_ICON_KEYS.map(key =>
+                    `<div class="icon-option ${goal?.icon === key ? 'selected' : ''}" data-icon="${key}">${svgIcon(key,'icon-sm')}</div>`
                     ).join('')}
                 </div>
-                <input type="hidden" name="icon" value="${goal?.icon || '🎯'}">
+                <input type="hidden" name="icon" value="${goal?.icon || 'target'}">
             </div>
             
             <div class="form-group">
@@ -3332,7 +3338,7 @@ function showCreditModal() {
             </div>
             
             <div class="form-group">
-                <label class="form-label">📅 Дата взятия кредита *</label>
+                <label class="form-label">${svgIcon('calendar','icon-sm')} Дата взятия кредита *</label>
                 <input type="date" class="form-input" name="start_date" value="${today}" id="creditStartDate">
                 <div class="form-hint">Укажите когда взяли кредит — система рассчитает уже оплаченные платежи</div>
             </div>
@@ -3359,7 +3365,7 @@ function showCreditModal() {
             
             <!-- Блок предварительного расчёта -->
             <div id="creditPreview" style="background: var(--gray-100); padding: 16px; border-radius: var(--radius); margin: 16px 0; display: none;">
-                <div style="font-weight: 600; margin-bottom: 12px;">📊 Предварительный расчёт</div>
+                <div style="font-weight: 600; margin-bottom: 12px;">${svgIcon('bar-chart','icon-sm')} Предварительный расчёт</div>
                 <div class="credit-preview-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
                         <div style="font-size: 12px; color: var(--gray-500);">Ежемесячный платёж</div>
@@ -3382,7 +3388,7 @@ function showCreditModal() {
             
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
-                <button type="button" class="btn btn-info" onclick="previewCredit()">🔄 Рассчитать</button>
+                <button type="button" class="btn btn-info" onclick="previewCredit()">${svgIcon('refresh-cw','icon-sm')} Рассчитать</button>
                 <button type="submit" class="btn btn-primary">Добавить</button>
             </div>
         </form>
@@ -3566,7 +3572,7 @@ function showPayCreditModal(creditId, isExtra = false) {
     const credit = state.credits.find(c => c.id === creditId);
     if (!credit) return;
     
-    const title = isExtra ? '🚀 Досрочное погашение' : '💳 Внести платёж';
+    const title = isExtra ? `${svgIcon('rocket','icon-sm')} Досрочное погашение` : `${svgIcon('credit-card','icon-sm')} Внести платёж`;
     const today = getCurrentDate();
     
     // Форматируем ставку
@@ -3633,7 +3639,7 @@ function showPayCreditModal(creditId, isExtra = false) {
                         <label class="reduce-option active" data-reduce="term">
                             <input type="radio" name="reduce_type" value="term" checked>
                             <div class="reduce-option-content">
-                                <div class="reduce-option-icon">📅</div>
+                                <div class="reduce-option-icon">${svgIcon('calendar','icon-sm')}</div>
                                 <div class="reduce-option-title">Уменьшить срок</div>
                                 <div class="reduce-option-desc">Быстрее погасите, больше сэкономите на процентах</div>
                             </div>
@@ -3641,7 +3647,7 @@ function showPayCreditModal(creditId, isExtra = false) {
                         <label class="reduce-option" data-reduce="payment">
                             <input type="radio" name="reduce_type" value="payment">
                             <div class="reduce-option-content">
-                                <div class="reduce-option-icon">💰</div>
+                                <div class="reduce-option-icon">${svgIcon('money','icon-sm')}</div>
                                 <div class="reduce-option-title">Уменьшить платёж</div>
                                 <div class="reduce-option-desc">Меньше ежемесячная нагрузка на бюджет</div>
                             </div>
@@ -3651,7 +3657,7 @@ function showPayCreditModal(creditId, isExtra = false) {
                 
                 <!-- Предварительный расчёт -->
                 <div class="early-payment-preview" id="earlyPaymentPreview">
-                    <div class="preview-title">📊 Результат досрочного погашения</div>
+                    <div class="preview-title">${svgIcon('bar-chart','icon-sm')} Результат досрочного погашения</div>
                     <div class="preview-content" id="previewContent">
                         Введите сумму для расчёта
                     </div>
@@ -3666,7 +3672,7 @@ function showPayCreditModal(creditId, isExtra = false) {
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
                 <button type="submit" class="btn ${isExtra ? 'btn-success' : 'btn-primary'}">
-                    ${isExtra ? '🚀 Погасить досрочно' : '💳 Внести платёж'}
+                    ${isExtra ? `${svgIcon('rocket','icon-sm')} Погасить досрочно` : `${svgIcon('credit-card','icon-sm')} Внести платёж`}
                 </button>
             </div>
         </form>
@@ -3735,7 +3741,7 @@ function updateEarlyPaymentPreview(credit) {
     if (newRemaining <= 0) {
         preview.innerHTML = `
             <div class="preview-result success">
-                <div class="preview-icon">🎉</div>
+                <div class="preview-icon">${svgIcon('party')}</div>
                 <div class="preview-text">Кредит будет полностью погашен!</div>
             </div>
         `;
@@ -3872,11 +3878,13 @@ function showBonusCardModal(id = null) {
             <div class="form-group">
                 <label class="form-label">Иконка</label>
                 <div class="icon-picker">
-                    ${['🎫', '💳', '🏪', '🛒', '🎁', '⭐', '💎', '🔥', '🏷️', '🎯'].map(icon => 
-                        `<div class="icon-option ${card?.icon === icon ? 'selected' : ''}" data-icon="${icon}">${icon}</div>`
+                    ${BONUS_CARD_ICON_KEYS.map(key =>
+                    `<div class="icon-option ${card?.icon === key ? 'selected' : ''}" data-icon="${key}">
+                        ${svgIcon(key, 'icon-sm')}
+                    </div>`
                     ).join('')}
                 </div>
-                <input type="hidden" name="icon" value="${card?.icon || '🎫'}">
+                <input type="hidden" name="icon" value="${card?.icon || 'ticket'}">
             </div>
             
             <div class="form-group">
@@ -4161,8 +4169,8 @@ function showPayMortgageModal(mortgageId, isExtra = false) {
                 <div class="form-group">
                     <label class="form-label">Что уменьшить?</label>
                     <div class="type-tabs">
-                        <button type="button" class="type-tab active" data-reduce="term">📅 Срок (рекомендуется)</button>
-                        <button type="button" class="type-tab" data-reduce="payment">💰 Платёж</button>
+                        <button type="button" class="type-tab active" data-reduce="term">${svgIcon('calendar','icon-sm')} Срок (рекомендуется)</button>
+                        <button type="button" class="type-tab" data-reduce="payment">${svgIcon('money','icon-sm')} Платёж</button>
                     </div>
                     <input type="hidden" name="reduce_type" value="term">
                 </div>
@@ -4277,12 +4285,12 @@ function showInvestmentModal(id = null) {
                 </div>
                 <div class="form-group">
                     <label class="form-label">Валюта</label>
-                    <select class="form-select" name="currency">
-                        <option value="RUB" ${investment?.currency === 'RUB' ? 'selected' : ''}>🇷🇺 RUB</option>
-                        <option value="USD" ${investment?.currency === 'USD' ? 'selected' : ''}>🇺🇸 USD</option>
-                        <option value="EUR" ${investment?.currency === 'EUR' ? 'selected' : ''}>🇪🇺 EUR</option>
-                        <option value="CNY" ${investment?.currency === 'CNY' ? 'selected' : ''}>🇨🇳 CNY</option>
-                    </select>
+                        <select class="form-select" name="currency">
+                        <option value="RUB" ${investment?.currency === 'RUB' ? 'selected' : ''}>RUB</option>
+                        <option value="USD" ${investment?.currency === 'USD' ? 'selected' : ''}>USD</option>
+                        <option value="EUR" ${investment?.currency === 'EUR' ? 'selected' : ''}>EUR</option>
+                        <option value="CNY" ${investment?.currency === 'CNY' ? 'selected' : ''}>CNY</option>
+                        </select>
                 </div>
             </div>
             
@@ -4406,7 +4414,7 @@ function showBuyInvestmentModal(id) {
     
     const today = getCurrentDate();
     
-    openModal(`📈 Купить ${investment.ticker}`, `
+    openModal(`${svgIcon('trending-up','icon-sm')} Купить ${investment.ticker}`, `
         <form id="buyInvestmentForm">
             <div style="background: var(--gray-100); padding: 16px; border-radius: var(--radius); margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -4500,7 +4508,7 @@ function showSellInvestmentModal(id) {
     
     const today = getCurrentDate();
     
-    openModal(`📉 Продать ${investment.ticker}`, `
+    openModal(`${svgIcon('trending-down','icon-sm')} Продать ${investment.ticker}`, `
         <form id="sellInvestmentForm">
             <div style="background: var(--gray-100); padding: 16px; border-radius: var(--radius); margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -4615,7 +4623,7 @@ function showDividendModal(id) {
     
     const today = getCurrentDate();
     
-    openModal(`💰 Дивиденд ${investment.ticker}`, `
+    openModal(`${svgIcon('money','icon-sm')} Дивиденд ${investment.ticker}`, `
         <form id="dividendForm">
             <div style="background: var(--warning-light); padding: 16px; border-radius: var(--radius); margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -4895,11 +4903,13 @@ function showStoreModal() {
             <div class="form-group">
                 <label class="form-label">Иконка</label>
                 <div class="icon-picker">
-                    ${['🏪', '🛒', '🏬', '🏢', '🏥', '⛽', '🍞', '🥬', '🥩', '🧀'].map(icon => 
-                        `<div class="icon-option" data-icon="${icon}">${icon}</div>`
+                    ${STORE_ICON_KEYS.map(key =>
+                    `<div class="icon-option" data-icon="${key}">
+                        ${svgIcon(key, 'icon-sm')}
+                    </div>`
                     ).join('')}
                 </div>
-                <input type="hidden" name="icon" value="🏪">
+                <input type="hidden" name="icon" value="store">
             </div>
             
             <div class="form-group">
@@ -4998,16 +5008,16 @@ function showProductModal() {
             
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Категория</label>
-                    <select class="form-select" name="category">
-                        <option value="dairy">🥛 Молочные</option>
-                        <option value="meat">🥩 Мясо</option>
-                        <option value="bread">🍞 Хлеб</option>
-                        <option value="vegetables">🥬 Овощи</option>
-                        <option value="fruits">🍎 Фрукты</option>
-                        <option value="drinks">🥤 Напитки</option>
-                        <option value="other">📦 Другое</option>
-                    </select>
+                <label class="form-label">Категория</label>
+                <select class="form-select" name="category">
+                    <option value="dairy">Молочные</option>
+                    <option value="meat">Мясо</option>
+                    <option value="bread">Хлеб</option>
+                    <option value="vegetables">Овощи</option>
+                    <option value="fruits">Фрукты</option>
+                    <option value="drinks">Напитки</option>
+                    <option value="other">Другое</option>
+                </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Единица измерения</label>
@@ -5020,12 +5030,14 @@ function showProductModal() {
             <div class="form-group">
                 <label class="form-label">Иконка</label>
                 <div class="icon-picker">
-                    ${['🥛', '🧀', '🥩', '🍗', '🥚', '🍞', '🥬', '🥕', '🍎', '🍌', '🥤', '☕', '🍺', '📦'].map(icon => 
-                        `<div class="icon-option" data-icon="${icon}">${icon}</div>`
+                    ${PRODUCT_ICON_KEYS.map(key =>
+                    `<div class="icon-option" data-icon="${key}">
+                        ${svgIcon(key, 'icon-sm')}
+                    </div>`
                     ).join('')}
                 </div>
-                <input type="hidden" name="icon" value="📦">
-            </div>
+                <input type="hidden" name="icon" value="box">
+                </div>
             
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
@@ -5068,13 +5080,13 @@ function showEditProductModal(id) {
                 <div class="form-group">
                     <label class="form-label">Категория</label>
                     <select class="form-select" name="category">
-                        <option value="dairy" ${product.category === 'dairy' ? 'selected' : ''}>🥛 Молочные</option>
-                        <option value="meat" ${product.category === 'meat' ? 'selected' : ''}>🥩 Мясо</option>
-                        <option value="bread" ${product.category === 'bread' ? 'selected' : ''}>🍞 Хлеб</option>
-                        <option value="vegetables" ${product.category === 'vegetables' ? 'selected' : ''}>🥬 Овощи</option>
-                        <option value="fruits" ${product.category === 'fruits' ? 'selected' : ''}>🍎 Фрукты</option>
-                        <option value="drinks" ${product.category === 'drinks' ? 'selected' : ''}>🥤 Напитки</option>
-                        <option value="other" ${product.category === 'other' ? 'selected' : ''}>📦 Другое</option>
+                        <option value="dairy" ${product.category === 'dairy' ? 'selected' : ''}>Молочные</option>
+                        <option value="meat" ${product.category === 'meat' ? 'selected' : ''}>Мясо</option>
+                        <option value="bread" ${product.category === 'bread' ? 'selected' : ''}>Хлеб</option>
+                        <option value="vegetables" ${product.category === 'vegetables' ? 'selected' : ''}>Овощи</option>
+                        <option value="fruits" ${product.category === 'fruits' ? 'selected' : ''}>Фрукты</option>
+                        <option value="drinks" ${product.category === 'drinks' ? 'selected' : ''}>Напитки</option>
+                        <option value="other" ${product.category === 'other' ? 'selected' : ''}>Другое</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -5137,7 +5149,7 @@ function showAddPriceModal(productId) {
             
             <div class="form-group">
                 <label class="form-label">
-                    <input type="checkbox" name="is_sale"> 🔥 Акционная цена
+                    <input type="checkbox" name="is_sale"> ${svgIcon('flame','icon-sm')} Акционная цена
                 </label>
             </div>
             
@@ -5348,7 +5360,7 @@ async function calculateCredit() {
         const hasPaidMonths = result.months_passed > 0;
         
         container.innerHTML = `
-            <div class="calc-result-header">📊 Результаты расчёта</div>
+            <div class="calc-result-header">${svgIcon('bar-chart','icon-sm')} Результаты расчёта</div>
             
             <div class="calc-result-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px;">
                 <div class="calc-result-card" style="background: var(--gray-100); padding: 16px; border-radius: var(--radius);">
@@ -5363,7 +5375,7 @@ async function calculateCredit() {
             
             ${hasPaidMonths ? `
                 <div class="calc-paid-info" style="background: var(--success-light); padding: 16px; border-radius: var(--radius); margin-bottom: 20px;">
-                    <div style="font-weight: 600; margin-bottom: 8px;">✅ Уже оплачено</div>
+                    <div style="font-weight: 600; margin-bottom: 8px;">${svgIcon('check-circle','icon-sm')} Уже оплачено</div>
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
                         <div>
                             <div style="font-size: 12px; color: var(--gray-600);">Месяцев</div>
@@ -5381,7 +5393,7 @@ async function calculateCredit() {
                 </div>
                 
                 <div class="calc-current-info" style="background: var(--warning-light); padding: 16px; border-radius: var(--radius); margin-bottom: 20px;">
-                    <div style="font-weight: 600; margin-bottom: 8px;">📍 Текущее состояние</div>
+                    <div style="font-weight: 600; margin-bottom: 8px;">${svgIcon('map-pin','icon-sm')} Текущее состояние</div>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
                         <div>
                             <div style="font-size: 12px; color: var(--gray-600);">Остаток долга</div>
@@ -5402,7 +5414,7 @@ async function calculateCredit() {
             
             ${result.strategies.with_extra ? `
                 <div class="calc-comparison" style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, var(--success-light) 0%, #d1fae5 100%); border-radius: var(--radius);">
-                    <div class="calc-comparison-title" style="font-weight: 600; margin-bottom: 12px;">💡 С досрочными платежами +${formatMoney(extra)}/мес.</div>
+                    <div class="calc-comparison-title" style="font-weight: 600; margin-bottom: 12px;">${svgIcon('info','icon-sm')} С досрочными платежами +${formatMoney(extra)}/мес.</div>
                     <div class="calc-comparison-options" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
                         <div class="calc-option" style="text-align: center;">
                             <div style="font-size: 12px; color: var(--gray-600);">Новый срок</div>
@@ -5423,7 +5435,7 @@ async function calculateCredit() {
             
             <!-- График платежей -->
             <div style="margin-top: 20px;">
-                <div style="font-weight: 600; margin-bottom: 12px;">📅 График платежей</div>
+                <div style="font-weight: 600; margin-bottom: 12px;">${svgIcon('calendar','icon-sm')} График платежей</div>
                 <div style="max-height: 300px; overflow-y: auto;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                         <thead style="position: sticky; top: 0; background: white;">
@@ -5440,7 +5452,7 @@ async function calculateCredit() {
                                 <tr style="border-bottom: 1px solid var(--gray-100); ${s.is_paid ? 'background: var(--success-light); opacity: 0.7;' : ''}">
                                     <td style="padding: 8px;">
                                         ${s.month}
-                                        ${s.is_paid ? '<span style="color: var(--success); margin-left: 4px;">✓</span>' : ''}
+                                        ${s.is_paid ? `<span style="color: var(--success); margin-left: 4px;">${svgIcon('check','icon-sm')}</span>` : ''}
                                     </td>
                                     <td style="padding: 8px; text-align: right;">${formatMoney(s.payment)}</td>
                                     <td style="padding: 8px; text-align: right;">${formatMoney(s.principal)}</td>
@@ -5586,7 +5598,7 @@ function calculateEarlyPayment() {
             <!-- Текущая ситуация -->
             <div class="calc-result-card current">
                 <div class="result-card-header">
-                    <span class="result-card-icon">📊</span>
+                    <span class="result-card-icon">${svgIcon('bar-chart','icon-sm')}</span>
                     <span class="result-card-title">Без досрочного погашения</span>
                 </div>
                 <div class="result-card-body">
@@ -5612,7 +5624,7 @@ function calculateEarlyPayment() {
             <!-- Вариант 1: Уменьшение срока -->
             <div class="calc-result-card option ${betterOption === 'term' ? 'recommended' : ''}">
                 <div class="result-card-header">
-                    <span class="result-card-icon">📅</span>
+                    <span class="result-card-icon">${svgIcon('calendar','icon-sm')}</span>
                     <span class="result-card-title">Уменьшить срок</span>
                     ${betterOption === 'term' ? '<span class="badge-recommended">Рекомендуем</span>' : ''}
                 </div>
@@ -5636,7 +5648,7 @@ function calculateEarlyPayment() {
                 </div>
                 <div class="result-card-footer">
                     <div class="savings-breakdown">
-                        <span>💡 Вы сэкономите ${formatMoney(interestWithout - interestReduceTerm)} на процентах</span>
+                        <span>${svgIcon('info','icon-sm')} Вы сэкономите ${formatMoney(interestWithout - interestReduceTerm)} на процентах</span>
                     </div>
                 </div>
             </div>
@@ -5644,7 +5656,7 @@ function calculateEarlyPayment() {
             <!-- Вариант 2: Уменьшение платежа -->
             <div class="calc-result-card option ${betterOption === 'payment' ? 'recommended' : ''}">
                 <div class="result-card-header">
-                    <span class="result-card-icon">💰</span>
+                    <span class="result-card-icon">${svgIcon('money','icon-sm')}</span>
                     <span class="result-card-title">Уменьшить платёж</span>
                     ${betterOption === 'payment' ? '<span class="badge-recommended">Рекомендуем</span>' : ''}
                 </div>
@@ -5668,14 +5680,14 @@ function calculateEarlyPayment() {
                 </div>
                 <div class="result-card-footer">
                     <div class="savings-breakdown">
-                        <span>💡 Ежемесячно освободится ${formatMoney(paymentReduction)}</span>
+                        <span>${svgIcon('info','icon-sm')} Ежемесячно освободится ${formatMoney(paymentReduction)}</span>
                     </div>
                 </div>
             </div>
             
             <!-- Итоговая рекомендация -->
             <div class="calc-recommendation">
-                <div class="recommendation-icon">${betterOption === 'term' ? '📅' : '💰'}</div>
+                <div class="recommendation-icon">${betterOption === 'term' ? svgIcon('calendar','icon-sm') : svgIcon('money','icon-sm')}</div>
                 <div class="recommendation-text">
                     <strong>Рекомендация:</strong> 
                     ${betterOption === 'term' 
